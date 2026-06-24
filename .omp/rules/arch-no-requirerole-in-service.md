@@ -3,6 +3,7 @@ description: "service handler 一律不得调用 auth.RequireRole — 接口鉴�
 scope: "tool:edit, tool:write"
 globs:
   - "internal/service/**/*.go"
+interruptMode: always
 condition: "RequireRole"
 ---
 

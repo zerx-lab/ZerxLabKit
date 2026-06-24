@@ -67,6 +67,7 @@
 |---|---|
 | `task sync` | 首次设置:装工具/依赖 → 生成代码 → `go mod tidy` → 创建 `.env` → 启动 dev PostgreSQL(`docker compose up -d --wait postgres`) |
 | `task dev` | 启动 dev PostgreSQL(`db:up`,数据存于命名卷 `zerxlabkit_pgdata`)后,在 **process-compose TUI** 中并行跑后端(air 热重载)+ 前端(Vite);前端 `:5173` 代理到后端 `:8080`。TUI:↑/↓ 选择 · F5 重启 · F9 停止 · F7 启动 · F10 退出。process-compose 自身 API 用 `:8088`(避让应用的 `:8080`);退出会连带清理子进程(不会残留占用 `:8080`) |
+| `task new` | 基于本模板创建新项目(改 module / 品牌 / 库名);仓库内 `task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]`;也可 `go install .../cmd/zerxnew@latest` 全局用。模板来源三态:`--from` 指定 / `go run`(devel)用当前目录 / 安装态按 tag clone 到 `~/.ZerxLabKit/<version>`(CLI 与模板同 tag 锁定)。proto 包名 `zerx.v1` 保留;新项目仅需 `go build` |
 | `task gen` | 生成全部代码(proto Go/TS + GORM 查询) |
 | `task build` | 构建 SPA → 本机单二进制(内嵌 SPA),产物 `bin/zerxlabkit[.exe]` |
 | `task build:dist` | 构建 SPA → 静态 `linux/amd64` 二进制 `bin/zerxlabkit-linux-amd64` |

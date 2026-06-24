@@ -2,8 +2,8 @@ import { ConnectError } from "@connectrpc/connect";
 import { createConnectQueryKey, useMutation, useQuery } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { PlusIcon } from "lucide-react";
-import { useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Can } from "@/components/can";
@@ -47,27 +47,84 @@ function errMsg(err: unknown, fallback: string) {
   return err instanceof ConnectError ? err.message : fallback;
 }
 
+const PAGE_SIZE = 8;
+
 interface FlatMenu {
   menu: Menu;
   depth: number;
 }
 
-function flatten(menus: Menu[], depth = 0, out: FlatMenu[] = []): FlatMenu[] {
-  for (const m of menus) {
-    out.push({ menu: m, depth });
-    flatten(m.children, depth + 1, out);
-  }
+// Flatten a single top-level menu subtree (root included) into depth-tagged rows.
+function flattenTree(menu: Menu, depth = 0, out: FlatMenu[] = []): FlatMenu[] {
+  out.push({ menu, depth });
+  for (const child of menu.children) flattenTree(child, depth + 1, out);
   return out;
+}
+
+// True if the menu subtree contains the keyword in any title or path.
+function matchesKeyword(menu: Menu, kw: string): boolean {
+  if (
+    menu.title.toLowerCase().includes(kw) ||
+    menu.path.toLowerCase().includes(kw)
+  ) {
+    return true;
+  }
+  return menu.children.some((c) => matchesKeyword(c, kw));
+}
+
+function MenuActionCells({ menu, invalidate }: { menu: Menu; invalidate: () => void }) {
+  return (
+    <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+      <Can code="menu:update">
+        <MenuButtonsDialog menu={menu} onDone={invalidate} />
+        <MenuDialog mode="edit" menu={menu} onDone={invalidate} />
+      </Can>
+      <Can code="menu:delete">
+        <DeleteMenuDialog menu={menu} onDone={invalidate} />
+      </Can>
+    </div>
+  );
 }
 
 function MenusPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const { data, isPending } = useQuery(listMenus);
-  const rows = flatten(data?.menus ?? []);
+  const topMenus = useMemo(() => data?.menus ?? [], [data]);
+
+  const [keyword, setKeyword] = useState("");
+  const [page, setPage] = useState(1);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: createConnectQueryKey({ schema: listMenus, cardinality: "finite" }) });
+
+  // Filter top-level groups whose subtree matches the keyword.
+  const filtered = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
+    if (!kw) return topMenus;
+    return topMenus.filter((m) => matchesKeyword(m, kw));
+  }, [topMenus, keyword]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageGroups = useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+
+  const groupKeys = pageGroups.map((m) => String(m.id));
+  const resetPage = () => setPage(1);
+  const toggleGroup = (key: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const expandAll = () => setCollapsed(new Set());
+  const collapseAll = () => setCollapsed(new Set(groupKeys));
+  const allCollapsed = groupKeys.length > 0 && groupKeys.every((k) => collapsed.has(k));
 
   return (
     <div className="flex flex-col gap-6">
@@ -81,7 +138,27 @@ function MenusPage() {
         </Can>
       </div>
 
-      <Card className="overflow-hidden py-0">
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          className="max-w-xs"
+          placeholder={t("menuPage.searchPlaceholder")}
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            resetPage();
+          }}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => (allCollapsed ? expandAll() : collapseAll())}
+          disabled={groupKeys.length === 0}
+        >
+          {allCollapsed ? t("menuPage.expandAll") : t("menuPage.collapseAll")}
+        </Button>
+      </div>
+
+      <Card className="gap-0 overflow-hidden py-0">
         <Table>
           <TableHeader className="bg-muted">
             <TableRow>
@@ -100,45 +177,104 @@ function MenusPage() {
                   {t("common.loading")}
                 </TableCell>
               </TableRow>
-            ) : rows.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   {t("common.noData")}
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map(({ menu, depth }) => (
-                <TableRow key={String(menu.id)}>
-                  <TableCell>
-                    <span style={{ paddingLeft: depth * 20 }} className="font-medium">
-                      {t(menu.title)}
-                    </span>
-                    {menu.path === "" ? (
-                      <Badge variant="secondary" className="ml-2">
-                        {t("nav.management")}
-                      </Badge>
-                    ) : null}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{menu.path}</TableCell>
-                  <TableCell className="font-mono text-xs">{menu.icon}</TableCell>
-                  <TableCell>{menu.sort}</TableCell>
-                  <TableCell>{menu.hidden ? t("common.yes") : t("common.no")}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Can code="menu:update">
-                        <MenuButtonsDialog menu={menu} onDone={invalidate} />
-                        <MenuDialog mode="edit" menu={menu} onDone={invalidate} />
-                      </Can>
-                      <Can code="menu:delete">
-                        <DeleteMenuDialog menu={menu} onDone={invalidate} />
-                      </Can>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              pageGroups.map((group) => {
+                const key = String(group.id);
+                const isCollapsed = collapsed.has(key);
+                const rows = flattenTree(group);
+                const childCount = rows.length - 1;
+                return (
+                  <Fragment key={key}>
+                    <TableRow
+                      className="cursor-pointer bg-muted/40 hover:bg-muted/60"
+                      onClick={() => toggleGroup(key)}
+                    >
+                      <TableCell className="py-2.5 font-semibold">
+                        <span className="flex items-center gap-1.5">
+                          {isCollapsed ? (
+                            <ChevronRightIcon className="size-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDownIcon className="size-4 text-muted-foreground" />
+                          )}
+                          {t(group.title)}
+                          {childCount > 0 ? (
+                            <Badge variant="secondary" className="ml-1 font-normal">
+                              {t("menuPage.children", { count: childCount })}
+                            </Badge>
+                          ) : null}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{group.path}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{group.icon}</TableCell>
+                      <TableCell className="text-muted-foreground">{group.sort}</TableCell>
+                      <TableCell>{group.hidden ? t("common.yes") : t("common.no")}</TableCell>
+                      <TableCell className="text-right">
+                        <MenuActionCells menu={group} invalidate={invalidate} />
+                      </TableCell>
+                    </TableRow>
+                    {!isCollapsed &&
+                      rows.slice(1).map(({ menu, depth }) => (
+                        <TableRow key={String(menu.id)}>
+                          <TableCell>
+                            <span className="flex items-center" style={{ paddingLeft: depth * 20 }}>
+                              <span
+                                aria-hidden
+                                className="mr-2 inline-block h-4 w-px bg-border"
+                              />
+                              <span className="font-medium">{t(menu.title)}</span>
+                              {menu.path === "" ? (
+                                <Badge variant="secondary" className="ml-2">
+                                  {t("nav.management")}
+                                </Badge>
+                              ) : null}
+                            </span>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">{menu.path}</TableCell>
+                          <TableCell className="font-mono text-xs">{menu.icon}</TableCell>
+                          <TableCell>{menu.sort}</TableCell>
+                          <TableCell>{menu.hidden ? t("common.yes") : t("common.no")}</TableCell>
+                          <TableCell className="text-right">
+                            <MenuActionCells menu={menu} invalidate={invalidate} />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </Fragment>
+                );
+              })
             )}
           </TableBody>
         </Table>
+
+        <div className="flex items-center justify-between gap-4 border-t px-4 py-3">
+          <p className="text-sm text-muted-foreground">{t("common.total", { count: filtered.length })}</p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              {t("common.previous")}
+            </Button>
+            <span className="text-sm tabular-nums">
+              {t("common.pageOf", { page: safePage, pages: pageCount })}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= pageCount}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t("common.next")}
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );

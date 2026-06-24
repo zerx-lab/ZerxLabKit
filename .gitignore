@@ -16,7 +16,7 @@ internal/web/dist/*
 *.db
 *.db-shm
 *.db-wal
-
+*.exe
 # Environment
 .env
 

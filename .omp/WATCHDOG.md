@@ -3,9 +3,13 @@
 > 这些是正则/ast 抓不住、但违反即出 bug 或破坏安全模型的红线。TTSR 正则规则见 `.omp/rules/`,互补不重复。
 
 ## 鉴权与角色(安全边界)
-- service handler 出现**任何形式内联鉴权**(不限 `RequireRole` 字面量,如手判 `claims.Role`)——授权必须只在 Casbin 拦截器。
+- service handler 的内联角色判断,**三类法**区分(只对第一类报违规):
+  - **(a) 违规——应进 Casbin**:角色判断决定**整个 procedure** 的放行/拒绝、与具体资源无关(可表达为「角色 × procedure」),如 handler 顶部 `if !slices.Contains(claims.Roles, model.RoleAdmin) { return PermissionDenied }`。这类必须删除,授权交 Casbin 拦截器(`sub=角色 code`、`obj=procedure`)。
+  - **(b) 合法——resource ownership / self-serve**:角色判断**叠加资源归属**(owner / UserID / 行谓词),Casbin 的「角色 × procedure」模型结构上无法表达行归属,**必须留在 handler**。范式:`auth_service.go:345/376`(`target != claims.UserID && !slices.Contains(claims.Roles, model.RoleAdmin)`)、`file_service.go:79`(`!...RoleAdmin) && f.UploadedBy != claims.UserID`)。
+  - **(c) 合法——admin 捷径 + 按角色 scope 数据**:admin 全量、非 admin 按角色过滤数据行,如 `file_service.go:43`、`menu_service.go:187/232` 的 `if slices.Contains(claims.Roles, model.RoleAdmin)` 分支。属数据可见性过滤,非接口鉴权,留 handler。
+  - 真实形态是 `claims.Roles []string` + `slices.Contains`(不是单数 `claims.Role`);`RequireRole` 字面量在 handler 内一律违规(双源裁决漂移)。
 - 把 RBAC 管理类 procedure(RoleService/MenuService/ApiService 的写、SetRolePermissions、SyncApis)授予非 admin 角色 = **变相提权**,需明确意图。
-- 角色 `code` 改名 = 破坏事实主键(User.Role / casbin sub / RoleMenu/RoleButton 关联)。内置 `admin`/`user` code 不可改。
+- 角色 `code` 改名 = 破坏事实主键(`User.Roles` / `user_roles` 关联 / casbin sub / RoleMenu/RoleButton 关联)。内置 `admin`/`user` code 不可改。
 - 按钮权限(`<Can code>`)纯前端 UX 显隐,**非安全边界**;真正鉴权在同名 procedure 的 Casbin 策略。
 
 ## 进程内缓存一致性(隐蔽红线)

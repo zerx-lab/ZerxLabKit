@@ -10,6 +10,12 @@ description: "zerxLabKit 接口授权与访问控制。当新增/修改 connectR
 - handler **一律不写** `auth.RequireRole(...)`。授权的**唯一权威**是 Casbin 拦截器(`internal/auth/casbin_interceptor.go`):`sub=角色 code`、`obj=connectRPC procedure`,精确匹配。
 - `auth.RequireRole(ctx, role)` 存在于 `internal/auth/context.go`,但 **handler 禁用**——它会与拦截器双源裁决造成漂移。
 
+## 内联角色判断:三类法(铁律的精确边界)
+「handler 不写授权」指的是**接口级**授权(角色 × procedure 决定整个方法放行/拒绝)。但**资源级**判断必须留 handler——Casbin 模型(sub=角色、obj=procedure)结构上无法表达行归属。区分:
+- **(a) 违规,进 Casbin**:handler 顶部 `if !slices.Contains(claims.Roles, model.RoleAdmin) { return PermissionDenied }`、`RequireRole(...)`——与具体资源无关、整方法放行/拒绝。删除,交拦截器。
+- **(b) 合法,留 handler(ownership / self-serve)**:角色叠加资源归属。范式 `auth_service.go` ListSessions/RevokeSession:`target != claims.UserID && !slices.Contains(claims.Roles, model.RoleAdmin)`;`file_service.go` DeleteFile:`!...RoleAdmin) && f.UploadedBy != claims.UserID`。
+- **(c) 合法,留 handler(admin 捷径 + 按角色 scope 数据)**:admin 全量、非 admin 过滤数据行。范式 `file_service.go` ListFiles 的 `visibility IN ? OR uploaded_by = ?`、`menu_service.go` GetUserMenus/GetUserButtons 的 admin 分支。属数据可见性,非接口鉴权。
+
 ## 三层访问控制(顺序固定)
 裁决顺序(`casbin_interceptor.go` 决策链):
 ```

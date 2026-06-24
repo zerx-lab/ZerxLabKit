@@ -45,5 +45,26 @@
     ],
     "regex": "(^|[^a-zA-Z])fetch\\([\"'`]/api",
     "message": "前端禁止裸 fetch 调后端 /api:绕过 transport.ts 的 401 single-flight 刷新。connectRPC 用 connect-query hook;非 RPC 端点(上传/导入导出)用 authedFetch(\"@/lib/transport\")。参考 files.tsx / users.tsx。"
+  },
+  {
+    "name": "arch-no-react-hook-form",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["web/src/routes/**/*.tsx", "web/src/components/**/*.tsx"],
+    "regex": "from [\"'`]react-hook-form[\"'`]|from [\"'`]@/components/ui/form[\"'`]",
+    "message": "前端表单一律用 @tanstack/react-form:禁止 react-hook-form 或 shadcn 的 @/components/ui/form。useForm 来自 @tanstack/react-form,校验用 validators:{onChange:<zodSchema>}。参考 users.tsx / login.tsx。"
+  },
+  {
+    "name": "arch-zod-v4-email",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["web/src/**/*.tsx", "web/src/**/*.ts"],
+    "regex": "z\\.string\\(\\)\\.email\\(",
+    "message": "Zod 4:邮箱校验用顶层 z.email(message?),禁止 v3 式 z.string().email()。同理 z.url()/z.uuid()。参考 users.tsx。"
+  },
+  {
+    "name": "arch-no-cgo",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["internal/**/*.go", "cmd/**/*.go"],
+    "regex": "import \"C\"",
+    "message": "纯 Go / CGO_ENABLED=0:禁止 import \"C\"(cgo),否则破坏全静态二进制与 distroless 镜像、令 build:dist 交叉编译失败。改用纯 Go 实现;新增依赖须无 cgo。"
   }
 ]

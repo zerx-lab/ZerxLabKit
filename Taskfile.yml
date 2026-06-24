@@ -81,3 +81,8 @@ tasks:
     desc: Run the built server binary (requires JWT_SECRET; .env suffices in dev)
     cmds:
       - "{{.BIN}}"
+
+  new:
+    desc: 'Scaffold a new project from this template (rename module/brand/db). Usage: task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]'
+    cmds:
+      - go run ./cmd/zerxnew {{.CLI_ARGS}} --from {{.ROOT_DIR}}
