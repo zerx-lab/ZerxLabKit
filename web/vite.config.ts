@@ -19,8 +19,9 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy API calls to the Go backend during development.
-      "/api": { target: "http://localhost:8080", changeOrigin: true },
+      // Proxy backend calls during development. Keep the trailing slash so
+      // SPA routes like "/apis" are NOT swallowed by a bare "/api" prefix.
+      "/api/": { target: "http://localhost:8080", changeOrigin: true },
     },
   },
   build: {
