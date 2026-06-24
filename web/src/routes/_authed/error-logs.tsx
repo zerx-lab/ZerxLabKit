@@ -2,11 +2,12 @@ import { ConnectError } from "@connectrpc/connect";
 import { createConnectQueryKey, useMutation, useQuery } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { TrashIcon } from "lucide-react";
+import { DownloadIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Can } from "@/components/can";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -20,6 +21,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,15 +40,16 @@ import { cleanLogs, listErrorLogs } from "@/gen/zerx/v1/log-LogService_connectqu
 import { LogType } from "@/gen/zerx/v1/log_pb";
 import { useI18n } from "@/lib/i18n";
 import { usePermissions } from "@/lib/permissions";
+import { authedFetch } from "@/lib/transport";
 
 export const Route = createFileRoute("/_authed/error-logs")({ component: ErrorLogsPage });
 
 const PAGE_SIZE = 10;
 
 function useInvalidate() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return () =>
-    qc.invalidateQueries({
+    queryClient.invalidateQueries({
       queryKey: createConnectQueryKey({ schema: listErrorLogs, cardinality: "finite" }),
     });
 }
@@ -49,17 +58,46 @@ function errMsg(err: unknown, fallback: string) {
   return err instanceof ConnectError ? err.message : fallback;
 }
 
+function toStartRFC3339(date: string) {
+  if (!date) return "";
+  return new Date(date + "T00:00:00").toISOString();
+}
+
+function toEndRFC3339(date: string) {
+  if (!date) return "";
+  return new Date(date + "T23:59:59").toISOString();
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function ErrorLogsPage() {
   const { t } = useI18n();
-  const { role } = usePermissions();
+  const { roles } = usePermissions();
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [methodFilter, setMethodFilter] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  const { data, isPending } = useQuery(listErrorLogs, {
+  const queryInput = {
     page: { page, pageSize: PAGE_SIZE },
     keyword,
-  });
+    status: statusFilter,
+    method: methodFilter,
+    startAt: toStartRFC3339(startDate),
+    endAt: toEndRFC3339(endDate),
+  };
+
+  const { data, isPending } = useQuery(listErrorLogs, queryInput);
 
   const logs = data?.logs ?? [];
   const total = Number(data?.total ?? 0n);
@@ -70,6 +108,20 @@ function ErrorLogsPage() {
     setPage(1);
   };
 
+  const handleExport = async () => {
+    toast.info(t("logPage.exportToast"));
+    const params = new URLSearchParams();
+    if (keyword) params.set("keyword", keyword);
+    if (statusFilter) params.set("status", statusFilter);
+    if (methodFilter) params.set("method", methodFilter);
+    if (startDate) params.set("start_at", toStartRFC3339(startDate));
+    if (endDate) params.set("end_at", toEndRFC3339(endDate));
+    const res = await authedFetch(`/api/export/error-logs?${params.toString()}`);
+    if (!res.ok) { toast.error("Export failed"); return; }
+    const blob = await res.blob();
+    downloadBlob(blob, "error-logs.xlsx");
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
@@ -78,6 +130,19 @@ function ErrorLogsPage() {
           <p className="text-sm text-muted-foreground">{t("logPage.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Can code="error-log:export">
+            <Button variant="outline" size="sm" onClick={() => void handleExport()}>
+              <DownloadIcon className="size-4" />
+              {t("common.export")}
+            </Button>
+          </Can>
+          {roles.includes("admin") && <CleanLogsDialog />}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-2">
           <Input
             placeholder={t("logPage.searchPlaceholder")}
             value={searchInput}
@@ -85,10 +150,49 @@ function ErrorLogsPage() {
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="w-56"
           />
-          <Button variant="outline" onClick={handleSearch}>
+          <Button variant="outline" size="sm" onClick={handleSearch}>
             {t("common.search")}
           </Button>
-          {role === "admin" && <CleanLogsDialog />}
+        </div>
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => { setStatusFilter(v === "_all" ? "" : v); setPage(1); }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder={t("logPage.allStatuses")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">{t("logPage.allStatuses")}</SelectItem>
+            <SelectItem value="permission_denied">permission_denied</SelectItem>
+            <SelectItem value="unauthenticated">unauthenticated</SelectItem>
+            <SelectItem value="invalid_argument">invalid_argument</SelectItem>
+            <SelectItem value="not_found">not_found</SelectItem>
+            <SelectItem value="internal">internal</SelectItem>
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder={t("logPage.methodPlaceholder")}
+          value={methodFilter}
+          onChange={(e) => { setMethodFilter(e.target.value); setPage(1); }}
+          className="w-32"
+        />
+        <div className="flex items-center gap-1">
+          <Label className="text-sm text-muted-foreground whitespace-nowrap">{t("logPage.filterStartDate")}</Label>
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+            className="w-36"
+          />
+        </div>
+        <div className="flex items-center gap-1">
+          <Label className="text-sm text-muted-foreground whitespace-nowrap">{t("logPage.filterEndDate")}</Label>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+            className="w-36"
+          />
         </div>
       </div>
 
@@ -196,8 +300,8 @@ function CleanLogsDialog() {
 
   const handleClean = async () => {
     try {
-      const result = await mut.mutateAsync({ type: LogType.OPERATION, days });
-      toast.success(t("logPage.cleanedToast", { count: String(result.removed) }));
+      const res = await mut.mutateAsync({ type: LogType.OPERATION, days });
+      toast.success(t("logPage.cleanedToast", { count: Number(res.removed) }));
       await invalidate();
       setOpen(false);
     } catch (err) {
@@ -208,7 +312,7 @@ function CleanLogsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
+        <Button variant="outline">
           <TrashIcon className="size-4" />
           {t("logPage.clean")}
         </Button>
@@ -216,19 +320,17 @@ function CleanLogsDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("logPage.clean")}</DialogTitle>
-          <DialogDescription>{t("logPage.errorTitle")}</DialogDescription>
+          <DialogDescription>{t("logPage.subtitle")}</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="clean-days">{t("logPage.cleanDays")}</Label>
-            <Input
-              id="clean-days"
-              type="number"
-              min={1}
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-            />
-          </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="days-error">{t("logPage.cleanDays")}</Label>
+          <Input
+            id="days-error"
+            type="number"
+            min={1}
+            value={days}
+            onChange={(e) => setDays(Number(e.target.value))}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>

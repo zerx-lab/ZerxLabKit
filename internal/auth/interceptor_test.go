@@ -10,7 +10,7 @@ import (
 
 func TestResolveClaims(t *testing.T) {
 	issuer := newIssuer("s", time.Minute, time.Hour)
-	tok, err := issuer.IssueAccess(5, "user")
+	tok, err := issuer.IssueAccess(5, []string{"user"})
 	if err != nil {
 		t.Fatalf("IssueAccess: %v", err)
 	}
@@ -54,12 +54,12 @@ func TestRequireRole(t *testing.T) {
 		t.Errorf("no claims: code = %v, want PermissionDenied", connect.CodeOf(err))
 	}
 
-	userCtx := WithClaims(context.Background(), &Claims{Role: "user"})
+	userCtx := WithClaims(context.Background(), &Claims{Roles: []string{"user"}})
 	if err := RequireRole(userCtx, "admin"); connect.CodeOf(err) != connect.CodePermissionDenied {
 		t.Errorf("user role: code = %v, want PermissionDenied", connect.CodeOf(err))
 	}
 
-	adminCtx := WithClaims(context.Background(), &Claims{Role: "admin"})
+	adminCtx := WithClaims(context.Background(), &Claims{Roles: []string{"admin"}})
 	if err := RequireRole(adminCtx, "admin"); err != nil {
 		t.Errorf("admin role: %v, want nil", err)
 	}

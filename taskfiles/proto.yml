@@ -13,3 +13,8 @@ tasks:
       - buf generate
       # TS: messages + connect-query hooks, including the protovalidate descriptor
       - buf generate --template buf.gen.web.yaml --include-imports
+      # Copy the OpenAPI spec into the server package for go:embed
+      - cmd: cp gen/openapi/openapi.yaml internal/server/openapi.yaml
+        platforms: [linux, darwin]
+      - cmd: powershell -Command "Copy-Item gen/openapi/openapi.yaml internal/server/openapi.yaml -Force"
+        platforms: [windows]

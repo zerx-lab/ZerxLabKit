@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// JobService manages cron-scheduled jobs. Authorization is enforced by the
+// Casbin interceptor (admin bypasses); handlers carry no role checks.
+service JobService {
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+  rpc CreateJob(CreateJobRequest) returns (Job);
+  rpc UpdateJob(UpdateJobRequest) returns (Job);
+  rpc DeleteJob(DeleteJobRequest) returns (DeleteJobResponse);
+  rpc RunJobNow(RunJobNowRequest) returns (RunJobNowResponse);
+  rpc ListJobExecutions(ListJobExecutionsRequest) returns (ListJobExecutionsResponse);
+  rpc ListHandlers(ListHandlersRequest) returns (ListHandlersResponse);
+}
+
+message Job {
+  uint64 id = 1;
+  string name = 2;
+  string handler = 3;
+  string cron_expr = 4;
+  bool enabled = 5;
+  string description = 6;
+  string last_run_at = 7;
+  string created_at = 8;
+}
+
+message JobExecution {
+  uint64 id = 1;
+  uint64 job_id = 2;
+  string started_at = 3;
+  string finished_at = 4;
+  string status = 5;
+  string error = 6;
+  int64 duration_ms = 7;
+}
+
+message JobHandler {
+  string key = 1;
+  string description = 2;
+}
+
+message ListJobsRequest {
+  zerx.v1.PageRequest page = 1;
+}
+
+message ListJobsResponse {
+  repeated Job jobs = 1;
+  int64 total = 2;
+}
+
+message CreateJobRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  string handler = 2 [(buf.validate.field).string.min_len = 1];
+  string cron_expr = 3 [(buf.validate.field).string.min_len = 1];
+  bool enabled = 4;
+  string description = 5;
+}
+
+message UpdateJobRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string handler = 3 [(buf.validate.field).string.min_len = 1];
+  string cron_expr = 4 [(buf.validate.field).string.min_len = 1];
+  bool enabled = 5;
+  string description = 6;
+}
+
+message DeleteJobRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteJobResponse {}
+
+message RunJobNowRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message RunJobNowResponse {}
+
+message ListJobExecutionsRequest {
+  uint64 job_id = 1 [(buf.validate.field).uint64.gt = 0];
+  zerx.v1.PageRequest page = 2;
+}
+
+message ListJobExecutionsResponse {
+  repeated JobExecution executions = 1;
+  int64 total = 2;
+}
+
+message ListHandlersRequest {}
+
+message ListHandlersResponse {
+  repeated JobHandler handlers = 1;
+}

@@ -11,7 +11,7 @@ web/dist/
 # Embedded frontend build output (keep placeholder)
 internal/web/dist/*
 !internal/web/dist/.gitkeep
-
+/data
 # Databases
 *.db
 *.db-shm

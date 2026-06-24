@@ -12,17 +12,18 @@ import (
 
 // toProtoUser maps a data-layer user to its public proto representation
 // (password hash intentionally omitted).
-func toProtoUser(u model.User) *zerxv1.User {
+func toProtoUser(u model.User, roles []string, totpEnabled bool) *zerxv1.User {
 	return &zerxv1.User{
-		Id:        u.ID,
-		Email:     u.Email,
-		Name:      u.Name,
-		Role:      u.Role,
-		CreatedAt: u.CreatedAt.Format(time.RFC3339),
-		Nickname:  u.Nickname,
-		Avatar:    u.Avatar,
-		Phone:     u.Phone,
-		Status:    u.Status,
+		Id:          u.ID,
+		Email:       u.Email,
+		Name:        u.Name,
+		Roles:       roles,
+		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
+		Nickname:    u.Nickname,
+		Avatar:      u.Avatar,
+		Phone:       u.Phone,
+		Status:      u.Status,
+		TotpEnabled: totpEnabled,
 	}
 }
 
@@ -183,6 +184,7 @@ func toProtoOperationLog(o model.OperationLog) *zerxv1.OperationLog {
 		Error:     o.Error,
 		Stack:     o.Stack,
 		CreatedAt: o.CreatedAt.Format(time.RFC3339),
+		Detail:    o.Detail,
 	}
 }
 

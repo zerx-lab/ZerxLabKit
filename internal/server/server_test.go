@@ -34,8 +34,9 @@ func TestNewRegistersAllServices(t *testing.T) {
 	cfg.JWT.Secret = "test"
 	cfg.Storage = config.StorageConfig{Driver: "local", LocalDir: t.TempDir(), LocalBaseURL: "/uploads"}
 	cfg.Auth = config.AuthConfig{CaptchaThreshold: 2, LockThreshold: 5, LockFor: time.Minute}
+	cfg.RateLimit = config.RateLimitConfig{Enabled: false, RPS: 20, Burst: 40, TTL: 10 * time.Minute}
 
-	handler, err := New(cfg, db, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	handler, err := New(cfg, db, slog.New(slog.NewTextHandler(io.Discard, nil)), nil)
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}

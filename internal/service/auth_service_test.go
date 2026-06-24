@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -12,7 +13,9 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/config"
+	"github.com/zerx-lab/zerxlabkit/internal/mailer"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
+	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
 )
 
@@ -20,7 +23,11 @@ func newAuthService(t *testing.T, db *gorm.DB, cfg config.AuthConfig) *AuthServi
 	t.Helper()
 	issuer := auth.NewIssuer(config.JWTConfig{Secret: "test-secret", AccessTTL: 15 * time.Minute, RefreshTTL: time.Hour})
 	guard := ratelimit.New(cfg.CaptchaThreshold, cfg.LockThreshold, cfg.LockFor)
-	return NewAuthService(db, issuer, guard, captcha.New(), cfg)
+	policy := auth.NewPolicy(config.PasswordPolicyConfig{MinLength: 8, HistoryCount: 3})
+	m := mailer.NewMailer(config.SMTPConfig{}, slog.Default())
+	paramCache := param.New(db)
+	_ = paramCache.Load(context.Background())
+	return NewAuthService(db, issuer, guard, captcha.New(), cfg, m, policy, paramCache)
 }
 
 func seedUser(t *testing.T, db *gorm.DB, email, password, role string) {
@@ -29,8 +36,14 @@ func seedUser(t *testing.T, db *gorm.DB, email, password, role string) {
 	if err != nil {
 		t.Fatalf("hash: %v", err)
 	}
-	if err := db.Create(&model.User{Email: email, Name: "U", PasswordHash: hash, Role: role, Status: true}).Error; err != nil {
+	u := model.User{Email: email, Name: "U", PasswordHash: hash, Status: true}
+	if err := db.Create(&u).Error; err != nil {
 		t.Fatalf("create user: %v", err)
+	}
+	if role != "" {
+		if err := db.Create(&model.UserRole{UserID: u.ID, RoleCode: role}).Error; err != nil {
+			t.Fatalf("create user_role: %v", err)
+		}
 	}
 }
 

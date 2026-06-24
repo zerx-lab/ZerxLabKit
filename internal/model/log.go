@@ -17,6 +17,7 @@ type OperationLog struct {
 	Status    string `gorm:"index"`
 	Error     string `gorm:"type:text"`
 	Stack     string `gorm:"type:text"`
+	Detail    string `gorm:"type:text"`
 }
 
 // LoginLog is an append-only record of a login attempt.

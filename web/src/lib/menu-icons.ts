@@ -1,5 +1,6 @@
 import {
   BookIcon,
+  ClockIcon,
   CircleIcon,
   FolderIcon,
   GlobeIcon,
@@ -14,6 +15,7 @@ import {
   ShieldIcon,
   SlidersHorizontalIcon,
   TriangleAlertIcon,
+  UserIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -34,6 +36,8 @@ export const iconByName: Record<string, LucideIcon> = {
   ScrollTextIcon,
   LogInIcon,
   TriangleAlertIcon,
+  ClockIcon,
+  UserIcon,
 };
 
 export function menuIcon(name: string): LucideIcon {

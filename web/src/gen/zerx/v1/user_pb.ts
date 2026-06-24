@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file zerx/v1/user.proto.
  */
 export const file_zerx_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("ChJ6ZXJ4L3YxL3VzZXIucHJvdG8SB3plcngudjEikgEKBFVzZXISCgoCaWQYASABKAQSDQoFZW1haWwYAiABKAkSDAoEbmFtZRgDIAEoCRIMCgRyb2xlGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAkSEAoIbmlja25hbWUYBiABKAkSDgoGYXZhdGFyGAcgASgJEg0KBXBob25lGAggASgJEg4KBnN0YXR1cxgJIAEoCCJHChBMaXN0VXNlcnNSZXF1ZXN0EiIKBHBhZ2UYASABKAsyFC56ZXJ4LnYxLlBhZ2VSZXF1ZXN0Eg8KB2tleXdvcmQYAiABKAkiQAoRTGlzdFVzZXJzUmVzcG9uc2USHAoFdXNlcnMYASADKAsyDS56ZXJ4LnYxLlVzZXISDQoFdG90YWwYAiABKAMiJQoOR2V0VXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAAiqAEKEUNyZWF0ZVVzZXJSZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhUKBG5hbWUYAiABKAlCB7pIBHICEAESGQoIcGFzc3dvcmQYAyABKAlCB7pIBHICEAgSKAoEcm9sZRgEIAEoCUIaukgXchUQATIRXlthLXpdW2EtejAtOV9dKiQSEAoIbmlja25hbWUYBSABKAkSDQoFcGhvbmUYBiABKAkikQEKEVVwZGF0ZVVzZXJSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAEgwKBG5hbWUYAiABKAkSKAoEcm9sZRgDIAEoCUIaukgXchUQATIRXlthLXpdW2EtejAtOV9dKiQSEAoIbmlja25hbWUYBCABKAkSDQoFcGhvbmUYBSABKAkSDgoGc3RhdHVzGAYgASgIIigKEURlbGV0ZVVzZXJSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAIhQKEkRlbGV0ZVVzZXJSZXNwb25zZSJGChRSZXNldFBhc3N3b3JkUmVxdWVzdBITCgJpZBgBIAEoBEIHukgEMgIgABIZCghwYXNzd29yZBgCIAEoCUIHukgEcgIQCCIXChVSZXNldFBhc3N3b3JkUmVzcG9uc2UyjQMKC1VzZXJTZXJ2aWNlEkIKCUxpc3RVc2VycxIZLnplcngudjEuTGlzdFVzZXJzUmVxdWVzdBoaLnplcngudjEuTGlzdFVzZXJzUmVzcG9uc2USMQoHR2V0VXNlchIXLnplcngudjEuR2V0VXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISNwoKQ3JlYXRlVXNlchIaLnplcngudjEuQ3JlYXRlVXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISNwoKVXBkYXRlVXNlchIaLnplcngudjEuVXBkYXRlVXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISRQoKRGVsZXRlVXNlchIaLnplcngudjEuRGVsZXRlVXNlclJlcXVlc3QaGy56ZXJ4LnYxLkRlbGV0ZVVzZXJSZXNwb25zZRJOCg1SZXNldFBhc3N3b3JkEh0uemVyeC52MS5SZXNldFBhc3N3b3JkUmVxdWVzdBoeLnplcngudjEuUmVzZXRQYXNzd29yZFJlc3BvbnNlQjZaNGdpdGh1Yi5jb20vemVyeC1sYWIvemVyeGxhYmtpdC9nZW4vZ28vemVyeC92MTt6ZXJ4djFiBnByb3RvMw", [file_buf_validate_validate, file_zerx_v1_common]);
+  fileDesc("ChJ6ZXJ4L3YxL3VzZXIucHJvdG8SB3plcngudjEiqQEKBFVzZXISCgoCaWQYASABKAQSDQoFZW1haWwYAiABKAkSDAoEbmFtZRgDIAEoCRINCgVyb2xlcxgEIAMoCRISCgpjcmVhdGVkX2F0GAUgASgJEhAKCG5pY2tuYW1lGAYgASgJEg4KBmF2YXRhchgHIAEoCRINCgVwaG9uZRgIIAEoCRIOCgZzdGF0dXMYCSABKAgSFAoMdG90cF9lbmFibGVkGAogASgIIkcKEExpc3RVc2Vyc1JlcXVlc3QSIgoEcGFnZRgBIAEoCzIULnplcngudjEuUGFnZVJlcXVlc3QSDwoHa2V5d29yZBgCIAEoCSJAChFMaXN0VXNlcnNSZXNwb25zZRIcCgV1c2VycxgBIAMoCzINLnplcngudjEuVXNlchINCgV0b3RhbBgCIAEoAyIlCg5HZXRVc2VyUmVxdWVzdBITCgJpZBgBIAEoBEIHukgEMgIgACKuAQoRQ3JlYXRlVXNlclJlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESFQoEbmFtZRgCIAEoCUIHukgEcgIQARIZCghwYXNzd29yZBgDIAEoCUIHukgEcgIQCBIuCgVyb2xlcxgEIAMoCUIfukgckgEZCAEiFXITMhFeW2Etel1bYS16MC05X10qJBIQCghuaWNrbmFtZRgFIAEoCRINCgVwaG9uZRgGIAEoCSKXAQoRVXBkYXRlVXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAASDAoEbmFtZRgCIAEoCRIuCgVyb2xlcxgDIAMoCUIfukgckgEZCAEiFXITMhFeW2Etel1bYS16MC05X10qJBIQCghuaWNrbmFtZRgEIAEoCRINCgVwaG9uZRgFIAEoCRIOCgZzdGF0dXMYBiABKAgiKAoRRGVsZXRlVXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAAiFAoSRGVsZXRlVXNlclJlc3BvbnNlIkYKFFJlc2V0UGFzc3dvcmRSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAIIhcKFVJlc2V0UGFzc3dvcmRSZXNwb25zZSItChZEaXNhYmxlVXNlclRvdHBSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAIhkKF0Rpc2FibGVVc2VyVG90cFJlc3BvbnNlMuMDCgtVc2VyU2VydmljZRJCCglMaXN0VXNlcnMSGS56ZXJ4LnYxLkxpc3RVc2Vyc1JlcXVlc3QaGi56ZXJ4LnYxLkxpc3RVc2Vyc1Jlc3BvbnNlEjEKB0dldFVzZXISFy56ZXJ4LnYxLkdldFVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEjcKCkNyZWF0ZVVzZXISGi56ZXJ4LnYxLkNyZWF0ZVVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEjcKClVwZGF0ZVVzZXISGi56ZXJ4LnYxLlVwZGF0ZVVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEkUKCkRlbGV0ZVVzZXISGi56ZXJ4LnYxLkRlbGV0ZVVzZXJSZXF1ZXN0GhsuemVyeC52MS5EZWxldGVVc2VyUmVzcG9uc2USTgoNUmVzZXRQYXNzd29yZBIdLnplcngudjEuUmVzZXRQYXNzd29yZFJlcXVlc3QaHi56ZXJ4LnYxLlJlc2V0UGFzc3dvcmRSZXNwb25zZRJUCg9EaXNhYmxlVXNlclRvdHASHy56ZXJ4LnYxLkRpc2FibGVVc2VyVG90cFJlcXVlc3QaIC56ZXJ4LnYxLkRpc2FibGVVc2VyVG90cFJlc3BvbnNlQjZaNGdpdGh1Yi5jb20vemVyeC1sYWIvemVyeGxhYmtpdC9nZW4vZ28vemVyeC92MTt6ZXJ4djFiBnByb3RvMw", [file_buf_validate_validate, file_zerx_v1_common]);
 
 /**
  * User is the public representation of an account (no password hash).
@@ -37,9 +37,9 @@ export type User = Message<"zerx.v1.User"> & {
   name: string;
 
   /**
-   * @generated from field: string role = 4;
+   * @generated from field: repeated string roles = 4;
    */
-  role: string;
+  roles: string[];
 
   /**
    * created_at is RFC3339 formatted.
@@ -67,6 +67,11 @@ export type User = Message<"zerx.v1.User"> & {
    * @generated from field: bool status = 9;
    */
   status: boolean;
+
+  /**
+   * @generated from field: bool totp_enabled = 10;
+   */
+  totpEnabled: boolean;
 };
 
 /**
@@ -157,9 +162,9 @@ export type CreateUserRequest = Message<"zerx.v1.CreateUserRequest"> & {
   password: string;
 
   /**
-   * @generated from field: string role = 4;
+   * @generated from field: repeated string roles = 4;
    */
-  role: string;
+  roles: string[];
 
   /**
    * @generated from field: string nickname = 5;
@@ -194,9 +199,9 @@ export type UpdateUserRequest = Message<"zerx.v1.UpdateUserRequest"> & {
   name: string;
 
   /**
-   * @generated from field: string role = 3;
+   * @generated from field: repeated string roles = 3;
    */
-  role: string;
+  roles: string[];
 
   /**
    * @generated from field: string nickname = 4;
@@ -287,6 +292,36 @@ export const ResetPasswordResponseSchema: GenMessage<ResetPasswordResponse> = /*
   messageDesc(file_zerx_v1_user, 9);
 
 /**
+ * @generated from message zerx.v1.DisableUserTotpRequest
+ */
+export type DisableUserTotpRequest = Message<"zerx.v1.DisableUserTotpRequest"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+};
+
+/**
+ * Describes the message zerx.v1.DisableUserTotpRequest.
+ * Use `create(DisableUserTotpRequestSchema)` to create a new message.
+ */
+export const DisableUserTotpRequestSchema: GenMessage<DisableUserTotpRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_user, 10);
+
+/**
+ * @generated from message zerx.v1.DisableUserTotpResponse
+ */
+export type DisableUserTotpResponse = Message<"zerx.v1.DisableUserTotpResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.DisableUserTotpResponse.
+ * Use `create(DisableUserTotpResponseSchema)` to create a new message.
+ */
+export const DisableUserTotpResponseSchema: GenMessage<DisableUserTotpResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_user, 11);
+
+/**
  * UserService manages user accounts. Authorization is enforced by the Casbin
  * interceptor (admin bypasses); handlers carry no role checks.
  *
@@ -342,6 +377,16 @@ export const UserService: GenService<{
     methodKind: "unary";
     input: typeof ResetPasswordRequestSchema;
     output: typeof ResetPasswordResponseSchema;
+  },
+  /**
+   * DisableUserTotp force-disables a user's 2FA (admin/RBAC-gated).
+   *
+   * @generated from rpc zerx.v1.UserService.DisableUserTotp
+   */
+  disableUserTotp: {
+    methodKind: "unary";
+    input: typeof DisableUserTotpRequestSchema;
+    output: typeof DisableUserTotpResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_zerx_v1_user, 0);

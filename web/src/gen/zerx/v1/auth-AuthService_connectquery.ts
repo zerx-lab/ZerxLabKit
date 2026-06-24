@@ -51,3 +51,52 @@ export const listSessions = AuthService.method.listSessions;
  * @generated from rpc zerx.v1.AuthService.RevokeSession
  */
 export const revokeSession = AuthService.method.revokeSession;
+
+/**
+ * ChangePassword changes the caller's own password (self-serve).
+ *
+ * @generated from rpc zerx.v1.AuthService.ChangePassword
+ */
+export const changePassword = AuthService.method.changePassword;
+
+/**
+ * UpdateProfile updates the caller's own profile fields (self-serve).
+ *
+ * @generated from rpc zerx.v1.AuthService.UpdateProfile
+ */
+export const updateProfile = AuthService.method.updateProfile;
+
+/**
+ * RequestPasswordReset emails a reset link (public; no enumeration).
+ *
+ * @generated from rpc zerx.v1.AuthService.RequestPasswordReset
+ */
+export const requestPasswordReset = AuthService.method.requestPasswordReset;
+
+/**
+ * ConfirmPasswordReset sets a new password using an emailed token (public).
+ *
+ * @generated from rpc zerx.v1.AuthService.ConfirmPasswordReset
+ */
+export const confirmPasswordReset = AuthService.method.confirmPasswordReset;
+
+/**
+ * SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+ *
+ * @generated from rpc zerx.v1.AuthService.SetupTotp
+ */
+export const setupTotp = AuthService.method.setupTotp;
+
+/**
+ * ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+ *
+ * @generated from rpc zerx.v1.AuthService.ActivateTotp
+ */
+export const activateTotp = AuthService.method.activateTotp;
+
+/**
+ * DisableTotp turns off the caller's 2FA (self-serve).
+ *
+ * @generated from rpc zerx.v1.AuthService.DisableTotp
+ */
+export const disableTotp = AuthService.method.disableTotp;

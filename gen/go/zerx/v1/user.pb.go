@@ -28,13 +28,14 @@ type User struct {
 	Id    uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Name  string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Role  string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Roles []string               `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
 	// created_at is RFC3339 formatted.
 	CreatedAt     string `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Nickname      string `protobuf:"bytes,6,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	Avatar        string `protobuf:"bytes,7,opt,name=avatar,proto3" json:"avatar,omitempty"`
 	Phone         string `protobuf:"bytes,8,opt,name=phone,proto3" json:"phone,omitempty"`
 	Status        bool   `protobuf:"varint,9,opt,name=status,proto3" json:"status,omitempty"`
+	TotpEnabled   bool   `protobuf:"varint,10,opt,name=totp_enabled,json=totpEnabled,proto3" json:"totp_enabled,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -90,11 +91,11 @@ func (x *User) GetName() string {
 	return ""
 }
 
-func (x *User) GetRole() string {
+func (x *User) GetRoles() []string {
 	if x != nil {
-		return x.Role
+		return x.Roles
 	}
-	return ""
+	return nil
 }
 
 func (x *User) GetCreatedAt() string {
@@ -128,6 +129,13 @@ func (x *User) GetPhone() string {
 func (x *User) GetStatus() bool {
 	if x != nil {
 		return x.Status
+	}
+	return false
+}
+
+func (x *User) GetTotpEnabled() bool {
+	if x != nil {
+		return x.TotpEnabled
 	}
 	return false
 }
@@ -285,7 +293,7 @@ type CreateUserRequest struct {
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
-	Role          string                 `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	Roles         []string               `protobuf:"bytes,4,rep,name=roles,proto3" json:"roles,omitempty"`
 	Nickname      string                 `protobuf:"bytes,5,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	Phone         string                 `protobuf:"bytes,6,opt,name=phone,proto3" json:"phone,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -343,11 +351,11 @@ func (x *CreateUserRequest) GetPassword() string {
 	return ""
 }
 
-func (x *CreateUserRequest) GetRole() string {
+func (x *CreateUserRequest) GetRoles() []string {
 	if x != nil {
-		return x.Role
+		return x.Roles
 	}
-	return ""
+	return nil
 }
 
 func (x *CreateUserRequest) GetNickname() string {
@@ -368,7 +376,7 @@ type UpdateUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	Roles         []string               `protobuf:"bytes,3,rep,name=roles,proto3" json:"roles,omitempty"`
 	Nickname      string                 `protobuf:"bytes,4,opt,name=nickname,proto3" json:"nickname,omitempty"`
 	Phone         string                 `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
 	Status        bool                   `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`
@@ -420,11 +428,11 @@ func (x *UpdateUserRequest) GetName() string {
 	return ""
 }
 
-func (x *UpdateUserRequest) GetRole() string {
+func (x *UpdateUserRequest) GetRoles() []string {
 	if x != nil {
-		return x.Role
+		return x.Roles
 	}
-	return ""
+	return nil
 }
 
 func (x *UpdateUserRequest) GetNickname() string {
@@ -616,22 +624,104 @@ func (*ResetPasswordResponse) Descriptor() ([]byte, []int) {
 	return file_zerx_v1_user_proto_rawDescGZIP(), []int{9}
 }
 
+type DisableUserTotpRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisableUserTotpRequest) Reset() {
+	*x = DisableUserTotpRequest{}
+	mi := &file_zerx_v1_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableUserTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableUserTotpRequest) ProtoMessage() {}
+
+func (x *DisableUserTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableUserTotpRequest.ProtoReflect.Descriptor instead.
+func (*DisableUserTotpRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DisableUserTotpRequest) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type DisableUserTotpResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisableUserTotpResponse) Reset() {
+	*x = DisableUserTotpResponse{}
+	mi := &file_zerx_v1_user_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisableUserTotpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisableUserTotpResponse) ProtoMessage() {}
+
+func (x *DisableUserTotpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_user_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisableUserTotpResponse.ProtoReflect.Descriptor instead.
+func (*DisableUserTotpResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_user_proto_rawDescGZIP(), []int{11}
+}
+
 var File_zerx_v1_user_proto protoreflect.FileDescriptor
 
 const file_zerx_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12zerx/v1/user.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xd5\x01\n" +
+	"\x12zerx/v1/user.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xfa\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
-	"\x04role\x18\x04 \x01(\tR\x04role\x12\x1d\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x05roles\x18\x04 \x03(\tR\x05roles\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1a\n" +
 	"\bnickname\x18\x06 \x01(\tR\bnickname\x12\x16\n" +
 	"\x06avatar\x18\a \x01(\tR\x06avatar\x12\x14\n" +
 	"\x05phone\x18\b \x01(\tR\x05phone\x12\x16\n" +
-	"\x06status\x18\t \x01(\bR\x06status\"V\n" +
+	"\x06status\x18\t \x01(\bR\x06status\x12!\n" +
+	"\ftotp_enabled\x18\n" +
+	" \x01(\bR\vtotpEnabled\"V\n" +
 	"\x10ListUsersRequest\x12(\n" +
 	"\x04page\x18\x01 \x01(\v2\x14.zerx.v1.PageRequestR\x04page\x12\x18\n" +
 	"\akeyword\x18\x02 \x01(\tR\akeyword\"N\n" +
@@ -639,18 +729,18 @@ const file_zerx_v1_user_proto_rawDesc = "" +
 	"\x05users\x18\x01 \x03(\v2\r.zerx.v1.UserR\x05users\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\")\n" +
 	"\x0eGetUserRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\x04B\a\xbaH\x042\x02 \x00R\x02id\"\xd6\x01\n" +
+	"\x02id\x18\x01 \x01(\x04B\a\xbaH\x042\x02 \x00R\x02id\"\xdd\x01\n" +
 	"\x11CreateUserRequest\x12\x1d\n" +
 	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12#\n" +
-	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x12.\n" +
-	"\x04role\x18\x04 \x01(\tB\x1a\xbaH\x17r\x15\x10\x012\x11^[a-z][a-z0-9_]*$R\x04role\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x125\n" +
+	"\x05roles\x18\x04 \x03(\tB\x1f\xbaH\x1c\x92\x01\x19\b\x01\"\x15r\x132\x11^[a-z][a-z0-9_]*$R\x05roles\x12\x1a\n" +
 	"\bnickname\x18\x05 \x01(\tR\bnickname\x12\x14\n" +
-	"\x05phone\x18\x06 \x01(\tR\x05phone\"\xba\x01\n" +
+	"\x05phone\x18\x06 \x01(\tR\x05phone\"\xc1\x01\n" +
 	"\x11UpdateUserRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\x04B\a\xbaH\x042\x02 \x00R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12.\n" +
-	"\x04role\x18\x03 \x01(\tB\x1a\xbaH\x17r\x15\x10\x012\x11^[a-z][a-z0-9_]*$R\x04role\x12\x1a\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x125\n" +
+	"\x05roles\x18\x03 \x03(\tB\x1f\xbaH\x1c\x92\x01\x19\b\x01\"\x15r\x132\x11^[a-z][a-z0-9_]*$R\x05roles\x12\x1a\n" +
 	"\bnickname\x18\x04 \x01(\tR\bnickname\x12\x14\n" +
 	"\x05phone\x18\x05 \x01(\tR\x05phone\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\bR\x06status\",\n" +
@@ -660,7 +750,10 @@ const file_zerx_v1_user_proto_rawDesc = "" +
 	"\x14ResetPasswordRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\x04B\a\xbaH\x042\x02 \x00R\x02id\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"\x17\n" +
-	"\x15ResetPasswordResponse2\x8d\x03\n" +
+	"\x15ResetPasswordResponse\"1\n" +
+	"\x16DisableUserTotpRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x04B\a\xbaH\x042\x02 \x00R\x02id\"\x19\n" +
+	"\x17DisableUserTotpResponse2\xe3\x03\n" +
 	"\vUserService\x12B\n" +
 	"\tListUsers\x12\x19.zerx.v1.ListUsersRequest\x1a\x1a.zerx.v1.ListUsersResponse\x121\n" +
 	"\aGetUser\x12\x17.zerx.v1.GetUserRequest\x1a\r.zerx.v1.User\x127\n" +
@@ -670,7 +763,8 @@ const file_zerx_v1_user_proto_rawDesc = "" +
 	"UpdateUser\x12\x1a.zerx.v1.UpdateUserRequest\x1a\r.zerx.v1.User\x12E\n" +
 	"\n" +
 	"DeleteUser\x12\x1a.zerx.v1.DeleteUserRequest\x1a\x1b.zerx.v1.DeleteUserResponse\x12N\n" +
-	"\rResetPassword\x12\x1d.zerx.v1.ResetPasswordRequest\x1a\x1e.zerx.v1.ResetPasswordResponseB6Z4github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1b\x06proto3"
+	"\rResetPassword\x12\x1d.zerx.v1.ResetPasswordRequest\x1a\x1e.zerx.v1.ResetPasswordResponse\x12T\n" +
+	"\x0fDisableUserTotp\x12\x1f.zerx.v1.DisableUserTotpRequest\x1a .zerx.v1.DisableUserTotpResponseB6Z4github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1b\x06proto3"
 
 var (
 	file_zerx_v1_user_proto_rawDescOnce sync.Once
@@ -684,22 +778,24 @@ func file_zerx_v1_user_proto_rawDescGZIP() []byte {
 	return file_zerx_v1_user_proto_rawDescData
 }
 
-var file_zerx_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_zerx_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_zerx_v1_user_proto_goTypes = []any{
-	(*User)(nil),                  // 0: zerx.v1.User
-	(*ListUsersRequest)(nil),      // 1: zerx.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),     // 2: zerx.v1.ListUsersResponse
-	(*GetUserRequest)(nil),        // 3: zerx.v1.GetUserRequest
-	(*CreateUserRequest)(nil),     // 4: zerx.v1.CreateUserRequest
-	(*UpdateUserRequest)(nil),     // 5: zerx.v1.UpdateUserRequest
-	(*DeleteUserRequest)(nil),     // 6: zerx.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),    // 7: zerx.v1.DeleteUserResponse
-	(*ResetPasswordRequest)(nil),  // 8: zerx.v1.ResetPasswordRequest
-	(*ResetPasswordResponse)(nil), // 9: zerx.v1.ResetPasswordResponse
-	(*PageRequest)(nil),           // 10: zerx.v1.PageRequest
+	(*User)(nil),                    // 0: zerx.v1.User
+	(*ListUsersRequest)(nil),        // 1: zerx.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),       // 2: zerx.v1.ListUsersResponse
+	(*GetUserRequest)(nil),          // 3: zerx.v1.GetUserRequest
+	(*CreateUserRequest)(nil),       // 4: zerx.v1.CreateUserRequest
+	(*UpdateUserRequest)(nil),       // 5: zerx.v1.UpdateUserRequest
+	(*DeleteUserRequest)(nil),       // 6: zerx.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),      // 7: zerx.v1.DeleteUserResponse
+	(*ResetPasswordRequest)(nil),    // 8: zerx.v1.ResetPasswordRequest
+	(*ResetPasswordResponse)(nil),   // 9: zerx.v1.ResetPasswordResponse
+	(*DisableUserTotpRequest)(nil),  // 10: zerx.v1.DisableUserTotpRequest
+	(*DisableUserTotpResponse)(nil), // 11: zerx.v1.DisableUserTotpResponse
+	(*PageRequest)(nil),             // 12: zerx.v1.PageRequest
 }
 var file_zerx_v1_user_proto_depIdxs = []int32{
-	10, // 0: zerx.v1.ListUsersRequest.page:type_name -> zerx.v1.PageRequest
+	12, // 0: zerx.v1.ListUsersRequest.page:type_name -> zerx.v1.PageRequest
 	0,  // 1: zerx.v1.ListUsersResponse.users:type_name -> zerx.v1.User
 	1,  // 2: zerx.v1.UserService.ListUsers:input_type -> zerx.v1.ListUsersRequest
 	3,  // 3: zerx.v1.UserService.GetUser:input_type -> zerx.v1.GetUserRequest
@@ -707,14 +803,16 @@ var file_zerx_v1_user_proto_depIdxs = []int32{
 	5,  // 5: zerx.v1.UserService.UpdateUser:input_type -> zerx.v1.UpdateUserRequest
 	6,  // 6: zerx.v1.UserService.DeleteUser:input_type -> zerx.v1.DeleteUserRequest
 	8,  // 7: zerx.v1.UserService.ResetPassword:input_type -> zerx.v1.ResetPasswordRequest
-	2,  // 8: zerx.v1.UserService.ListUsers:output_type -> zerx.v1.ListUsersResponse
-	0,  // 9: zerx.v1.UserService.GetUser:output_type -> zerx.v1.User
-	0,  // 10: zerx.v1.UserService.CreateUser:output_type -> zerx.v1.User
-	0,  // 11: zerx.v1.UserService.UpdateUser:output_type -> zerx.v1.User
-	7,  // 12: zerx.v1.UserService.DeleteUser:output_type -> zerx.v1.DeleteUserResponse
-	9,  // 13: zerx.v1.UserService.ResetPassword:output_type -> zerx.v1.ResetPasswordResponse
-	8,  // [8:14] is the sub-list for method output_type
-	2,  // [2:8] is the sub-list for method input_type
+	10, // 8: zerx.v1.UserService.DisableUserTotp:input_type -> zerx.v1.DisableUserTotpRequest
+	2,  // 9: zerx.v1.UserService.ListUsers:output_type -> zerx.v1.ListUsersResponse
+	0,  // 10: zerx.v1.UserService.GetUser:output_type -> zerx.v1.User
+	0,  // 11: zerx.v1.UserService.CreateUser:output_type -> zerx.v1.User
+	0,  // 12: zerx.v1.UserService.UpdateUser:output_type -> zerx.v1.User
+	7,  // 13: zerx.v1.UserService.DeleteUser:output_type -> zerx.v1.DeleteUserResponse
+	9,  // 14: zerx.v1.UserService.ResetPassword:output_type -> zerx.v1.ResetPasswordResponse
+	11, // 15: zerx.v1.UserService.DisableUserTotp:output_type -> zerx.v1.DisableUserTotpResponse
+	9,  // [9:16] is the sub-list for method output_type
+	2,  // [2:9] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name
 	2,  // [2:2] is the sub-list for extension extendee
 	0,  // [0:2] is the sub-list for field type_name
@@ -732,7 +830,7 @@ func file_zerx_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_zerx_v1_user_proto_rawDesc), len(file_zerx_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -23,6 +23,20 @@ service AuthService {
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
   // RevokeSession deletes one session (own session, or any when admin).
   rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+  // ChangePassword changes the caller's own password (self-serve).
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+  // UpdateProfile updates the caller's own profile fields (self-serve).
+  rpc UpdateProfile(UpdateProfileRequest) returns (User);
+  // RequestPasswordReset emails a reset link (public; no enumeration).
+  rpc RequestPasswordReset(RequestPasswordResetRequest) returns (RequestPasswordResetResponse);
+  // ConfirmPasswordReset sets a new password using an emailed token (public).
+  rpc ConfirmPasswordReset(ConfirmPasswordResetRequest) returns (ConfirmPasswordResetResponse);
+  // SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+  rpc SetupTotp(SetupTotpRequest) returns (SetupTotpResponse);
+  // ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+  rpc ActivateTotp(ActivateTotpRequest) returns (ActivateTotpResponse);
+  // DisableTotp turns off the caller's 2FA (self-serve).
+  rpc DisableTotp(DisableTotpRequest) returns (DisableTotpResponse);
 }
 
 message LoginRequest {
@@ -30,6 +44,7 @@ message LoginRequest {
   string password = 2 [(buf.validate.field).string.min_len = 8];
   string captcha_id = 3;
   string captcha_code = 4;
+  string totp_code = 5;
 }
 
 message LoginResponse {
@@ -37,6 +52,7 @@ message LoginResponse {
   string refresh_token = 2;
   User user = 3;
   string session_id = 4;
+  bool totp_required = 5;
 }
 
 message RegisterRequest {
@@ -101,3 +117,50 @@ message RevokeSessionRequest {
 }
 
 message RevokeSessionResponse {}
+
+message ChangePasswordRequest {
+  string old_password = 1 [(buf.validate.field).string.min_len = 1];
+  string new_password = 2 [(buf.validate.field).string.min_len = 8];
+}
+
+message ChangePasswordResponse {}
+
+message UpdateProfileRequest {
+  string nickname = 1;
+  string avatar = 2;
+  string phone = 3;
+}
+
+message RequestPasswordResetRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+}
+
+message RequestPasswordResetResponse {}
+
+message ConfirmPasswordResetRequest {
+  string token = 1 [(buf.validate.field).string.min_len = 1];
+  string new_password = 2 [(buf.validate.field).string.min_len = 8];
+}
+
+message ConfirmPasswordResetResponse {}
+
+message SetupTotpRequest {}
+
+message SetupTotpResponse {
+  string secret = 1;
+  string qr_image_base64 = 2;
+}
+
+message ActivateTotpRequest {
+  string code = 1 [(buf.validate.field).string.min_len = 6];
+}
+
+message ActivateTotpResponse {
+  repeated string recovery_codes = 1;
+}
+
+message DisableTotpRequest {
+  string code = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DisableTotpResponse {}

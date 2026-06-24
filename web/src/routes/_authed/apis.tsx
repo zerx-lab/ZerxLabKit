@@ -2,8 +2,8 @@ import { ConnectError } from "@connectrpc/connect";
 import { createConnectQueryKey, useMutation, useQuery } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { RefreshCwIcon } from "lucide-react";
-import { Fragment, useState } from "react";
+import { ChevronDownIcon, ChevronRightIcon, RefreshCwIcon } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Can } from "@/components/can";
@@ -20,6 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -51,12 +58,20 @@ function errMsg(err: unknown, fallback: string) {
   return err instanceof ConnectError ? err.message : fallback;
 }
 
+const PAGE_SIZE = 20;
+const ALL_GROUPS = "__all__";
+
 function ApisPage() {
   const { t } = useI18n();
   const invalidate = useInvalidate();
   const { data, isPending } = useQuery(listApis, {});
-  const apis = data?.apis ?? [];
+  const apis = useMemo(() => data?.apis ?? [], [data]);
   const syncMut = useMutation(syncApis);
+
+  const [keyword, setKeyword] = useState("");
+  const [groupFilter, setGroupFilter] = useState(ALL_GROUPS);
+  const [page, setPage] = useState(1);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const handleSync = async () => {
     try {
@@ -70,14 +85,62 @@ function ApisPage() {
     }
   };
 
-  // Group apis by group name, preserving insertion order
-  const grouped = apis.reduce<Record<string, Api[]>>((acc, api) => {
-    const g = api.group || "—";
-    (acc[g] ??= []).push(api);
-    return acc;
-  }, {});
+  // All distinct group names (for the filter dropdown), preserving order.
+  const allGroupNames = useMemo(() => {
+    const seen: string[] = [];
+    for (const api of apis) {
+      const g = api.group || "\u2014";
+      if (!seen.includes(g)) seen.push(g);
+    }
+    return seen;
+  }, [apis]);
 
-  const groupNames = Object.keys(grouped);
+  // Apply keyword + group filters.
+  const filtered = useMemo(() => {
+    const kw = keyword.trim().toLowerCase();
+    return apis.filter((api) => {
+      const g = api.group || "\u2014";
+      if (groupFilter !== ALL_GROUPS && g !== groupFilter) return false;
+      if (!kw) return true;
+      return (
+        api.procedure.toLowerCase().includes(kw) ||
+        api.method.toLowerCase().includes(kw) ||
+        api.description.toLowerCase().includes(kw)
+      );
+    });
+  }, [apis, keyword, groupFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageItems = useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+
+  // Group the current page's items, preserving order.
+  const grouped = useMemo(() => {
+    const map = new Map<string, Api[]>();
+    for (const api of pageItems) {
+      const g = api.group || "\u2014";
+      const list = map.get(g);
+      if (list) list.push(api);
+      else map.set(g, [api]);
+    }
+    return map;
+  }, [pageItems]);
+  const groupNames = [...grouped.keys()];
+
+  const resetPage = () => setPage(1);
+  const toggleGroup = (name: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  const expandAll = () => setCollapsed(new Set());
+  const collapseAll = () => setCollapsed(new Set(groupNames));
+  const allCollapsed = groupNames.length > 0 && groupNames.every((n) => collapsed.has(n));
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,7 +157,46 @@ function ApisPage() {
         </Can>
       </div>
 
-      <Card className="overflow-hidden py-0">
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          className="max-w-xs"
+          placeholder={t("apiPage.searchPlaceholder")}
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            resetPage();
+          }}
+        />
+        <Select
+          value={groupFilter}
+          onValueChange={(v) => {
+            setGroupFilter(v);
+            resetPage();
+          }}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder={t("apiPage.filterGroup")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_GROUPS}>{t("apiPage.allGroups")}</SelectItem>
+            {allGroupNames.map((g) => (
+              <SelectItem key={g} value={g}>
+                {g}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => (allCollapsed ? expandAll() : collapseAll())}
+          disabled={groupNames.length === 0}
+        >
+          {allCollapsed ? t("apiPage.expandAll") : t("apiPage.collapseAll")}
+        </Button>
+      </div>
+
+      <Card className="gap-0 overflow-hidden py-0">
         <Table>
           <TableHeader className="bg-muted">
             <TableRow>
@@ -112,48 +214,91 @@ function ApisPage() {
                   {t("common.loading")}
                 </TableCell>
               </TableRow>
-            ) : apis.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   {t("common.noData")}
                 </TableCell>
               </TableRow>
             ) : (
-              groupNames.map((groupName) => (
-                <Fragment key={groupName}>
-                  <TableRow className="bg-muted/40 hover:bg-muted/40">
-                    <TableCell
-                      colSpan={5}
-                      className="py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+              groupNames.map((groupName) => {
+                const isCollapsed = collapsed.has(groupName);
+                const rows = grouped.get(groupName) ?? [];
+                return (
+                  <Fragment key={groupName}>
+                    <TableRow
+                      className="cursor-pointer bg-muted/40 hover:bg-muted/60"
+                      onClick={() => toggleGroup(groupName)}
                     >
-                      {groupName}
-                    </TableCell>
-                  </TableRow>
-                  {(grouped[groupName] ?? []).map((api) => (
-                    <TableRow key={String(api.id)}>
-                      <TableCell className="font-mono text-xs">{api.procedure}</TableCell>
-                      <TableCell className="text-xs">{api.method}</TableCell>
-                      <TableCell className="text-xs">{api.group || "—"}</TableCell>
-                      <TableCell className="max-w-xs truncate text-muted-foreground">
-                        {api.description}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Can code="api:update">
-                            <EditApiDialog api={api} />
-                          </Can>
-                          <Can code="api:delete">
-                            <DeleteApiDialog api={api} />
-                          </Can>
-                        </div>
+                      <TableCell
+                        colSpan={5}
+                        className="py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+                      >
+                        <span className="flex items-center gap-1">
+                          {isCollapsed ? (
+                            <ChevronRightIcon className="size-3.5" />
+                          ) : (
+                            <ChevronDownIcon className="size-3.5" />
+                          )}
+                          {groupName}
+                          <span className="ml-1 normal-case text-muted-foreground/70">
+                            ({rows.length})
+                          </span>
+                        </span>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </Fragment>
-              ))
+                    {!isCollapsed &&
+                      rows.map((api) => (
+                        <TableRow key={String(api.id)}>
+                          <TableCell className="font-mono text-xs">{api.procedure}</TableCell>
+                          <TableCell className="text-xs">{api.method}</TableCell>
+                          <TableCell className="text-xs">{api.group || "\u2014"}</TableCell>
+                          <TableCell className="max-w-xs truncate text-muted-foreground">
+                            {api.description}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Can code="api:update">
+                                <EditApiDialog api={api} />
+                              </Can>
+                              <Can code="api:delete">
+                                <DeleteApiDialog api={api} />
+                              </Can>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </Fragment>
+                );
+              })
             )}
           </TableBody>
         </Table>
+
+        <div className="flex items-center justify-between gap-4 border-t px-4 py-3">
+          <p className="text-sm text-muted-foreground">{t("users.total", { count: filtered.length })}</p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              {t("users.previous")}
+            </Button>
+            <span className="text-sm tabular-nums">
+              {t("users.pageOf", { page: safePage, pages: pageCount })}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= pageCount}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              {t("users.next")}
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );

@@ -80,89 +80,67 @@
 
 ## 5. AI 工作流(如何扩展)
 
-### 授权铁律(必读)
+### 授权铁律(必读,常驻安全核)
 - **接口鉴权的唯一权威是 Casbin 拦截器**(`internal/auth/casbin_interceptor.go`)。handler **一律不写** `auth.RequireRole(...)`——授权完全由拦截器统一裁决:`sub=角色 code`、`obj=connectRPC procedure`,精确匹配。
-- **admin 角色绕过 Casbin**(始终放行)。内置 `admin`/`user` 两角色(code 不可改名)。
-- 三层访问控制(顺序固定,见 `server.go` 的 `public`/`selfServe` map):`public`(免认证:Login/Register/Refresh/GetCaptcha)→ `selfServe`(已登录即放行:Me/Logout/ListSessions/RevokeSession/GetUserMenus/GetUserButtons/GetDictByType)→ admin 绕过 → 否则 `enforcer.Enforce(role, procedure)`。
-- 把任意 procedure(含写操作)授予某角色即**即时生效**——这是 RBAC 可用的关键。**安全须知**:把 RBAC 管理类 procedure(RoleService/MenuService/ApiService 的写、SetRolePermissions、SyncApis)授予非 admin 等于授予提权能力,由管理员自行谨慎;默认仅 admin 拥有(靠绕过),新角色默认无任何策略。
-- **菜单可见性、按钮权限是独立关联表(RoleMenu/RoleButton),不走 Casbin**。按钮权限(`<Can code>`)纯前端 UX 显隐,**非安全边界**;约定 button code = `<资源>:<动作>`(如 `user:create`),其真正鉴权始终在同名 procedure 的 Casbin 策略上。
+- **三层访问控制(顺序固定)**:`public`(免认证)→ `selfServe`(已登录即放行)→ **admin 角色绕过**(始终放行)→ 否则 `enforcer.Enforce(role, procedure)`。两 map 见 `internal/server/server.go`。内置 `admin`/`user` 两角色(code 不可改名)。
+- 把任意 procedure(含写操作)授予某角色即**即时生效**;把 RBAC 管理类写操作授予非 admin = 提权,默认仅 admin 拥有(靠绕过)。菜单/按钮(RoleMenu/RoleButton、`<Can code>`)**不走 Casbin**,前者是关联表、后者纯前端 UX 显隐(非安全边界)。
+- **完整细节(public/selfServe 清单、拦截器链顺序、决策伪代码、role-as-code 局限)见 `skill://zerx-authz`。**
 
-### 新增一个 RPC
-1. 编辑 `proto/zerx/v1/*.proto`,加 message / rpc;**方法名避开 JS 保留字**。校验约束写在字段上:`[(buf.validate.field).string.email = true]`。
-2. `task gen` → 产出 Go handler 接口 + TS 类型 + connect-query hook。
-3. 在 `internal/service/` 实现 handler 方法,**照抄 `user_service.go` 范式但不写 RequireRole**(授权交 Casbin)。
-4. 若新增 service:在 `internal/server/server.go` 用 `reg(zerxv1connect.NewXxxServiceHandler(svc, opts))` 注册;免认证的 procedure 进 `public`,已登录即放行的进 `selfServe`。**漏注册会被 `server.New` 启动自检拦截**:`assertServicesRegistered` 断言 proto 描述符里每个 `zerx.v1.*` service 均已挂载,缺失则启动失败(否则该 service 全部接口静默 404)。
-5. 前端:`import { method } from "@/gen/.../<svc>-<Service>_connectquery"`,用 `useQuery(method, input?)` / `useMutation(method)`。
-
-### 新增一个管理模块(完整清单)
-1. proto(`proto/zerx/v1/<mod>.proto`)→ `task gen`。
-2. model(`internal/model/<mod>.go`,标准字段块)→ 在 `internal/database/migrate.go` 的 `AutoMigrate` 注册。
-3. service(`internal/service/<mod>_service.go`,照抄 user_service,**无 RequireRole**)。
-4. server.go 注册 handler;按需把 procedure 加入 `public`/`selfServe`。
-5. 前端页(`web/src/routes/_authed/<mod>.tsx`,复刻 `params.tsx`/`users.tsx` 范式),增删改按钮用 `<Can code>` 包裹。
-6. i18n:`web/src/lib/i18n.tsx` 的 `en` 与 `zh` **同步**加 key(`const zh: typeof en` 结构锁会让缺 key 编译失败)。
-7. 在 `internal/database/seed.go` 的 `seedMenuTree` 切片加一条菜单(+按钮);Title 存 i18n key,Icon 存 lucide 名(并在 `web/src/lib/menu-icons.ts` 的 `iconByName` 注册图标)。**重启后经 `syncMenus` 增量生效,无需重置数据库。**
-8. `task frontend:build`(或 dev)让 Vite 插件重生成 `routeTree.gen.ts` 并提交。
-9. 如需授予非 admin:到「角色管理」页为角色分配菜单 / API procedure / 按钮。
-
-### 新增模型 / 自定义查询
-1. 在 `internal/model/` 写结构体;在 `internal/database/migrate.go` 的 `AutoMigrate` 加入。新模型默认查询用 `gorm.G[T]` 无需 codegen,仅在写自定义 SQL querier 时才 `task gen:db`。
-2. 数据访问优先泛型 API:`gorm.G[model.T](db).Where(...).First(ctx)` / `.Find(ctx)` / `.Create(ctx, &x)`。布尔/零值字段更新用 `db.Model(&T{}).Where(...).Updates(map[string]any{...})`(泛型 `Updates(struct)` 跳过零值,无法持久化 false)。
-3. 需要自定义 SQL 时,在 `internal/model/querier.go` 的接口方法上写 SQL 注释(**绑定参数 `@name`、单引号字符串,且 raw SQL 不走软删,需显式 `AND deleted_at IS NULL`**),再 `task gen`(或 `task db:gen`)。
-
-### 校验与鉴权
-- 输入校验全部声明在 proto 上,由 `validate.NewInterceptor()` 在服务端自动执行 → 失败返回 `CodeInvalidArgument`;handler 内的 `req.Msg` 已被保证非空且合法。
-- 认证由 `auth.NewAuthInterceptor` 处理:解析 `Authorization: Bearer <access>` → 注入 claims;非 public procedure 无有效 token → `CodeUnauthenticated`。**授权见上方「授权铁律」——一律 Casbin,不用 RequireRole。**
-
-### 首次运行与注册 / 种子
-- `database.Seed` 在迁移后运行:**角色播种幂等键 = Role 表为空**——首次播种 admin/user 角色、`seedMenuTree` 全部菜单+按钮、admin→全部菜单/按钮、user→仅 dashboard。**菜单/按钮与 API 目录每次启动增量同步(`syncMenus`/`syncAPIs`,仅增不删不改)**,新增条目重启即生效:菜单按 `Name` 匹配、按钮按 `(menuID, code)` 匹配,缺失则插入并补 admin 关联(及 userVisible→user),已有行不动。Casbin 策略不播种(admin 绕过、user 仅靠 selfServe)。
-- 无默认账号。`AuthService.Register`(public):**当库中用户数为 0 时,首个注册者角色为 `admin`**,其后为 `user`。邮箱唯一(冲突 → `CodeAlreadyExists`)。
-
-### 主题与多语言
-- 主题:`lib/theme.tsx` 的 `ThemeProvider`/`useTheme`。新增样式用语义 token(`bg-background`/`text-foreground` 等),勿写死颜色。
-- 多语言:`lib/i18n.tsx` 的 `I18nProvider`/`useI18n`→`t(key, params?)`。新增文案需在 `en`/`zh` 两个字典加同名 key。
-- 布局壳在 `routes/_authed/route.tsx`(侧边栏 + 顶栏)。**侧边栏菜单是动态的**:`useQuery(getUserMenus)` 拉取服务端树,`menu.path===""` 渲染为分组标题,菜单文字用 `t(menu.title)`(内置菜单 title 是 i18n key;自定义菜单是字面量,`t()` 未命中回退原串)。新增菜单改 `seed.go` 的 `seedMenuTree`,不再改前端 navItems。
+### 过程性细节按需读 skill(不必常驻)
+- 新增 RPC / 新增模型 / GORM 坑 / 自定义 querier / codegen 版本同步 → `skill://zerx-backend`
+- 端到端新增管理模块(proto→model→migrate→service→server→页→i18n→seed→routeTree→授权)→ `skill://zerx-add-module`
+- 前端页 / 数据失效 / 表格表单 / i18n / 主题 / 权限显隐 → `skill://zerx-frontend`
+- 校验与鉴权 / 三层访问控制全表 → `skill://zerx-authz`
+- 认证 / 会话 / 刷新 / 验证码 / 审计 / 上传 / 存储 → `skill://zerx-security`
+- 编写/维护本仓库 skill 的规约 → `skill://zerx-skill-authoring`
 
 ## 6. 易错点清单
 
-### 后端
-- `Count` 必须传列名:`gorm.G[T](db).Count(ctx, "id")`。
-- 判定无记录用 `errors.Is(err, gorm.ErrRecordNotFound)`;泛型 `First` 返回 `(T, error)`,**没有 `.Error` 字段**(已移除 `FirstOrCreate`/`Save`)。
-- 读取 proto 字段用 **getter**(`req.Msg.GetEmail()`),这样 nilaway 能识别空安全;直接取字段可能被 nilaway 标记。
-- proto 方法名**避开 JS 保留字**。
-- 自定义 querier 用绑定参数 + 显式 `deleted_at IS NULL`(见上)。
-- `task lint` 会跑 **nilaway**(已 `-exclude-pkgs` 排除 `gen`、`internal/query`)。
-
-### 前端
-- react-query v5:用 `gcTime`(非 `cacheTime`)、`placeholderData`、`isPending`(非 `isLoading` 语义)。
-- Tailwind v4:动画用 `tw-animate-css`(非 `tailwindcss-animate`);**无** `tailwind.config.js` / `postcss.config.js`,主题变量在 `src/styles.css`。
-- Zod 4:用顶层格式函数 `z.email()` 等;object 级 `.refine/.check` 仅在所有基础字段通过后运行;Standard Schema **不做 transform**,`onSubmit` 拿到的是输入值。
-- connect `Interceptor` 数组**末尾先执行**(洋葱模型)。
-- `createConnectQueryKey` 用**对象参**:`createConnectQueryKey({ schema: method, cardinality: "finite", input? })`,用于 `invalidateQueries`。
-- `uint64` → **`bigint`**(如 `User.id` 是 `bigint`):显示用 `String(id)`,传参直接用 `bigint`。
-- 表单用 **`@tanstack/react-form`**(不是 shadcn 的 `form` 组件 / react-hook-form);可复用字段组件可用 `AnyFieldApi` 类型。
-- TS 已**关闭 `exactOptionalPropertyTypes`**:它与 shadcn/Radix 组件不兼容(会让每次 `shadcn add` 的组件报错)。其余严格 flag(`strict`、`noUncheckedIndexedAccess`、`noUnusedLocals/Parameters`)保留。
-- 主题色一律用语义 token(定义在 `src/styles.css` 的 `:root`/`.dark`,经 `@theme inline` 映射);Toaster 主题由 `__root.tsx` 透传 `useTheme()`。
-- i18n 文案务必 en/zh 同步加 key;`t()` 缺失时回退 en 再回退 key。
+- 后端坑(`Count` 传列名、`gorm.ErrRecordNotFound`、泛型 `First` 无 `.Error`、零值 `Updates` map、proto getter、nilaway)→ `skill://zerx-backend`
+- 前端坑(react-query v5 `gcTime`/`isPending`、Tailwind v4、Zod4、洋葱拦截器、`uint64`→`bigint`、react-form、`exactOptionalPropertyTypes` 关闭)→ `skill://zerx-frontend`
 
 ## 7. 安全
 
+常驻三条不变量:
 - **生产必设 `JWT_SECRET`**:缺失则启动失败(`os.Exit(1)`)。
-- **无默认账号**:不再 seed 管理员;首次运行在 `/register` 注册——首个用户即管理员,生产环境请尽快注册并妥善保管。
-- h2c(明文 HTTP/2)仅供 `grpcurl` 等工具;浏览器 SPA 走 HTTP/1.1,不依赖 h2c。
-- 访问令牌 15m、刷新令牌 168h;前端 `transport.ts` 实现 401 → single-flight 刷新 → 重试一次 → 仍失败则清 token 跳登录。
-- **多点登录与会话**:刷新令牌的 jti 即会话 ID,对应 `user_sessions` 行。`AUTH_SINGLE_SESSION=true` 时每次登录在同一事务内删除该用户的其它会话(单端);默认允许多端,由「会话管理」页查看/下线。撤销会话即时阻断 refresh;access token 无状态,自然过期后(≤15m)彻底失效——即时强制下线需每请求查会话(默认不开)。
-- **验证码 / 防爆破**:`internal/ratelimit` 按 `email|IP` 滑动窗口计数,达 `AUTH_CAPTCHA_THRESHOLD` 后登录需 base64 验证码,达 `AUTH_LOCK_THRESHOLD` 后临时锁定 `AUTH_LOCK_FOR`。登录成功/失败均写 `login_logs`。
-- **操作/错误日志**:`internal/server/audit_interceptor.go` 是 OperationLog 的唯一写入者,记录所有写操作与失败请求(永不记录 body),并兼任 panic 兜底(具名返回 + recover,替代 `connect.WithRecover`,把 panic 与栈写入同一行)。错误日志 = OperationLog 中 `status != "ok"` 的行,无独立表。
-- **Role-as-code 局限**:角色以字符串 `code` 为业务键,code 不可改名(是 User.Role / casbin sub / 关联表的事实主键);单角色(User.Role 单值、casbin 无 `g` 继承);**仅接口级鉴权,无数据/行级权限**。多角色/数据权限需后续改造。
-- **进程内状态(单实例假设)**:LoginGuard、param.Cache、captcha 内存 store、Casbin 决策缓存均为进程内状态,水平扩容时不跨实例一致(本脚手架无 Redis,是有意取舍)。
-- **IP 来源**:取 `req.Peer().Addr` 去端口;反向代理后会变代理 IP,生产经代理需自行接 `X-Forwarded-For`。
-- **上传**:`/api/upload`(multipart)任意已登录用户可用;20MB 上限、扩展名白名单、uuid key 防碰撞;前端用 `transport.ts` 的 `authedFetch`(共享 401 刷新)。对象存储 driver=local|s3(见 `.env.example`)。
-- **纯 Go / CGO-free**:构建 `CGO_ENABLED=0`;新增依赖须纯 Go(casbin/gorm-adapter、base64Captcha、minio-go 均已核实)。
+- **无默认账号**:不 seed 管理员;首次在 `/register` 注册——首个用户即管理员,生产请尽快注册并妥善保管。
+- **纯 Go / CGO-free**:构建 `CGO_ENABLED=0`;新增依赖须纯 Go。
+
+JWT/会话/刷新/验证码/防爆破/审计/上传/存储/进程内状态/IP 来源等机制详见 `skill://zerx-security`;role-as-code 局限见 `skill://zerx-authz`。
 
 ## 8. 版本维护
 
-- `buf.gen.yaml` 内 Go 插件的 `@version` 字符串(`protoc-gen-go`、`protoc-gen-connect-go`)需与 `go.mod` 中对应库版本**手动保持一致**;升级库后同步改这两个字符串再 `task gen`。
-- TS proto 生成走 `buf.gen.web.yaml` + `--include-imports`(为生成 `buf/validate/validate_pb.ts`);Go 生成不加该 flag(protovalidate 来自 Go module,避免重复生成 WKT)。
-- `connectrpc.com/validate` 为 unstable,升级前先读其 CHANGELOG。
 - 升级流程:`task deps:update`(自动快照)→ `task build && task lint && task test` 验证;有问题 `task deps:rollback`。
+- codegen 版本同步(`buf.gen.yaml` 的 `@version` 与 `go.mod` 对齐、TS/Go 的 `--include-imports` 差异、`connectrpc.com/validate` unstable)详见 `skill://zerx-backend`。
+
+## 9. 项目 Skills 索引
+
+过程性细节按需 `read skill://<name>`,不必常驻上下文:
+
+| skill | 何时读 |
+|---|---|
+| `zerx-authz` | 写/改 handler、注册 service、配 public/selfServe、调 Casbin 策略、角色/菜单/按钮权限 |
+| `zerx-backend` | 新增/改 RPC、实现 service、GORM 数据访问、自定义 querier、codegen |
+| `zerx-frontend` | 新增/改路由页、CRUD 列表/表单、connect-query、缓存失效、i18n、主题 |
+| `zerx-security` | 登录注册、token 刷新、会话、限流、审计日志、上传、存储 |
+| `zerx-add-module` | 端到端新增一个后台管理模块 / 资源 / CRUD 页 |
+| `zerx-skill-authoring` | 新增/修改/审查本仓库的 skill 或 AI 指令文件 |
+
+## 10. 架构合规守卫(arch-guard)
+
+主动拦截层,编辑命中架构违规即把"正确做法"提示词注入模型(硬规则中止重写,软规则随结果折叠提醒)。
+
+### omp 原生 TTSR(核心)
+- `.omp/rules/*.md` — 6 条规则(omp Time Traveling Stream Rules,流式写工具参数时实时正则匹配 + 路径门控):
+  - `arch-i18n-no-hardcoded-cjk`(软):前端 routes/components 禁硬编码 CJK,走 i18n。
+  - `arch-no-requirerole-in-service`(硬中止):service handler 禁 `RequireRole`,授权唯一权威是 Casbin 拦截器。
+  - `arch-react-query-v5-naming`(软):`cacheTime` → `gcTime`。
+  - `arch-no-hardcoded-tailwind-color`(软):禁写死调色板色值,用语义 token。
+  - `arch-gorm-removed-api`(软):禁 `FirstOrCreate`/`.Save(`;`Count` 须传列名。
+  - `arch-no-bare-fetch-api`(软):前端 routes/components 禁裸 `fetch("/api/...")`,走 connect-query hook 或 `authedFetch`(含 401 刷新)。
+- `.omp/config.yml` — **`edit.mode: replace`**(关键:默认 hashline 的 edit 参数无 path,路径门控对增量编辑失效);`ttsr.repeatMode: after-gap` + `repeatGap: 5`。
+- `.omp/WATCHDOG.md` — 可选 advisor(第二模型)语义级 review 清单。
+
+### 跨工具共享(Claude Code / pi / opencode)
+- `tools/arch-guard/` — 共享匹配逻辑(`match.mjs` + `patterns.json`)、命令 hook 适配器、opencode 插件、自测。Codex 无法在编辑前拦截文件(其 PreToolUse 只拦 Bash),记为已知缺口。
+- **改规则要两处同步**:`.omp/rules/*.md`(富正文)与 `tools/arch-guard/patterns.json`(跨工具正则),正则保持一致。

@@ -1,0 +1,8 @@
+edit:
+  mode: replace          # 关键(MF1):默认 hashline 的 edit 参数无 path,路径门控对增量编辑全失效;
+                         # replace 参数为 {path, edits:[{old_text,new_text}]},含 path 且 matcherDigest 拼 new_text。
+                         # 代价:放弃 hashline 的 token 效率(全项目 edit 生效)。token 更省的等效替代是 mode: patch(同含 path)。
+ttsr:
+  enabled: true
+  repeatMode: after-gap  # 默认 once=整会话每规则仅一次;守卫需反复生效改 after-gap
+  repeatGap: 5           # 每 5 个 turn 可再触发(同时作用于内置 18 条规则)

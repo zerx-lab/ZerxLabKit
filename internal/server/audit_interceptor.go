@@ -12,6 +12,7 @@ import (
 	"connectrpc.com/connect"
 	"gorm.io/gorm"
 
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
@@ -28,20 +29,21 @@ func NewOperationLogInterceptor(db *gorm.DB) connect.UnaryInterceptorFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (resp connect.AnyResponse, err error) {
 			start := time.Now()
 			panicked := false
+			ctx, holder := audit.WithHolder(ctx)
 
 			defer func() {
 				if p := recover(); p != nil {
 					panicked = true
 					err = connect.NewError(connect.CodeInternal, errors.New("internal error"))
 					resp = nil
-					writeOpLog(ctx, db, req, start, "panic", fmt.Sprint(p), string(debug.Stack()))
+					writeOpLog(ctx, db, req, start, "panic", fmt.Sprint(p), string(debug.Stack()), holder.Detail)
 				}
 			}()
 
 			resp, err = next(ctx, req)
 
 			if !panicked && (isMutating(req.Spec().Procedure) || err != nil) {
-				writeOpLog(ctx, db, req, start, statusOf(err), errMsg(err), "")
+				writeOpLog(ctx, db, req, start, statusOf(err), errMsg(err), "", holder.Detail)
 			}
 
 			return resp, err
@@ -96,7 +98,7 @@ func auditClientIP(req connect.AnyRequest) string {
 
 // writeOpLog persists an operation log asynchronously (never blocks the request,
 // never records request bodies).
-func writeOpLog(ctx context.Context, db *gorm.DB, req connect.AnyRequest, start time.Time, status, errStr, stack string) {
+func writeOpLog(ctx context.Context, db *gorm.DB, req connect.AnyRequest, start time.Time, status, errStr, stack, detail string) {
 	rec := model.OperationLog{
 		CreatedAt: time.Now(),
 		Procedure: req.Spec().Procedure,
@@ -107,6 +109,7 @@ func writeOpLog(ctx context.Context, db *gorm.DB, req connect.AnyRequest, start 
 		Status:    status,
 		Error:     errStr,
 		Stack:     stack,
+		Detail:    detail,
 	}
 	if claims, ok := auth.ClaimsFromContext(ctx); ok && claims != nil {
 		rec.UserID = claims.UserID

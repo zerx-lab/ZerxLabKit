@@ -9,14 +9,16 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { PlusIcon, SearchIcon } from "lucide-react";
-import { type FormEvent, useMemo, useState } from "react";
+import { DownloadIcon, PlusIcon, SearchIcon, UploadIcon } from "lucide-react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Can } from "@/components/can";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +30,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -48,20 +43,17 @@ import { listRoles } from "@/gen/zerx/v1/role-RoleService_connectquery";
 import {
   createUser,
   deleteUser,
+  disableUserTotp,
   listUsers,
   resetPassword,
   updateUser,
 } from "@/gen/zerx/v1/user-UserService_connectquery";
-import { Can } from "@/components/can";
 import { Switch } from "@/components/ui/switch";
 import { firstErrorMessage } from "@/lib/form";
 import { useI18n, type TranslateFn } from "@/lib/i18n";
+import { authedFetch } from "@/lib/transport";
 
 const PAGE_SIZE = 10;
-const codeSchema = z
-  .string()
-  .min(1)
-  .regex(/^[a-z][a-z0-9_]*$/);
 
 export const Route = createFileRoute("/_authed/users")({ component: UsersPage });
 
@@ -92,7 +84,7 @@ function TextField({
         id={field.name}
         type={type}
         autoComplete={autoComplete}
-        value={field.state.value}
+        value={field.state.value as string}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
       />
@@ -101,32 +93,49 @@ function TextField({
   );
 }
 
-function RoleField({ field }: { field: AnyFieldApi }) {
+function RolesField({ field }: { field: AnyFieldApi }) {
   const { t } = useI18n();
   const error = firstErrorMessage(field.state.meta.errors);
   const { data } = useQuery(listRoles);
-  const roles = data?.roles ?? [];
+  const allRoles = data?.roles ?? [];
+  const selected: string[] = (field.state.value as string[]) ?? [];
+
+  const toggle = (code: string) => {
+    const next = selected.includes(code)
+      ? selected.filter((r) => r !== code)
+      : [...selected, code];
+    field.handleChange(next);
+  };
+
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={field.name}>{t("common.role")}</Label>
-      <Select value={field.state.value} onValueChange={(value) => field.handleChange(value)}>
-        <SelectTrigger id={field.name} className="w-full" onBlur={field.handleBlur}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {roles.map((r) => (
-            <SelectItem key={r.code} value={r.code}>
-              {r.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Label>{t("users.rolesLabel")}</Label>
+      <div className="flex flex-wrap gap-3">
+        {allRoles.map((r) => (
+          <label key={r.code} className="flex items-center gap-1.5 cursor-pointer select-none text-sm">
+            <Checkbox
+              checked={selected.includes(r.code)}
+              onCheckedChange={() => toggle(r.code)}
+            />
+            {r.name}
+          </label>
+        ))}
+      </div>
       {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
   );
 }
 
 const columnHelper = createColumnHelper<User>();
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 function UsersPage() {
   const { t } = useI18n();
@@ -160,12 +169,16 @@ function UsersPage() {
       }),
       columnHelper.accessor("email", { header: t("common.email") }),
       columnHelper.accessor("name", { header: t("common.name") }),
-      columnHelper.accessor("role", {
-        header: t("common.role"),
+      columnHelper.accessor("roles", {
+        header: t("common.roles"),
         cell: (info) => (
-          <Badge variant={info.getValue() === "admin" ? "default" : "secondary"}>
-            {roleNames.get(info.getValue()) ?? info.getValue()}
-          </Badge>
+          <div className="flex flex-wrap gap-1">
+            {info.getValue().map((r) => (
+              <Badge key={r} variant={r === "admin" ? "default" : "secondary"}>
+                {roleNames.get(r) ?? r}
+              </Badge>
+            ))}
+          </div>
         ),
       }),
       columnHelper.accessor("status", {
@@ -197,6 +210,16 @@ function UsersPage() {
     setKeyword(keywordInput.trim());
   };
 
+  const handleExport = async () => {
+    toast.info(t("users.exportToast"));
+    const params = new URLSearchParams();
+    if (keyword) params.set("keyword", keyword);
+    const res = await authedFetch(`/api/export/users?${params.toString()}`);
+    if (!res.ok) { toast.error("Export failed"); return; }
+    const blob = await res.blob();
+    downloadBlob(blob, "users.xlsx");
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
@@ -204,9 +227,20 @@ function UsersPage() {
           <h1 className="text-2xl font-semibold tracking-tight">{t("users.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("users.subtitle")}</p>
         </div>
-        <Can code="user:create">
-          <CreateUserDialog />
-        </Can>
+        <div className="flex items-center gap-2">
+          <Can code="user:export">
+            <Button variant="outline" size="sm" onClick={() => void handleExport()}>
+              <DownloadIcon className="size-4" />
+              {t("common.export")}
+            </Button>
+          </Can>
+          <Can code="user:import">
+            <ImportUsersDialog />
+          </Can>
+          <Can code="user:create">
+            <CreateUserDialog />
+          </Can>
+        </div>
       </div>
 
       <Card className="gap-0 overflow-hidden py-0">
@@ -300,7 +334,7 @@ function createUserSchema(t: TranslateFn) {
     email: z.email(t("validation.email")),
     name: z.string().min(1, t("validation.nameRequired")),
     password: z.string().min(8, t("validation.passwordMin")),
-    role: codeSchema,
+    roles: z.array(z.string()).min(1, t("validation.rolesRequired")),
     nickname: z.string(),
     phone: z.string(),
   });
@@ -317,7 +351,7 @@ function CreateUserDialog() {
       email: "",
       name: "",
       password: "",
-      role: "user",
+      roles: ["user"] as string[],
       nickname: "",
       phone: "",
     },
@@ -377,7 +411,7 @@ function CreateUserDialog() {
               />
             )}
           </form.Field>
-          <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
+          <form.Field name="roles">{(field) => <RolesField field={field} />}</form.Field>
           <DialogFooter>
             <Button type="submit" disabled={mutation.isPending}>
               {t("common.create")}
@@ -391,17 +425,49 @@ function CreateUserDialog() {
 
 function UserRowActions({ user }: { user: User }) {
   return (
-    <div className="flex justify-end gap-2">
+    <div className="flex justify-end gap-1 flex-wrap">
       <Can code="user:update">
         <EditUserDialog user={user} />
       </Can>
       <Can code="user:reset">
         <ResetPasswordDialog user={user} />
       </Can>
+      {user.totpEnabled && (
+        <Can code="user:update">
+          <DisableTotpButton user={user} />
+        </Can>
+      )}
       <Can code="user:delete">
         <DeleteUserDialog user={user} />
       </Can>
     </div>
+  );
+}
+
+function DisableTotpButton({ user }: { user: User }) {
+  const { t } = useI18n();
+  const invalidate = useInvalidateUsers();
+  const mutation = useMutation(disableUserTotp);
+
+  const handleDisable = async () => {
+    try {
+      await mutation.mutateAsync({ id: user.id });
+      toast.success(t("users.disableTotpToast"));
+      await invalidate();
+    } catch (err) {
+      toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={mutation.isPending}
+      onClick={() => void handleDisable()}
+    >
+      {t("users.disableTotp")}
+    </Button>
   );
 }
 
@@ -414,7 +480,7 @@ function EditUserDialog({ user }: { user: User }) {
   const form = useForm({
     defaultValues: {
       name: user.name,
-      role: user.role,
+      roles: user.roles,
       nickname: user.nickname,
       phone: user.phone,
       status: user.status,
@@ -422,7 +488,7 @@ function EditUserDialog({ user }: { user: User }) {
     validators: {
       onChange: z.object({
         name: z.string().min(1, t("validation.nameRequired")),
-        role: codeSchema,
+        roles: z.array(z.string()).min(1, t("validation.rolesRequired")),
         nickname: z.string(),
         phone: z.string(),
         status: z.boolean(),
@@ -433,7 +499,7 @@ function EditUserDialog({ user }: { user: User }) {
         await mutation.mutateAsync({
           id: user.id,
           name: value.name,
-          role: value.role,
+          roles: value.roles,
           nickname: value.nickname,
           phone: value.phone,
           status: value.status,
@@ -475,14 +541,14 @@ function EditUserDialog({ user }: { user: User }) {
           <form.Field name="phone">
             {(field) => <TextField field={field} label={t("common.phone")} />}
           </form.Field>
-          <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
+          <form.Field name="roles">{(field) => <RolesField field={field} />}</form.Field>
           <form.Field name="status">
             {(field) => (
               <div className="flex items-center justify-between">
                 <Label htmlFor={field.name}>{t("common.status")}</Label>
                 <Switch
                   id={field.name}
-                  checked={field.state.value}
+                  checked={field.state.value as boolean}
                   onCheckedChange={(v) => field.handleChange(v)}
                 />
               </div>
@@ -588,6 +654,101 @@ function ResetPasswordDialog({ user }: { user: User }) {
             {t("common.save")}
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface ImportResult {
+  created: number;
+  failed: { row: number; reason: string }[];
+}
+
+function ImportUsersDialog() {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const invalidate = useInvalidateUsers();
+
+  const handleImport = async () => {
+    const file = fileRef.current?.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await authedFetch("/api/import/users", { method: "POST", body: fd });
+      const json = (await res.json()) as ImportResult;
+      setResult(json);
+      await invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("register.failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTemplateDownload = async () => {
+    const res = await authedFetch("/api/import/users/template");
+    if (!res.ok) return;
+    const blob = await res.blob();
+    downloadBlob(blob, "users-template.xlsx");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setResult(null); } }}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UploadIcon className="size-4" />
+          {t("common.import")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("users.importTitle")}</DialogTitle>
+          <DialogDescription>{t("users.importDesc")}</DialogDescription>
+        </DialogHeader>
+
+        {result ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm">{t("users.importSuccess", { created: result.created })}</p>
+            {result.failed.length > 0 && (
+              <div>
+                <p className="text-sm text-destructive">{t("users.importFailures", { count: result.failed.length })}</p>
+                <ul className="mt-1 max-h-40 overflow-auto text-xs text-muted-foreground space-y-0.5">
+                  {result.failed.map((f, i) => (
+                    <li key={i}>Row {f.row}: {f.reason}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => { setResult(null); setOpen(false); }}>{t("common.confirm")}</Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="import-file">{t("users.importSelect")}</Label>
+              <Input id="import-file" type="file" accept=".xlsx" ref={fileRef} />
+            </div>
+            <button
+              type="button"
+              onClick={() => void handleTemplateDownload()}
+              className="text-left text-xs text-primary hover:underline"
+            >
+              {t("users.importTemplate")}
+            </button>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
+              <Button disabled={loading} onClick={() => void handleImport()}>
+                {loading ? t("filePage.uploading") : t("users.importBtn")}
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

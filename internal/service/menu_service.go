@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"connectrpc.com/connect"
 	"gorm.io/gorm"
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
@@ -49,12 +51,14 @@ func (s *MenuService) CreateMenu(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": m.ID, "parent_id": m.ParentID, "path": m.Path, "name": m.Name, "title": m.Title}}))
 	return connect.NewResponse(toProtoMenu(m, nil)), nil
 }
 
 func (s *MenuService) UpdateMenu(ctx context.Context, req *connect.Request[zerxv1.UpdateMenuRequest]) (*connect.Response[zerxv1.Menu], error) {
 	id := req.Msg.GetId()
-	if _, err := gorm.G[model.Menu](s.db).Where("id = ?", id).First(ctx); err != nil {
+	old, err := gorm.G[model.Menu](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("menu not found"))
 		}
@@ -80,11 +84,19 @@ func (s *MenuService) UpdateMenu(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "parent_id": old.ParentID, "path": old.Path, "name": old.Name, "title": old.Title}, "after": map[string]any{"id": m.ID, "parent_id": m.ParentID, "path": m.Path, "name": m.Name, "title": m.Title}}))
 	return connect.NewResponse(toProtoMenu(m, nil)), nil
 }
 
 func (s *MenuService) DeleteMenu(ctx context.Context, req *connect.Request[zerxv1.DeleteMenuRequest]) (*connect.Response[zerxv1.DeleteMenuResponse], error) {
 	id := req.Msg.GetId()
+	old, err := gorm.G[model.Menu](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("menu not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
 	txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("menu_id = ?", id).Delete(&model.MenuButton{}).Error; err != nil {
 			return err
@@ -109,6 +121,7 @@ func (s *MenuService) DeleteMenu(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, txErr)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "name": old.Name, "path": old.Path, "title": old.Title}}))
 	return connect.NewResponse(&zerxv1.DeleteMenuResponse{}), nil
 }
 
@@ -122,11 +135,19 @@ func (s *MenuService) CreateMenuButton(ctx context.Context, req *connect.Request
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": b.ID, "menu_id": b.MenuID, "code": b.Code, "name": b.Name}}))
 	return connect.NewResponse(toProtoMenuButton(b)), nil
 }
 
 func (s *MenuService) DeleteMenuButton(ctx context.Context, req *connect.Request[zerxv1.DeleteMenuButtonRequest]) (*connect.Response[zerxv1.DeleteMenuButtonResponse], error) {
 	id := req.Msg.GetId()
+	oldBtn, btnErr := gorm.G[model.MenuButton](s.db).Where("id = ?", id).First(ctx)
+	if btnErr != nil {
+		if errors.Is(btnErr, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("button not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, btnErr)
+	}
 	txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("button_id = ?", id).Delete(&model.RoleButton{}).Error; err != nil {
 			return err
@@ -148,6 +169,7 @@ func (s *MenuService) DeleteMenuButton(ctx context.Context, req *connect.Request
 		return nil, connect.NewError(connect.CodeInternal, txErr)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": oldBtn.ID, "menu_id": oldBtn.MenuID, "code": oldBtn.Code, "name": oldBtn.Name}}))
 	return connect.NewResponse(&zerxv1.DeleteMenuButtonResponse{}), nil
 }
 
@@ -162,11 +184,11 @@ func (s *MenuService) GetUserMenus(ctx context.Context, _ *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	if claims.Role == model.RoleAdmin {
+	if slices.Contains(claims.Roles, model.RoleAdmin) {
 		return connect.NewResponse(&zerxv1.GetUserMenusResponse{Menus: buildMenuTree(menus, buttons, 0)}), nil
 	}
 
-	roleMenus, err := gorm.G[model.RoleMenu](s.db).Where("role_code = ?", claims.Role).Find(ctx)
+	roleMenus, err := gorm.G[model.RoleMenu](s.db).Where("role_code IN ?", claims.Roles).Find(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -207,7 +229,7 @@ func (s *MenuService) GetUserButtons(ctx context.Context, _ *connect.Request[zer
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("authentication required"))
 	}
 
-	if claims.Role == model.RoleAdmin {
+	if slices.Contains(claims.Roles, model.RoleAdmin) {
 		buttons, err := gorm.G[model.MenuButton](s.db).Find(ctx)
 		if err != nil {
 			return nil, connect.NewError(connect.CodeInternal, err)
@@ -220,7 +242,7 @@ func (s *MenuService) GetUserButtons(ctx context.Context, _ *connect.Request[zer
 		return connect.NewResponse(&zerxv1.GetUserButtonsResponse{Codes: codes}), nil
 	}
 
-	roleButtons, err := gorm.G[model.RoleButton](s.db).Where("role_code = ?", claims.Role).Find(ctx)
+	roleButtons, err := gorm.G[model.RoleButton](s.db).Where("role_code IN ?", claims.Roles).Find(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

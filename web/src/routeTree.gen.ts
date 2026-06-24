@@ -9,24 +9,33 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
 import { Route as AuthedSiteSettingsRouteImport } from './routes/_authed/site-settings'
 import { Route as AuthedSessionsRouteImport } from './routes/_authed/sessions'
 import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
+import { Route as AuthedProfileRouteImport } from './routes/_authed/profile'
 import { Route as AuthedParamsRouteImport } from './routes/_authed/params'
 import { Route as AuthedOperationLogsRouteImport } from './routes/_authed/operation-logs'
 import { Route as AuthedMenusRouteImport } from './routes/_authed/menus'
 import { Route as AuthedLoginLogsRouteImport } from './routes/_authed/login-logs'
+import { Route as AuthedJobsRouteImport } from './routes/_authed/jobs'
 import { Route as AuthedFilesRouteImport } from './routes/_authed/files'
 import { Route as AuthedErrorLogsRouteImport } from './routes/_authed/error-logs'
 import { Route as AuthedDictsRouteImport } from './routes/_authed/dicts'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedApisRouteImport } from './routes/_authed/apis'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -35,6 +44,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
@@ -66,6 +80,11 @@ const AuthedRolesRoute = AuthedRolesRouteImport.update({
   path: '/roles',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedProfileRoute = AuthedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedParamsRoute = AuthedParamsRouteImport.update({
   id: '/params',
   path: '/params',
@@ -84,6 +103,11 @@ const AuthedMenusRoute = AuthedMenusRouteImport.update({
 const AuthedLoginLogsRoute = AuthedLoginLogsRouteImport.update({
   id: '/login-logs',
   path: '/login-logs',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedJobsRoute = AuthedJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedFilesRoute = AuthedFilesRouteImport.update({
@@ -114,17 +138,21 @@ const AuthedApisRoute = AuthedApisRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/apis': typeof AuthedApisRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/dicts': typeof AuthedDictsRoute
   '/error-logs': typeof AuthedErrorLogsRoute
   '/files': typeof AuthedFilesRoute
+  '/jobs': typeof AuthedJobsRoute
   '/login-logs': typeof AuthedLoginLogsRoute
   '/menus': typeof AuthedMenusRoute
   '/operation-logs': typeof AuthedOperationLogsRoute
   '/params': typeof AuthedParamsRoute
+  '/profile': typeof AuthedProfileRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
   '/site-settings': typeof AuthedSiteSettingsRoute
@@ -132,17 +160,21 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/apis': typeof AuthedApisRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/dicts': typeof AuthedDictsRoute
   '/error-logs': typeof AuthedErrorLogsRoute
   '/files': typeof AuthedFilesRoute
+  '/jobs': typeof AuthedJobsRoute
   '/login-logs': typeof AuthedLoginLogsRoute
   '/menus': typeof AuthedMenusRoute
   '/operation-logs': typeof AuthedOperationLogsRoute
   '/params': typeof AuthedParamsRoute
+  '/profile': typeof AuthedProfileRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
   '/site-settings': typeof AuthedSiteSettingsRoute
@@ -152,17 +184,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authed/apis': typeof AuthedApisRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/dicts': typeof AuthedDictsRoute
   '/_authed/error-logs': typeof AuthedErrorLogsRoute
   '/_authed/files': typeof AuthedFilesRoute
+  '/_authed/jobs': typeof AuthedJobsRoute
   '/_authed/login-logs': typeof AuthedLoginLogsRoute
   '/_authed/menus': typeof AuthedMenusRoute
   '/_authed/operation-logs': typeof AuthedOperationLogsRoute
   '/_authed/params': typeof AuthedParamsRoute
+  '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/roles': typeof AuthedRolesRoute
   '/_authed/sessions': typeof AuthedSessionsRoute
   '/_authed/site-settings': typeof AuthedSiteSettingsRoute
@@ -172,17 +208,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/reset-password'
     | '/apis'
     | '/dashboard'
     | '/dicts'
     | '/error-logs'
     | '/files'
+    | '/jobs'
     | '/login-logs'
     | '/menus'
     | '/operation-logs'
     | '/params'
+    | '/profile'
     | '/roles'
     | '/sessions'
     | '/site-settings'
@@ -190,17 +230,21 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/reset-password'
     | '/apis'
     | '/dashboard'
     | '/dicts'
     | '/error-logs'
     | '/files'
+    | '/jobs'
     | '/login-logs'
     | '/menus'
     | '/operation-logs'
     | '/params'
+    | '/profile'
     | '/roles'
     | '/sessions'
     | '/site-settings'
@@ -209,17 +253,21 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/reset-password'
     | '/_authed/apis'
     | '/_authed/dashboard'
     | '/_authed/dicts'
     | '/_authed/error-logs'
     | '/_authed/files'
+    | '/_authed/jobs'
     | '/_authed/login-logs'
     | '/_authed/menus'
     | '/_authed/operation-logs'
     | '/_authed/params'
+    | '/_authed/profile'
     | '/_authed/roles'
     | '/_authed/sessions'
     | '/_authed/site-settings'
@@ -229,12 +277,21 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -247,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -291,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRolesRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/profile': {
+      id: '/_authed/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthedProfileRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/params': {
       id: '/_authed/params'
       path: '/params'
@@ -317,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/login-logs'
       fullPath: '/login-logs'
       preLoaderRoute: typeof AuthedLoginLogsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/jobs': {
+      id: '/_authed/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof AuthedJobsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/files': {
@@ -363,10 +441,12 @@ interface AuthedRouteRouteChildren {
   AuthedDictsRoute: typeof AuthedDictsRoute
   AuthedErrorLogsRoute: typeof AuthedErrorLogsRoute
   AuthedFilesRoute: typeof AuthedFilesRoute
+  AuthedJobsRoute: typeof AuthedJobsRoute
   AuthedLoginLogsRoute: typeof AuthedLoginLogsRoute
   AuthedMenusRoute: typeof AuthedMenusRoute
   AuthedOperationLogsRoute: typeof AuthedOperationLogsRoute
   AuthedParamsRoute: typeof AuthedParamsRoute
+  AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedRolesRoute: typeof AuthedRolesRoute
   AuthedSessionsRoute: typeof AuthedSessionsRoute
   AuthedSiteSettingsRoute: typeof AuthedSiteSettingsRoute
@@ -379,10 +459,12 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedDictsRoute: AuthedDictsRoute,
   AuthedErrorLogsRoute: AuthedErrorLogsRoute,
   AuthedFilesRoute: AuthedFilesRoute,
+  AuthedJobsRoute: AuthedJobsRoute,
   AuthedLoginLogsRoute: AuthedLoginLogsRoute,
   AuthedMenusRoute: AuthedMenusRoute,
   AuthedOperationLogsRoute: AuthedOperationLogsRoute,
   AuthedParamsRoute: AuthedParamsRoute,
+  AuthedProfileRoute: AuthedProfileRoute,
   AuthedRolesRoute: AuthedRolesRoute,
   AuthedSessionsRoute: AuthedSessionsRoute,
   AuthedSiteSettingsRoute: AuthedSiteSettingsRoute,
@@ -396,8 +478,10 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

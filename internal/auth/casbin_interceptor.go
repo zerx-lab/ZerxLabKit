@@ -36,19 +36,22 @@ func NewCasbinInterceptor(enforcer *casbin.SyncedCachedEnforcer, public, selfSer
 			if selfServe[proc] {
 				return next(ctx, req)
 			}
-			if claims.Role == model.RoleAdmin {
-				return next(ctx, req)
+			for _, r := range claims.Roles {
+				if r == model.RoleAdmin {
+					return next(ctx, req)
+				}
 			}
 
-			allowed, err := enforcer.Enforce(claims.Role, proc)
-			if err != nil {
-				return nil, connect.NewError(connect.CodeInternal, err)
+			for _, r := range claims.Roles {
+				allowed, err := enforcer.Enforce(r, proc)
+				if err != nil {
+					return nil, connect.NewError(connect.CodeInternal, err)
+				}
+				if allowed {
+					return next(ctx, req)
+				}
 			}
-			if !allowed {
-				return nil, connect.NewError(connect.CodePermissionDenied, errors.New("permission denied"))
-			}
-
-			return next(ctx, req)
+			return nil, connect.NewError(connect.CodePermissionDenied, errors.New("permission denied"))
 		}
 	}
 }

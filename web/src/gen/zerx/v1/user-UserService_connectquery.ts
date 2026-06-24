@@ -35,3 +35,10 @@ export const deleteUser = UserService.method.deleteUser;
  * @generated from rpc zerx.v1.UserService.ResetPassword
  */
 export const resetPassword = UserService.method.resetPassword;
+
+/**
+ * DisableUserTotp force-disables a user's 2FA (admin/RBAC-gated).
+ *
+ * @generated from rpc zerx.v1.UserService.DisableUserTotp
+ */
+export const disableUserTotp = UserService.method.disableUserTotp;

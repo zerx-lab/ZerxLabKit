@@ -5,28 +5,29 @@ import { me } from "@/gen/zerx/v1/auth-AuthService_connectquery";
 import { getUserButtons } from "@/gen/zerx/v1/menu-MenuService_connectquery";
 
 interface PermissionContextValue {
-  role: string;
+  roles: string[];
   can: (code: string) => boolean;
 }
 
 const PermissionContext = createContext<PermissionContextValue | null>(null);
 
-// PermissionProvider loads the current user's role and granted button codes,
+// PermissionProvider loads the current user's roles and granted button codes,
 // exposing a can(code) check. admin always passes; otherwise the code must be in
 // the granted set. While buttons load, non-admins see buttons hidden.
 export function PermissionProvider({ children }: { children: ReactNode }) {
   const { data: meData } = useQuery(me);
   const { data: buttonData } = useQuery(getUserButtons);
 
-  const role = meData?.user?.role ?? "";
+  const userRoles = meData?.user?.roles;
 
   const value = useMemo<PermissionContextValue>(() => {
+    const roles = userRoles ?? [];
     const codes = new Set(buttonData?.codes ?? []);
     return {
-      role,
-      can: (code: string) => role === "admin" || codes.has(code),
+      roles,
+      can: (code: string) => roles.includes("admin") || codes.has(code),
     };
-  }, [role, buttonData]);
+  }, [userRoles, buttonData]);
 
   return <PermissionContext value={value}>{children}</PermissionContext>;
 }

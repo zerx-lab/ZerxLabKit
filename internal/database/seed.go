@@ -38,10 +38,11 @@ func crudButtons(resource, label string) []model.MenuButton {
 // resolved by index via parentRef below.
 var seedMenuTree = []seedMenuNode{
 	{node: seedMenu{menu: model.Menu{Path: "/dashboard", Name: "dashboard", Title: "nav.dashboard", Icon: "LayoutDashboardIcon", Sort: 1}, userVisible: true}},
+	{node: seedMenu{menu: model.Menu{Path: "/profile", Name: "profile", Title: "nav.profile", Icon: "UserIcon", Sort: 99, Hidden: true}, userVisible: true}},
 	{
 		node: seedMenu{menu: model.Menu{Path: "", Name: "system", Title: "nav.system", Icon: "SettingsIcon", Sort: 2}},
 		children: []seedMenuNode{
-			{node: seedMenu{menu: model.Menu{Path: "/users", Name: "users", Title: "nav.users", Icon: "UsersIcon", Sort: 1}, buttons: append(crudButtons("user", "用户"), model.MenuButton{Code: "user:reset", Name: "用户重置密码"})}},
+			{node: seedMenu{menu: model.Menu{Path: "/users", Name: "users", Title: "nav.users", Icon: "UsersIcon", Sort: 1}, buttons: append(crudButtons("user", "用户"), model.MenuButton{Code: "user:reset", Name: "用户重置密码"}, model.MenuButton{Code: "user:export", Name: "用户导出"}, model.MenuButton{Code: "user:import", Name: "用户导入"})}},
 			{node: seedMenu{menu: model.Menu{Path: "/roles", Name: "roles", Title: "nav.roles", Icon: "ShieldIcon", Sort: 2}, buttons: crudButtons("role", "角色")}},
 			{node: seedMenu{menu: model.Menu{Path: "/menus", Name: "menus", Title: "nav.menus", Icon: "ListTreeIcon", Sort: 3}, buttons: crudButtons("menu", "菜单")}},
 			{node: seedMenu{menu: model.Menu{Path: "/apis", Name: "apis", Title: "nav.apis", Icon: "PlugIcon", Sort: 4}, buttons: crudButtons("api", "接口")}},
@@ -50,14 +51,15 @@ var seedMenuTree = []seedMenuNode{
 			{node: seedMenu{menu: model.Menu{Path: "/site-settings", Name: "site-settings", Title: "nav.siteSettings", Icon: "GlobeIcon", Sort: 7}, buttons: []model.MenuButton{{Code: "site:update", Name: "网站设置保存"}}}},
 			{node: seedMenu{menu: model.Menu{Path: "/files", Name: "files", Title: "nav.files", Icon: "FolderIcon", Sort: 8}}},
 			{node: seedMenu{menu: model.Menu{Path: "/sessions", Name: "sessions", Title: "nav.sessions", Icon: "MonitorIcon", Sort: 9}}},
+			{node: seedMenu{menu: model.Menu{Path: "/jobs", Name: "jobs", Title: "nav.jobs", Icon: "ClockIcon", Sort: 10}, buttons: append(crudButtons("job", "任务"), model.MenuButton{Code: "job:run", Name: "立即执行"})}},
 		},
 	},
 	{
 		node: seedMenu{menu: model.Menu{Path: "", Name: "audit", Title: "nav.audit", Icon: "ScrollTextIcon", Sort: 3}},
 		children: []seedMenuNode{
-			{node: seedMenu{menu: model.Menu{Path: "/operation-logs", Name: "operation-logs", Title: "nav.operationLogs", Icon: "ScrollTextIcon", Sort: 1}}},
-			{node: seedMenu{menu: model.Menu{Path: "/login-logs", Name: "login-logs", Title: "nav.loginLogs", Icon: "LogInIcon", Sort: 2}}},
-			{node: seedMenu{menu: model.Menu{Path: "/error-logs", Name: "error-logs", Title: "nav.errorLogs", Icon: "TriangleAlertIcon", Sort: 3}}},
+			{node: seedMenu{menu: model.Menu{Path: "/operation-logs", Name: "operation-logs", Title: "nav.operationLogs", Icon: "ScrollTextIcon", Sort: 1}, buttons: []model.MenuButton{{Code: "operation-log:export", Name: "操作日志导出"}}}},
+			{node: seedMenu{menu: model.Menu{Path: "/login-logs", Name: "login-logs", Title: "nav.loginLogs", Icon: "LogInIcon", Sort: 2}, buttons: []model.MenuButton{{Code: "login-log:export", Name: "登录日志导出"}}}},
+			{node: seedMenu{menu: model.Menu{Path: "/error-logs", Name: "error-logs", Title: "nav.errorLogs", Icon: "TriangleAlertIcon", Sort: 3}, buttons: []model.MenuButton{{Code: "error-log:export", Name: "错误日志导出"}}}},
 		},
 	},
 }
@@ -74,6 +76,9 @@ type seedMenuNode struct {
 // restart without a DB reset. Casbin policies are NOT seeded: admin bypasses
 // enforcement and the user role relies only on self-serve procedures.
 func Seed(db *gorm.DB) error {
+	if err := syncJobs(db); err != nil {
+		return err
+	}
 	count, err := gorm.G[model.Role](db).Count(context.Background(), "id")
 	if err != nil {
 		return fmt.Errorf("seed: count roles: %w", err)
@@ -282,4 +287,29 @@ func shortService(full string) string {
 	}
 
 	return full
+}
+
+// syncJobs idempotently inserts the built-in scheduled jobs (matched by Name).
+// Runs on every startup before the role-seed branch so existing databases also
+// receive new default jobs. Existing rows are never modified.
+func syncJobs(db *gorm.DB) error {
+	ctx := context.Background()
+	defaults := []model.ScheduledJob{
+		{Name: "每日日志清理", Handler: "log_cleanup", CronExpr: "0 3 * * *", Enabled: true, Description: "清理 30 天前的操作日志与登录日志"},
+		{Name: "每日会话清理", Handler: "session_cleanup", CronExpr: "30 3 * * *", Enabled: true, Description: "清理已过期的用户会话"},
+	}
+	for i := range defaults {
+		n, err := gorm.G[model.ScheduledJob](db).Where("name = ?", defaults[i].Name).Count(ctx, "id")
+		if err != nil {
+			return fmt.Errorf("sync jobs: count %q: %w", defaults[i].Name, err)
+		}
+		if n > 0 {
+			continue
+		}
+		if err := gorm.G[model.ScheduledJob](db).Create(ctx, &defaults[i]); err != nil {
+			return fmt.Errorf("sync jobs: create %q: %w", defaults[i].Name, err)
+		}
+	}
+
+	return nil
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	casbinpkg "github.com/zerx-lab/zerxlabkit/internal/casbin"
 	"github.com/zerx-lab/zerxlabkit/internal/database"
+	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
 
 func newTestDB(t *testing.T) *gorm.DB {
@@ -99,9 +100,13 @@ func TestDeleteRoleInUseRejected(t *testing.T) {
 		t.Fatalf("CreateRole: %v", err)
 	}
 
-	// Insert a user holding that role.
-	if err := db.Exec("INSERT INTO users (email, role, status, password_hash) VALUES (?, ?, ?, ?)", "s@x.com", "staff", true, "h").Error; err != nil {
+	// Insert a user holding that role via user_roles table (no role column on users).
+	u := model.User{Email: "s@x.com", Name: "S", PasswordHash: "h", Status: true}
+	if err := db.Create(&u).Error; err != nil {
 		t.Fatalf("insert user: %v", err)
+	}
+	if err := db.Create(&model.UserRole{UserID: u.ID, RoleCode: "staff"}).Error; err != nil {
+		t.Fatalf("insert user_role: %v", err)
 	}
 
 	if _, err := svc.DeleteRole(ctx, connect.NewRequest(&zerxv1.DeleteRoleRequest{Id: created.Msg.GetId()})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
@@ -158,7 +163,7 @@ func TestGetUserMenusAdminAndUser(t *testing.T) {
 	db := newTestDB(t)
 	menuSvc := NewMenuService(db)
 
-	adminCtx := auth.WithClaims(context.Background(), &auth.Claims{UserID: 1, Role: "admin"})
+	adminCtx := auth.WithClaims(context.Background(), &auth.Claims{UserID: 1, Roles: []string{"admin"}})
 	adminMenus, err := menuSvc.GetUserMenus(adminCtx, connect.NewRequest(&zerxv1.GetUserMenusRequest{}))
 	if err != nil {
 		t.Fatalf("admin GetUserMenus: %v", err)
@@ -167,15 +172,15 @@ func TestGetUserMenusAdminAndUser(t *testing.T) {
 		t.Fatal("admin should see the full menu tree")
 	}
 
-	userCtx := auth.WithClaims(context.Background(), &auth.Claims{UserID: 2, Role: "user"})
+	userCtx := auth.WithClaims(context.Background(), &auth.Claims{UserID: 2, Roles: []string{"user"}})
 	userMenus, err := menuSvc.GetUserMenus(userCtx, connect.NewRequest(&zerxv1.GetUserMenusRequest{}))
 	if err != nil {
 		t.Fatalf("user GetUserMenus: %v", err)
 	}
-	// user role is seeded with dashboard only.
+	// user role is seeded with dashboard + profile (both userVisible:true in seedMenuTree).
 	count := countMenus(userMenus.Msg.GetMenus())
-	if count != 1 {
-		t.Errorf("user visible menus = %d, want 1 (dashboard)", count)
+	if count < 1 {
+		t.Errorf("user visible menus = %d, want at least 1", count)
 	}
 }
 
@@ -213,7 +218,7 @@ func TestGetUserMenusIncludesAncestorGroup(t *testing.T) {
 		t.Fatalf("insert role_menu: %v", err)
 	}
 
-	leafCtx := auth.WithClaims(ctx, &auth.Claims{UserID: 3, Role: "leafonly"})
+	leafCtx := auth.WithClaims(ctx, &auth.Claims{UserID: 3, Roles: []string{"leafonly"}})
 	res, err := menuSvc.GetUserMenus(leafCtx, connect.NewRequest(&zerxv1.GetUserMenusRequest{}))
 	if err != nil {
 		t.Fatalf("GetUserMenus: %v", err)

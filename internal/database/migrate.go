@@ -1,28 +1,89 @@
 package database
 
 import (
+	"github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
 
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
 
-// Migrate runs schema auto-migration for all models. Suitable for development
-// and the scaffold; production deployments should adopt versioned migrations.
+// Migrate runs versioned schema migrations via gormigrate. The migration record
+// table is "migrations". 0001_baseline AutoMigrates the full model snapshot of
+// this release (incremental: builds a fresh DB and backfills missing tables /
+// columns on an existing one). 0002/0003 migrate the legacy single-role column
+// into the user_roles table, guarded by HasColumn so a fresh DB skips them.
+//
+// casbin_rule is never listed here: the gorm-adapter inside casbin.New
+// auto-migrates it (later, in server.New), independent of the migrations table.
 func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&model.User{},
-		&model.Role{},
-		&model.Menu{},
-		&model.MenuButton{},
-		&model.RoleMenu{},
-		&model.RoleButton{},
-		&model.API{},
-		&model.Dictionary{},
-		&model.DictionaryItem{},
-		&model.OperationLog{},
-		&model.LoginLog{},
-		&model.UserSession{},
-		&model.SysParam{},
-		&model.File{},
-	)
+	migrations := []*gormigrate.Migration{
+		{
+			ID: "0001_baseline",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(
+					&model.User{},
+					&model.UserRole{},
+					&model.Role{},
+					&model.Menu{},
+					&model.MenuButton{},
+					&model.RoleMenu{},
+					&model.RoleButton{},
+					&model.API{},
+					&model.Dictionary{},
+					&model.DictionaryItem{},
+					&model.OperationLog{},
+					&model.LoginLog{},
+					&model.UserSession{},
+					&model.SysParam{},
+					&model.File{},
+					&model.PasswordResetToken{},
+					&model.PasswordHistory{},
+					&model.UserTOTP{},
+					&model.TOTPRecoveryCode{},
+					&model.ScheduledJob{},
+					&model.JobExecution{},
+				)
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
+		{
+			ID: "0002_backfill_user_roles",
+			Migrate: func(tx *gorm.DB) error {
+				if !tx.Migrator().HasColumn("users", "role") {
+					return nil // fresh DB: no legacy column to backfill
+				}
+				type legacyUser struct {
+					ID   uint64
+					Role string
+				}
+				var rows []legacyUser
+				if err := tx.Table("users").Select("id", "role").Find(&rows).Error; err != nil {
+					return err
+				}
+				batch := make([]model.UserRole, 0, len(rows))
+				for _, r := range rows {
+					if r.Role != "" {
+						batch = append(batch, model.UserRole{UserID: r.ID, RoleCode: r.Role})
+					}
+				}
+				if len(batch) == 0 {
+					return nil
+				}
+				return tx.CreateInBatches(&batch, 100).Error
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
+		{
+			ID: "0003_drop_users_role",
+			Migrate: func(tx *gorm.DB) error {
+				if tx.Migrator().HasColumn("users", "role") {
+					return tx.Migrator().DropColumn("users", "role")
+				}
+				return nil
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
+	}
+
+	return gormigrate.New(db, gormigrate.DefaultOptions, migrations).Migrate()
 }

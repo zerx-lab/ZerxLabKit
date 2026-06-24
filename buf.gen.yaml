@@ -11,3 +11,9 @@ plugins:
   - local: ["go", "run", "connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.19.2"]
     out: gen/go
     opt: paths=source_relative
+  # OpenAPI v3 spec for the connectRPC API
+  - local: ["go", "run", "github.com/sudorandom/protoc-gen-connect-openapi@v0.25.6"]
+    out: gen/openapi
+    opt:
+      - features=connectrpc;protovalidate
+      - path=openapi.yaml

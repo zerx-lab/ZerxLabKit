@@ -5,7 +5,7 @@
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
-import type { User } from "./user_pb";
+import type { User, UserSchema } from "./user_pb";
 import { file_zerx_v1_user } from "./user_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file zerx/v1/auth.proto.
  */
 export const file_zerx_v1_auth: GenFile = /*@__PURE__*/
-  fileDesc("ChJ6ZXJ4L3YxL2F1dGgucHJvdG8SB3plcngudjEiawoMTG9naW5SZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAIEhIKCmNhcHRjaGFfaWQYAyABKAkSFAoMY2FwdGNoYV9jb2RlGAQgASgJIm0KDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEhUKDXJlZnJlc2hfdG9rZW4YAiABKAkSGwoEdXNlchgDIAEoCzINLnplcngudjEuVXNlchISCgpzZXNzaW9uX2lkGAQgASgJIlsKD1JlZ2lzdGVyUmVxdWVzdBIWCgVlbWFpbBgBIAEoCUIHukgEcgJgARIVCgRuYW1lGAIgASgJQge6SARyAhABEhkKCHBhc3N3b3JkGAMgASgJQge6SARyAhAIInAKEFJlZ2lzdGVyUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEhUKDXJlZnJlc2hfdG9rZW4YAiABKAkSGwoEdXNlchgDIAEoCzINLnplcngudjEuVXNlchISCgpzZXNzaW9uX2lkGAQgASgJIjAKDlJlZnJlc2hSZXF1ZXN0Eh4KDXJlZnJlc2hfdG9rZW4YASABKAlCB7pIBHICEAEiJwoPUmVmcmVzaFJlc3BvbnNlEhQKDGFjY2Vzc190b2tlbhgBIAEoCSIPCg1Mb2dvdXRSZXF1ZXN0IhAKDkxvZ291dFJlc3BvbnNlIgsKCU1lUmVxdWVzdCIpCgpNZVJlc3BvbnNlEhsKBHVzZXIYASABKAsyDS56ZXJ4LnYxLlVzZXIiEwoRR2V0Q2FwdGNoYVJlcXVlc3QiPgoSR2V0Q2FwdGNoYVJlc3BvbnNlEhIKCmNhcHRjaGFfaWQYASABKAkSFAoMaW1hZ2VfYmFzZTY0GAIgASgJInAKB1Nlc3Npb24SCgoCaWQYASABKAkSDwoHdXNlcl9pZBgCIAEoBBIKCgJpcBgDIAEoCRISCgp1c2VyX2FnZW50GAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAkSFAoMbGFzdF9zZWVuX2F0GAYgASgJIiYKE0xpc3RTZXNzaW9uc1JlcXVlc3QSDwoHdXNlcl9pZBgBIAEoBCI6ChRMaXN0U2Vzc2lvbnNSZXNwb25zZRIiCghzZXNzaW9ucxgBIAMoCzIQLnplcngudjEuU2Vzc2lvbiIrChRSZXZva2VTZXNzaW9uUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASIXChVSZXZva2VTZXNzaW9uUmVzcG9uc2UykgQKC0F1dGhTZXJ2aWNlEjYKBUxvZ2luEhUuemVyeC52MS5Mb2dpblJlcXVlc3QaFi56ZXJ4LnYxLkxvZ2luUmVzcG9uc2USPwoIUmVnaXN0ZXISGC56ZXJ4LnYxLlJlZ2lzdGVyUmVxdWVzdBoZLnplcngudjEuUmVnaXN0ZXJSZXNwb25zZRI8CgdSZWZyZXNoEhcuemVyeC52MS5SZWZyZXNoUmVxdWVzdBoYLnplcngudjEuUmVmcmVzaFJlc3BvbnNlEjkKBkxvZ291dBIWLnplcngudjEuTG9nb3V0UmVxdWVzdBoXLnplcngudjEuTG9nb3V0UmVzcG9uc2USLQoCTWUSEi56ZXJ4LnYxLk1lUmVxdWVzdBoTLnplcngudjEuTWVSZXNwb25zZRJFCgpHZXRDYXB0Y2hhEhouemVyeC52MS5HZXRDYXB0Y2hhUmVxdWVzdBobLnplcngudjEuR2V0Q2FwdGNoYVJlc3BvbnNlEksKDExpc3RTZXNzaW9ucxIcLnplcngudjEuTGlzdFNlc3Npb25zUmVxdWVzdBodLnplcngudjEuTGlzdFNlc3Npb25zUmVzcG9uc2USTgoNUmV2b2tlU2Vzc2lvbhIdLnplcngudjEuUmV2b2tlU2Vzc2lvblJlcXVlc3QaHi56ZXJ4LnYxLlJldm9rZVNlc3Npb25SZXNwb25zZUI2WjRnaXRodWIuY29tL3plcngtbGFiL3plcnhsYWJraXQvZ2VuL2dvL3plcngvdjE7emVyeHYxYgZwcm90bzM", [file_buf_validate_validate, file_zerx_v1_user]);
+  fileDesc("ChJ6ZXJ4L3YxL2F1dGgucHJvdG8SB3plcngudjEifgoMTG9naW5SZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAIEhIKCmNhcHRjaGFfaWQYAyABKAkSFAoMY2FwdGNoYV9jb2RlGAQgASgJEhEKCXRvdHBfY29kZRgFIAEoCSKEAQoNTG9naW5SZXNwb25zZRIUCgxhY2Nlc3NfdG9rZW4YASABKAkSFQoNcmVmcmVzaF90b2tlbhgCIAEoCRIbCgR1c2VyGAMgASgLMg0uemVyeC52MS5Vc2VyEhIKCnNlc3Npb25faWQYBCABKAkSFQoNdG90cF9yZXF1aXJlZBgFIAEoCCJbCg9SZWdpc3RlclJlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESFQoEbmFtZRgCIAEoCUIHukgEcgIQARIZCghwYXNzd29yZBgDIAEoCUIHukgEcgIQCCJwChBSZWdpc3RlclJlc3BvbnNlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIVCg1yZWZyZXNoX3Rva2VuGAIgASgJEhsKBHVzZXIYAyABKAsyDS56ZXJ4LnYxLlVzZXISEgoKc2Vzc2lvbl9pZBgEIAEoCSIwCg5SZWZyZXNoUmVxdWVzdBIeCg1yZWZyZXNoX3Rva2VuGAEgASgJQge6SARyAhABIicKD1JlZnJlc2hSZXNwb25zZRIUCgxhY2Nlc3NfdG9rZW4YASABKAkiDwoNTG9nb3V0UmVxdWVzdCIQCg5Mb2dvdXRSZXNwb25zZSILCglNZVJlcXVlc3QiKQoKTWVSZXNwb25zZRIbCgR1c2VyGAEgASgLMg0uemVyeC52MS5Vc2VyIhMKEUdldENhcHRjaGFSZXF1ZXN0Ij4KEkdldENhcHRjaGFSZXNwb25zZRISCgpjYXB0Y2hhX2lkGAEgASgJEhQKDGltYWdlX2Jhc2U2NBgCIAEoCSJwCgdTZXNzaW9uEgoKAmlkGAEgASgJEg8KB3VzZXJfaWQYAiABKAQSCgoCaXAYAyABKAkSEgoKdXNlcl9hZ2VudBgEIAEoCRISCgpjcmVhdGVkX2F0GAUgASgJEhQKDGxhc3Rfc2Vlbl9hdBgGIAEoCSImChNMaXN0U2Vzc2lvbnNSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAQiOgoUTGlzdFNlc3Npb25zUmVzcG9uc2USIgoIc2Vzc2lvbnMYASADKAsyEC56ZXJ4LnYxLlNlc3Npb24iKwoUUmV2b2tlU2Vzc2lvblJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiFwoVUmV2b2tlU2Vzc2lvblJlc3BvbnNlIlUKFUNoYW5nZVBhc3N3b3JkUmVxdWVzdBIdCgxvbGRfcGFzc3dvcmQYASABKAlCB7pIBHICEAESHQoMbmV3X3Bhc3N3b3JkGAIgASgJQge6SARyAhAIIhgKFkNoYW5nZVBhc3N3b3JkUmVzcG9uc2UiRwoUVXBkYXRlUHJvZmlsZVJlcXVlc3QSEAoIbmlja25hbWUYASABKAkSDgoGYXZhdGFyGAIgASgJEg0KBXBob25lGAMgASgJIjUKG1JlcXVlc3RQYXNzd29yZFJlc2V0UmVxdWVzdBIWCgVlbWFpbBgBIAEoCUIHukgEcgJgASIeChxSZXF1ZXN0UGFzc3dvcmRSZXNldFJlc3BvbnNlIlQKG0NvbmZpcm1QYXNzd29yZFJlc2V0UmVxdWVzdBIWCgV0b2tlbhgBIAEoCUIHukgEcgIQARIdCgxuZXdfcGFzc3dvcmQYAiABKAlCB7pIBHICEAgiHgocQ29uZmlybVBhc3N3b3JkUmVzZXRSZXNwb25zZSISChBTZXR1cFRvdHBSZXF1ZXN0IjwKEVNldHVwVG90cFJlc3BvbnNlEg4KBnNlY3JldBgBIAEoCRIXCg9xcl9pbWFnZV9iYXNlNjQYAiABKAkiLAoTQWN0aXZhdGVUb3RwUmVxdWVzdBIVCgRjb2RlGAEgASgJQge6SARyAhAGIi4KFEFjdGl2YXRlVG90cFJlc3BvbnNlEhYKDnJlY292ZXJ5X2NvZGVzGAEgAygJIisKEkRpc2FibGVUb3RwUmVxdWVzdBIVCgRjb2RlGAEgASgJQge6SARyAhABIhUKE0Rpc2FibGVUb3RwUmVzcG9uc2UyyQgKC0F1dGhTZXJ2aWNlEjYKBUxvZ2luEhUuemVyeC52MS5Mb2dpblJlcXVlc3QaFi56ZXJ4LnYxLkxvZ2luUmVzcG9uc2USPwoIUmVnaXN0ZXISGC56ZXJ4LnYxLlJlZ2lzdGVyUmVxdWVzdBoZLnplcngudjEuUmVnaXN0ZXJSZXNwb25zZRI8CgdSZWZyZXNoEhcuemVyeC52MS5SZWZyZXNoUmVxdWVzdBoYLnplcngudjEuUmVmcmVzaFJlc3BvbnNlEjkKBkxvZ291dBIWLnplcngudjEuTG9nb3V0UmVxdWVzdBoXLnplcngudjEuTG9nb3V0UmVzcG9uc2USLQoCTWUSEi56ZXJ4LnYxLk1lUmVxdWVzdBoTLnplcngudjEuTWVSZXNwb25zZRJFCgpHZXRDYXB0Y2hhEhouemVyeC52MS5HZXRDYXB0Y2hhUmVxdWVzdBobLnplcngudjEuR2V0Q2FwdGNoYVJlc3BvbnNlEksKDExpc3RTZXNzaW9ucxIcLnplcngudjEuTGlzdFNlc3Npb25zUmVxdWVzdBodLnplcngudjEuTGlzdFNlc3Npb25zUmVzcG9uc2USTgoNUmV2b2tlU2Vzc2lvbhIdLnplcngudjEuUmV2b2tlU2Vzc2lvblJlcXVlc3QaHi56ZXJ4LnYxLlJldm9rZVNlc3Npb25SZXNwb25zZRJRCg5DaGFuZ2VQYXNzd29yZBIeLnplcngudjEuQ2hhbmdlUGFzc3dvcmRSZXF1ZXN0Gh8uemVyeC52MS5DaGFuZ2VQYXNzd29yZFJlc3BvbnNlEj0KDVVwZGF0ZVByb2ZpbGUSHS56ZXJ4LnYxLlVwZGF0ZVByb2ZpbGVSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEmMKFFJlcXVlc3RQYXNzd29yZFJlc2V0EiQuemVyeC52MS5SZXF1ZXN0UGFzc3dvcmRSZXNldFJlcXVlc3QaJS56ZXJ4LnYxLlJlcXVlc3RQYXNzd29yZFJlc2V0UmVzcG9uc2USYwoUQ29uZmlybVBhc3N3b3JkUmVzZXQSJC56ZXJ4LnYxLkNvbmZpcm1QYXNzd29yZFJlc2V0UmVxdWVzdBolLnplcngudjEuQ29uZmlybVBhc3N3b3JkUmVzZXRSZXNwb25zZRJCCglTZXR1cFRvdHASGS56ZXJ4LnYxLlNldHVwVG90cFJlcXVlc3QaGi56ZXJ4LnYxLlNldHVwVG90cFJlc3BvbnNlEksKDEFjdGl2YXRlVG90cBIcLnplcngudjEuQWN0aXZhdGVUb3RwUmVxdWVzdBodLnplcngudjEuQWN0aXZhdGVUb3RwUmVzcG9uc2USSAoLRGlzYWJsZVRvdHASGy56ZXJ4LnYxLkRpc2FibGVUb3RwUmVxdWVzdBocLnplcngudjEuRGlzYWJsZVRvdHBSZXNwb25zZUI2WjRnaXRodWIuY29tL3plcngtbGFiL3plcnhsYWJraXQvZ2VuL2dvL3plcngvdjE7emVyeHYxYgZwcm90bzM", [file_buf_validate_validate, file_zerx_v1_user]);
 
 /**
  * @generated from message zerx.v1.LoginRequest
@@ -38,6 +38,11 @@ export type LoginRequest = Message<"zerx.v1.LoginRequest"> & {
    * @generated from field: string captcha_code = 4;
    */
   captchaCode: string;
+
+  /**
+   * @generated from field: string totp_code = 5;
+   */
+  totpCode: string;
 };
 
 /**
@@ -70,6 +75,11 @@ export type LoginResponse = Message<"zerx.v1.LoginResponse"> & {
    * @generated from field: string session_id = 4;
    */
   sessionId: string;
+
+  /**
+   * @generated from field: bool totp_required = 5;
+   */
+  totpRequired: boolean;
 };
 
 /**
@@ -374,6 +384,232 @@ export const RevokeSessionResponseSchema: GenMessage<RevokeSessionResponse> = /*
   messageDesc(file_zerx_v1_auth, 16);
 
 /**
+ * @generated from message zerx.v1.ChangePasswordRequest
+ */
+export type ChangePasswordRequest = Message<"zerx.v1.ChangePasswordRequest"> & {
+  /**
+   * @generated from field: string old_password = 1;
+   */
+  oldPassword: string;
+
+  /**
+   * @generated from field: string new_password = 2;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message zerx.v1.ChangePasswordRequest.
+ * Use `create(ChangePasswordRequestSchema)` to create a new message.
+ */
+export const ChangePasswordRequestSchema: GenMessage<ChangePasswordRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 17);
+
+/**
+ * @generated from message zerx.v1.ChangePasswordResponse
+ */
+export type ChangePasswordResponse = Message<"zerx.v1.ChangePasswordResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.ChangePasswordResponse.
+ * Use `create(ChangePasswordResponseSchema)` to create a new message.
+ */
+export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 18);
+
+/**
+ * @generated from message zerx.v1.UpdateProfileRequest
+ */
+export type UpdateProfileRequest = Message<"zerx.v1.UpdateProfileRequest"> & {
+  /**
+   * @generated from field: string nickname = 1;
+   */
+  nickname: string;
+
+  /**
+   * @generated from field: string avatar = 2;
+   */
+  avatar: string;
+
+  /**
+   * @generated from field: string phone = 3;
+   */
+  phone: string;
+};
+
+/**
+ * Describes the message zerx.v1.UpdateProfileRequest.
+ * Use `create(UpdateProfileRequestSchema)` to create a new message.
+ */
+export const UpdateProfileRequestSchema: GenMessage<UpdateProfileRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 19);
+
+/**
+ * @generated from message zerx.v1.RequestPasswordResetRequest
+ */
+export type RequestPasswordResetRequest = Message<"zerx.v1.RequestPasswordResetRequest"> & {
+  /**
+   * @generated from field: string email = 1;
+   */
+  email: string;
+};
+
+/**
+ * Describes the message zerx.v1.RequestPasswordResetRequest.
+ * Use `create(RequestPasswordResetRequestSchema)` to create a new message.
+ */
+export const RequestPasswordResetRequestSchema: GenMessage<RequestPasswordResetRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 20);
+
+/**
+ * @generated from message zerx.v1.RequestPasswordResetResponse
+ */
+export type RequestPasswordResetResponse = Message<"zerx.v1.RequestPasswordResetResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.RequestPasswordResetResponse.
+ * Use `create(RequestPasswordResetResponseSchema)` to create a new message.
+ */
+export const RequestPasswordResetResponseSchema: GenMessage<RequestPasswordResetResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 21);
+
+/**
+ * @generated from message zerx.v1.ConfirmPasswordResetRequest
+ */
+export type ConfirmPasswordResetRequest = Message<"zerx.v1.ConfirmPasswordResetRequest"> & {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token: string;
+
+  /**
+   * @generated from field: string new_password = 2;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message zerx.v1.ConfirmPasswordResetRequest.
+ * Use `create(ConfirmPasswordResetRequestSchema)` to create a new message.
+ */
+export const ConfirmPasswordResetRequestSchema: GenMessage<ConfirmPasswordResetRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 22);
+
+/**
+ * @generated from message zerx.v1.ConfirmPasswordResetResponse
+ */
+export type ConfirmPasswordResetResponse = Message<"zerx.v1.ConfirmPasswordResetResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.ConfirmPasswordResetResponse.
+ * Use `create(ConfirmPasswordResetResponseSchema)` to create a new message.
+ */
+export const ConfirmPasswordResetResponseSchema: GenMessage<ConfirmPasswordResetResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 23);
+
+/**
+ * @generated from message zerx.v1.SetupTotpRequest
+ */
+export type SetupTotpRequest = Message<"zerx.v1.SetupTotpRequest"> & {
+};
+
+/**
+ * Describes the message zerx.v1.SetupTotpRequest.
+ * Use `create(SetupTotpRequestSchema)` to create a new message.
+ */
+export const SetupTotpRequestSchema: GenMessage<SetupTotpRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 24);
+
+/**
+ * @generated from message zerx.v1.SetupTotpResponse
+ */
+export type SetupTotpResponse = Message<"zerx.v1.SetupTotpResponse"> & {
+  /**
+   * @generated from field: string secret = 1;
+   */
+  secret: string;
+
+  /**
+   * @generated from field: string qr_image_base64 = 2;
+   */
+  qrImageBase64: string;
+};
+
+/**
+ * Describes the message zerx.v1.SetupTotpResponse.
+ * Use `create(SetupTotpResponseSchema)` to create a new message.
+ */
+export const SetupTotpResponseSchema: GenMessage<SetupTotpResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 25);
+
+/**
+ * @generated from message zerx.v1.ActivateTotpRequest
+ */
+export type ActivateTotpRequest = Message<"zerx.v1.ActivateTotpRequest"> & {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message zerx.v1.ActivateTotpRequest.
+ * Use `create(ActivateTotpRequestSchema)` to create a new message.
+ */
+export const ActivateTotpRequestSchema: GenMessage<ActivateTotpRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 26);
+
+/**
+ * @generated from message zerx.v1.ActivateTotpResponse
+ */
+export type ActivateTotpResponse = Message<"zerx.v1.ActivateTotpResponse"> & {
+  /**
+   * @generated from field: repeated string recovery_codes = 1;
+   */
+  recoveryCodes: string[];
+};
+
+/**
+ * Describes the message zerx.v1.ActivateTotpResponse.
+ * Use `create(ActivateTotpResponseSchema)` to create a new message.
+ */
+export const ActivateTotpResponseSchema: GenMessage<ActivateTotpResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 27);
+
+/**
+ * @generated from message zerx.v1.DisableTotpRequest
+ */
+export type DisableTotpRequest = Message<"zerx.v1.DisableTotpRequest"> & {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message zerx.v1.DisableTotpRequest.
+ * Use `create(DisableTotpRequestSchema)` to create a new message.
+ */
+export const DisableTotpRequestSchema: GenMessage<DisableTotpRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 28);
+
+/**
+ * @generated from message zerx.v1.DisableTotpResponse
+ */
+export type DisableTotpResponse = Message<"zerx.v1.DisableTotpResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.DisableTotpResponse.
+ * Use `create(DisableTotpResponseSchema)` to create a new message.
+ */
+export const DisableTotpResponseSchema: GenMessage<DisableTotpResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 29);
+
+/**
  * AuthService handles authentication and session management. Login, Register,
  * Refresh and GetCaptcha are public; the session and self-serve RPCs require a
  * valid access token.
@@ -452,6 +688,76 @@ export const AuthService: GenService<{
     methodKind: "unary";
     input: typeof RevokeSessionRequestSchema;
     output: typeof RevokeSessionResponseSchema;
+  },
+  /**
+   * ChangePassword changes the caller's own password (self-serve).
+   *
+   * @generated from rpc zerx.v1.AuthService.ChangePassword
+   */
+  changePassword: {
+    methodKind: "unary";
+    input: typeof ChangePasswordRequestSchema;
+    output: typeof ChangePasswordResponseSchema;
+  },
+  /**
+   * UpdateProfile updates the caller's own profile fields (self-serve).
+   *
+   * @generated from rpc zerx.v1.AuthService.UpdateProfile
+   */
+  updateProfile: {
+    methodKind: "unary";
+    input: typeof UpdateProfileRequestSchema;
+    output: typeof UserSchema;
+  },
+  /**
+   * RequestPasswordReset emails a reset link (public; no enumeration).
+   *
+   * @generated from rpc zerx.v1.AuthService.RequestPasswordReset
+   */
+  requestPasswordReset: {
+    methodKind: "unary";
+    input: typeof RequestPasswordResetRequestSchema;
+    output: typeof RequestPasswordResetResponseSchema;
+  },
+  /**
+   * ConfirmPasswordReset sets a new password using an emailed token (public).
+   *
+   * @generated from rpc zerx.v1.AuthService.ConfirmPasswordReset
+   */
+  confirmPasswordReset: {
+    methodKind: "unary";
+    input: typeof ConfirmPasswordResetRequestSchema;
+    output: typeof ConfirmPasswordResetResponseSchema;
+  },
+  /**
+   * SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+   *
+   * @generated from rpc zerx.v1.AuthService.SetupTotp
+   */
+  setupTotp: {
+    methodKind: "unary";
+    input: typeof SetupTotpRequestSchema;
+    output: typeof SetupTotpResponseSchema;
+  },
+  /**
+   * ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+   *
+   * @generated from rpc zerx.v1.AuthService.ActivateTotp
+   */
+  activateTotp: {
+    methodKind: "unary";
+    input: typeof ActivateTotpRequestSchema;
+    output: typeof ActivateTotpResponseSchema;
+  },
+  /**
+   * DisableTotp turns off the caller's 2FA (self-serve).
+   *
+   * @generated from rpc zerx.v1.AuthService.DisableTotp
+   */
+  disableTotp: {
+    methodKind: "unary";
+    input: typeof DisableTotpRequestSchema;
+    output: typeof DisableTotpResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_zerx_v1_auth, 0);

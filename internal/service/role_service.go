@@ -9,6 +9,7 @@ import (
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/casbin"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
@@ -60,6 +61,8 @@ func (s *RoleService) CreateRole(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"code": r.Code, "name": r.Name}}))
+
 	return connect.NewResponse(toProtoRole(r)), nil
 }
 
@@ -86,6 +89,7 @@ func (s *RoleService) UpdateRole(ctx context.Context, req *connect.Request[zerxv
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": r.ID, "name": r.Name, "description": r.Description}}))
 
 	return connect.NewResponse(toProtoRole(r)), nil
 }
@@ -102,7 +106,7 @@ func (s *RoleService) DeleteRole(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("内置角色不可删除"))
 	}
 
-	inUse, err := gorm.G[model.User](s.db).Where("role = ?", r.Code).Count(ctx, "id")
+	inUse, err := gorm.G[model.UserRole](s.db).Where("role_code = ?", r.Code).Count(ctx, "user_id")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -130,6 +134,7 @@ func (s *RoleService) DeleteRole(ctx context.Context, req *connect.Request[zerxv
 	if err := casbin.RemoveRole(s.enforcer, r.Code); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"code": r.Code, "name": r.Name}}))
 
 	return connect.NewResponse(&zerxv1.DeleteRoleResponse{}), nil
 }
@@ -210,6 +215,7 @@ func (s *RoleService) SetRolePermissions(ctx context.Context, req *connect.Reque
 		return nil, connect.NewError(connect.CodeInternal, txErr)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"role_code": code, "menu_ids": req.Msg.GetMenuIds(), "button_ids": req.Msg.GetButtonIds(), "procedures": req.Msg.GetProcedures()}}))
 	if err := casbin.SetRoleProcedures(s.enforcer, code, req.Msg.GetProcedures()); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}

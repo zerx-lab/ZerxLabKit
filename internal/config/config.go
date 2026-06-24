@@ -12,12 +12,44 @@ import (
 
 // Config is the root application configuration.
 type Config struct {
-	Server  ServerConfig
-	DB      DBConfig
-	JWT     JWTConfig
-	Auth    AuthConfig
-	Storage StorageConfig
-	Env     string `env:"APP_ENV" envDefault:"dev"`
+	Server    ServerConfig
+	DB        DBConfig
+	JWT       JWTConfig
+	Auth      AuthConfig
+	Storage   StorageConfig
+	Password  PasswordPolicyConfig
+	SMTP      SMTPConfig
+	RateLimit RateLimitConfig
+	Env       string `env:"APP_ENV" envDefault:"dev"`
+}
+
+// PasswordPolicyConfig configures password strength and reuse rules.
+type PasswordPolicyConfig struct {
+	MinLength     int  `env:"PASSWORD_MIN_LENGTH" envDefault:"8"`
+	RequireUpper  bool `env:"PASSWORD_REQUIRE_UPPER" envDefault:"false"`
+	RequireLower  bool `env:"PASSWORD_REQUIRE_LOWER" envDefault:"false"`
+	RequireDigit  bool `env:"PASSWORD_REQUIRE_DIGIT" envDefault:"true"`
+	RequireSymbol bool `env:"PASSWORD_REQUIRE_SYMBOL" envDefault:"false"`
+	HistoryCount  int  `env:"PASSWORD_HISTORY_COUNT" envDefault:"3"`
+}
+
+// SMTPConfig configures outbound email. When disabled, emails are logged only.
+type SMTPConfig struct {
+	Enabled  bool   `env:"SMTP_ENABLED" envDefault:"false"`
+	Host     string `env:"SMTP_HOST"`
+	Port     int    `env:"SMTP_PORT" envDefault:"587"`
+	Username string `env:"SMTP_USERNAME"`
+	Password string `env:"SMTP_PASSWORD"`
+	FromAddr string `env:"SMTP_FROM_ADDR"`
+	FromName string `env:"SMTP_FROM_NAME" envDefault:"zerxLabKit"`
+}
+
+// RateLimitConfig configures the global per-IP rate limiter.
+type RateLimitConfig struct {
+	Enabled bool          `env:"RATE_LIMIT_ENABLED" envDefault:"true"`
+	RPS     float64       `env:"RATE_LIMIT_RPS" envDefault:"20"`
+	Burst   int           `env:"RATE_LIMIT_BURST" envDefault:"40"`
+	TTL     time.Duration `env:"RATE_LIMIT_TTL" envDefault:"10m"`
 }
 
 // AuthConfig holds authentication hardening settings.
@@ -44,7 +76,8 @@ type StorageConfig struct {
 
 // ServerConfig holds HTTP server settings.
 type ServerConfig struct {
-	Addr string `env:"SERVER_ADDR" envDefault:":8080"`
+	Addr        string `env:"SERVER_ADDR" envDefault:":8080"`
+	DocsEnabled bool   `env:"DOCS_ENABLED" envDefault:"true"`
 }
 
 // DBConfig selects and configures the data source.

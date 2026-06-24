@@ -35,6 +35,7 @@ message OperationLog {
   string error = 10;
   string stack = 11;
   string created_at = 12;
+  string detail = 13;
 }
 
 message LoginLog {
@@ -51,6 +52,10 @@ message LoginLog {
 message ListOperationLogsRequest {
   zerx.v1.PageRequest page = 1;
   string keyword = 2;
+  string status = 3;
+  string method = 4;
+  string start_at = 5;
+  string end_at = 6;
 }
 
 message ListOperationLogsResponse {
@@ -61,6 +66,10 @@ message ListOperationLogsResponse {
 message ListErrorLogsRequest {
   zerx.v1.PageRequest page = 1;
   string keyword = 2;
+  string status = 3;
+  string method = 4;
+  string start_at = 5;
+  string end_at = 6;
 }
 
 message ListErrorLogsResponse {
@@ -71,6 +80,9 @@ message ListErrorLogsResponse {
 message ListLoginLogsRequest {
   zerx.v1.PageRequest page = 1;
   string keyword = 2;
+  string start_at = 3;
+  string end_at = 4;
+  int32 success = 5;
 }
 
 message ListLoginLogsResponse {

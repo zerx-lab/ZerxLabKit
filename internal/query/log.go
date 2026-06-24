@@ -19,6 +19,7 @@ var OperationLog = struct {
 	Status    field.String
 	Error     field.String
 	Stack     field.String
+	Detail    field.String
 }{
 	ID:        field.Number[uint64]{}.WithColumn("id"),
 	CreatedAt: field.Time{}.WithColumn("created_at"),
@@ -32,6 +33,7 @@ var OperationLog = struct {
 	Status:    field.String{}.WithColumn("status"),
 	Error:     field.String{}.WithColumn("error"),
 	Stack:     field.String{}.WithColumn("stack"),
+	Detail:    field.String{}.WithColumn("detail"),
 }
 
 var LoginLog = struct {

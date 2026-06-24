@@ -15,6 +15,7 @@ import (
 
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 	"github.com/zerx-lab/zerxlabkit/internal/database"
+	"github.com/zerx-lab/zerxlabkit/internal/jobs"
 	"github.com/zerx-lab/zerxlabkit/internal/server"
 )
 
@@ -54,9 +55,19 @@ func run() error {
 		return fmt.Errorf("seed: %w", err)
 	}
 
-	handler, err := server.New(cfg, db, logger)
+	registry := jobs.NewRegistry(db)
+	scheduler, err := jobs.New(db, registry, logger)
+	if err != nil {
+		return fmt.Errorf("build scheduler: %w", err)
+	}
+
+	handler, err := server.New(cfg, db, logger, scheduler)
 	if err != nil {
 		return fmt.Errorf("build server: %w", err)
+	}
+
+	if err := scheduler.Start(); err != nil {
+		return fmt.Errorf("start scheduler: %w", err)
 	}
 
 	protocols := new(http.Protocols)
@@ -88,6 +99,7 @@ func run() error {
 		return fmt.Errorf("serve: %w", serveErr)
 	}
 
+	_ = scheduler.Shutdown()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(shutdownCtx); err != nil {

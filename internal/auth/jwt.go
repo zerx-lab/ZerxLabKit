@@ -25,7 +25,7 @@ var ErrInvalidToken = errors.New("invalid token")
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID    uint64 `json:"uid"`
-	Role      string `json:"role,omitempty"`
+	Roles     []string `json:"roles,omitempty"`
 	TokenType string `json:"typ"`
 }
 
@@ -45,15 +45,15 @@ func NewIssuer(cfg config.JWTConfig) *Issuer {
 	}
 }
 
-// IssueAccess mints a short-lived access token carrying the user's role.
-func (i *Issuer) IssueAccess(userID uint64, role string) (string, error) {
-	return i.issue(userID, role, TokenTypeAccess, i.accessTTL)
+// IssueAccess mints a short-lived access token carrying the user's roles.
+func (i *Issuer) IssueAccess(userID uint64, roles []string) (string, error) {
+	return i.issue(userID, roles, TokenTypeAccess, i.accessTTL)
 }
 
 // IssueRefresh mints a long-lived refresh token (no role) carrying the session
 // ID in the standard jti claim.
 func (i *Issuer) IssueRefresh(userID uint64, sessionID string) (string, error) {
-	return i.issueWithID(userID, "", TokenTypeRefresh, i.refreshTTL, sessionID)
+	return i.issueWithID(userID, nil, TokenTypeRefresh, i.refreshTTL, sessionID)
 }
 
 // RefreshTTL returns the configured refresh token lifetime.
@@ -61,11 +61,11 @@ func (i *Issuer) RefreshTTL() time.Duration {
 	return i.refreshTTL
 }
 
-func (i *Issuer) issue(userID uint64, role, tokenType string, ttl time.Duration) (string, error) {
-	return i.issueWithID(userID, role, tokenType, ttl, "")
+func (i *Issuer) issue(userID uint64, roles []string, tokenType string, ttl time.Duration) (string, error) {
+	return i.issueWithID(userID, roles, tokenType, ttl, "")
 }
 
-func (i *Issuer) issueWithID(userID uint64, role, tokenType string, ttl time.Duration, id string) (string, error) {
+func (i *Issuer) issueWithID(userID uint64, roles []string, tokenType string, ttl time.Duration, id string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -75,7 +75,7 @@ func (i *Issuer) issueWithID(userID uint64, role, tokenType string, ttl time.Dur
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
 		},
 		UserID:    userID,
-		Role:      role,
+		Roles:     roles,
 		TokenType: tokenType,
 	}
 

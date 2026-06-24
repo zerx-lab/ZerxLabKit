@@ -85,6 +85,7 @@ type OperationLog struct {
 	Error         string                 `protobuf:"bytes,10,opt,name=error,proto3" json:"error,omitempty"`
 	Stack         string                 `protobuf:"bytes,11,opt,name=stack,proto3" json:"stack,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Detail        string                 `protobuf:"bytes,13,opt,name=detail,proto3" json:"detail,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -203,6 +204,13 @@ func (x *OperationLog) GetCreatedAt() string {
 	return ""
 }
 
+func (x *OperationLog) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
 type LoginLog struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -307,6 +315,10 @@ type ListOperationLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          *PageRequest           `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Method        string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	StartAt       string                 `protobuf:"bytes,5,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt         string                 `protobuf:"bytes,6,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -351,6 +363,34 @@ func (x *ListOperationLogsRequest) GetPage() *PageRequest {
 func (x *ListOperationLogsRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetStartAt() string {
+	if x != nil {
+		return x.StartAt
+	}
+	return ""
+}
+
+func (x *ListOperationLogsRequest) GetEndAt() string {
+	if x != nil {
+		return x.EndAt
 	}
 	return ""
 }
@@ -411,6 +451,10 @@ type ListErrorLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          *PageRequest           `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Method        string                 `protobuf:"bytes,4,opt,name=method,proto3" json:"method,omitempty"`
+	StartAt       string                 `protobuf:"bytes,5,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt         string                 `protobuf:"bytes,6,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -455,6 +499,34 @@ func (x *ListErrorLogsRequest) GetPage() *PageRequest {
 func (x *ListErrorLogsRequest) GetKeyword() string {
 	if x != nil {
 		return x.Keyword
+	}
+	return ""
+}
+
+func (x *ListErrorLogsRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListErrorLogsRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *ListErrorLogsRequest) GetStartAt() string {
+	if x != nil {
+		return x.StartAt
+	}
+	return ""
+}
+
+func (x *ListErrorLogsRequest) GetEndAt() string {
+	if x != nil {
+		return x.EndAt
 	}
 	return ""
 }
@@ -515,6 +587,9 @@ type ListLoginLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Page          *PageRequest           `protobuf:"bytes,1,opt,name=page,proto3" json:"page,omitempty"`
 	Keyword       string                 `protobuf:"bytes,2,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	StartAt       string                 `protobuf:"bytes,3,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt         string                 `protobuf:"bytes,4,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Success       int32                  `protobuf:"varint,5,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -561,6 +636,27 @@ func (x *ListLoginLogsRequest) GetKeyword() string {
 		return x.Keyword
 	}
 	return ""
+}
+
+func (x *ListLoginLogsRequest) GetStartAt() string {
+	if x != nil {
+		return x.StartAt
+	}
+	return ""
+}
+
+func (x *ListLoginLogsRequest) GetEndAt() string {
+	if x != nil {
+		return x.EndAt
+	}
+	return ""
+}
+
+func (x *ListLoginLogsRequest) GetSuccess() int32 {
+	if x != nil {
+		return x.Success
+	}
+	return 0
 }
 
 type ListLoginLogsResponse struct {
@@ -715,7 +811,7 @@ var File_zerx_v1_log_proto protoreflect.FileDescriptor
 
 const file_zerx_v1_log_proto_rawDesc = "" +
 	"\n" +
-	"\x11zerx/v1/log.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xbd\x02\n" +
+	"\x11zerx/v1/log.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xd5\x02\n" +
 	"\fOperationLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x1d\n" +
@@ -733,7 +829,8 @@ const file_zerx_v1_log_proto_rawDesc = "" +
 	" \x01(\tR\x05error\x12\x14\n" +
 	"\x05stack\x18\v \x01(\tR\x05stack\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\f \x01(\tR\tcreatedAt\"\xc7\x01\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x16\n" +
+	"\x06detail\x18\r \x01(\tR\x06detail\"\xc7\x01\n" +
 	"\bLoginLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x14\n" +
@@ -744,22 +841,33 @@ const file_zerx_v1_log_proto_rawDesc = "" +
 	"\asuccess\x18\x06 \x01(\bR\asuccess\x12\x14\n" +
 	"\x05error\x18\a \x01(\tR\x05error\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\"^\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\"\xc0\x01\n" +
 	"\x18ListOperationLogsRequest\x12(\n" +
 	"\x04page\x18\x01 \x01(\v2\x14.zerx.v1.PageRequestR\x04page\x12\x18\n" +
-	"\akeyword\x18\x02 \x01(\tR\akeyword\"\\\n" +
+	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x16\n" +
+	"\x06method\x18\x04 \x01(\tR\x06method\x12\x19\n" +
+	"\bstart_at\x18\x05 \x01(\tR\astartAt\x12\x15\n" +
+	"\x06end_at\x18\x06 \x01(\tR\x05endAt\"\\\n" +
 	"\x19ListOperationLogsResponse\x12)\n" +
 	"\x04logs\x18\x01 \x03(\v2\x15.zerx.v1.OperationLogR\x04logs\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"Z\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xbc\x01\n" +
 	"\x14ListErrorLogsRequest\x12(\n" +
 	"\x04page\x18\x01 \x01(\v2\x14.zerx.v1.PageRequestR\x04page\x12\x18\n" +
-	"\akeyword\x18\x02 \x01(\tR\akeyword\"X\n" +
+	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x12\x16\n" +
+	"\x06method\x18\x04 \x01(\tR\x06method\x12\x19\n" +
+	"\bstart_at\x18\x05 \x01(\tR\astartAt\x12\x15\n" +
+	"\x06end_at\x18\x06 \x01(\tR\x05endAt\"X\n" +
 	"\x15ListErrorLogsResponse\x12)\n" +
 	"\x04logs\x18\x01 \x03(\v2\x15.zerx.v1.OperationLogR\x04logs\x12\x14\n" +
-	"\x05total\x18\x02 \x01(\x03R\x05total\"Z\n" +
+	"\x05total\x18\x02 \x01(\x03R\x05total\"\xa6\x01\n" +
 	"\x14ListLoginLogsRequest\x12(\n" +
 	"\x04page\x18\x01 \x01(\v2\x14.zerx.v1.PageRequestR\x04page\x12\x18\n" +
-	"\akeyword\x18\x02 \x01(\tR\akeyword\"T\n" +
+	"\akeyword\x18\x02 \x01(\tR\akeyword\x12\x19\n" +
+	"\bstart_at\x18\x03 \x01(\tR\astartAt\x12\x15\n" +
+	"\x06end_at\x18\x04 \x01(\tR\x05endAt\x12\x18\n" +
+	"\asuccess\x18\x05 \x01(\x05R\asuccess\"T\n" +
 	"\x15ListLoginLogsResponse\x12%\n" +
 	"\x04logs\x18\x01 \x03(\v2\x11.zerx.v1.LoginLogR\x04logs\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\"L\n" +

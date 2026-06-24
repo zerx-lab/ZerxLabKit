@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ func newIssuer(secret string, access, refresh time.Duration) *Issuer {
 func TestAccessTokenRoundTrip(t *testing.T) {
 	issuer := newIssuer("test-secret", 15*time.Minute, time.Hour)
 
-	tok, err := issuer.IssueAccess(42, "admin")
+	tok, err := issuer.IssueAccess(42, []string{"admin"})
 	if err != nil {
 		t.Fatalf("IssueAccess: %v", err)
 	}
@@ -26,8 +27,8 @@ func TestAccessTokenRoundTrip(t *testing.T) {
 	if claims.UserID != 42 {
 		t.Errorf("UserID = %d, want 42", claims.UserID)
 	}
-	if claims.Role != "admin" {
-		t.Errorf("Role = %q, want admin", claims.Role)
+	if !slices.Contains(claims.Roles, "admin") {
+		t.Errorf("Roles = %v, want to contain admin", claims.Roles)
 	}
 	if claims.TokenType != TokenTypeAccess {
 		t.Errorf("TokenType = %q, want %q", claims.TokenType, TokenTypeAccess)
@@ -61,7 +62,7 @@ func TestRefreshTokenCannotBeUsedAsAccess(t *testing.T) {
 func TestExpiredTokenRejected(t *testing.T) {
 	issuer := newIssuer("test-secret", -time.Minute, time.Hour) // already expired
 
-	tok, err := issuer.IssueAccess(1, "user")
+	tok, err := issuer.IssueAccess(1, []string{"user"})
 	if err != nil {
 		t.Fatalf("IssueAccess: %v", err)
 	}
@@ -74,7 +75,7 @@ func TestTokenSignedWithOtherSecretRejected(t *testing.T) {
 	issuer := newIssuer("test-secret", 15*time.Minute, time.Hour)
 	other := newIssuer("different-secret", 15*time.Minute, time.Hour)
 
-	tok, err := issuer.IssueAccess(1, "user")
+	tok, err := issuer.IssueAccess(1, []string{"user"})
 	if err != nil {
 		t.Fatalf("IssueAccess: %v", err)
 	}

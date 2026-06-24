@@ -1,0 +1,4627 @@
+openapi: 3.1.0
+info: {}
+paths:
+  /zerx.v1.ApiService/DeleteApi:
+    post:
+      tags:
+        - zerx.v1.ApiService
+      summary: DeleteApi
+      operationId: zerx.v1.ApiService.DeleteApi
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteApiRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteApiResponse'
+  /zerx.v1.ApiService/ListApis:
+    post:
+      tags:
+        - zerx.v1.ApiService
+      summary: ListApis
+      operationId: zerx.v1.ApiService.ListApis
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListApisRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListApisResponse'
+  /zerx.v1.ApiService/SyncApis:
+    post:
+      tags:
+        - zerx.v1.ApiService
+      summary: SyncApis
+      operationId: zerx.v1.ApiService.SyncApis
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.SyncApisRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SyncApisResponse'
+  /zerx.v1.ApiService/UpdateApi:
+    post:
+      tags:
+        - zerx.v1.ApiService
+      summary: UpdateApi
+      operationId: zerx.v1.ApiService.UpdateApi
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateApiRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Api'
+  /zerx.v1.AuthService/ActivateTotp:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: ActivateTotp
+      description: ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+      operationId: zerx.v1.AuthService.ActivateTotp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ActivateTotpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ActivateTotpResponse'
+  /zerx.v1.AuthService/ChangePassword:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: ChangePassword
+      description: ChangePassword changes the caller's own password (self-serve).
+      operationId: zerx.v1.AuthService.ChangePassword
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ChangePasswordRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ChangePasswordResponse'
+  /zerx.v1.AuthService/ConfirmPasswordReset:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: ConfirmPasswordReset
+      description: ConfirmPasswordReset sets a new password using an emailed token (public).
+      operationId: zerx.v1.AuthService.ConfirmPasswordReset
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ConfirmPasswordResetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ConfirmPasswordResetResponse'
+  /zerx.v1.AuthService/DisableTotp:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: DisableTotp
+      description: DisableTotp turns off the caller's 2FA (self-serve).
+      operationId: zerx.v1.AuthService.DisableTotp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DisableTotpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DisableTotpResponse'
+  /zerx.v1.AuthService/GetCaptcha:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: GetCaptcha
+      operationId: zerx.v1.AuthService.GetCaptcha
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetCaptchaRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetCaptchaResponse'
+  /zerx.v1.AuthService/ListSessions:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: ListSessions
+      description: ListSessions returns the caller's sessions; admins may pass a user_id.
+      operationId: zerx.v1.AuthService.ListSessions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListSessionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListSessionsResponse'
+  /zerx.v1.AuthService/Login:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: Login
+      operationId: zerx.v1.AuthService.Login
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.LoginRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.LoginResponse'
+  /zerx.v1.AuthService/Logout:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: Logout
+      description: Logout revokes every session of the current user (logout everywhere).
+      operationId: zerx.v1.AuthService.Logout
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.LogoutRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.LogoutResponse'
+  /zerx.v1.AuthService/Me:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: Me
+      operationId: zerx.v1.AuthService.Me
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.MeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.MeResponse'
+  /zerx.v1.AuthService/Refresh:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: Refresh
+      operationId: zerx.v1.AuthService.Refresh
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.RefreshRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.RefreshResponse'
+  /zerx.v1.AuthService/Register:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: Register
+      description: Register creates an account. The very first registered user becomes admin.
+      operationId: zerx.v1.AuthService.Register
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.RegisterRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.RegisterResponse'
+  /zerx.v1.AuthService/RequestPasswordReset:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: RequestPasswordReset
+      description: RequestPasswordReset emails a reset link (public; no enumeration).
+      operationId: zerx.v1.AuthService.RequestPasswordReset
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.RequestPasswordResetRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.RequestPasswordResetResponse'
+  /zerx.v1.AuthService/RevokeSession:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: RevokeSession
+      description: RevokeSession deletes one session (own session, or any when admin).
+      operationId: zerx.v1.AuthService.RevokeSession
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.RevokeSessionRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.RevokeSessionResponse'
+  /zerx.v1.AuthService/SetupTotp:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: SetupTotp
+      description: SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+      operationId: zerx.v1.AuthService.SetupTotp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.SetupTotpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SetupTotpResponse'
+  /zerx.v1.AuthService/UpdateProfile:
+    post:
+      tags:
+        - zerx.v1.AuthService
+      summary: UpdateProfile
+      description: UpdateProfile updates the caller's own profile fields (self-serve).
+      operationId: zerx.v1.AuthService.UpdateProfile
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateProfileRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.User'
+  /zerx.v1.DashboardService/GetDashboardStats:
+    post:
+      tags:
+        - zerx.v1.DashboardService
+      summary: GetDashboardStats
+      operationId: zerx.v1.DashboardService.GetDashboardStats
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetDashboardStatsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetDashboardStatsResponse'
+  /zerx.v1.DictService/CreateDict:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: CreateDict
+      operationId: zerx.v1.DictService.CreateDict
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateDictRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Dict'
+  /zerx.v1.DictService/CreateDictItem:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: CreateDictItem
+      operationId: zerx.v1.DictService.CreateDictItem
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateDictItemRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DictItem'
+  /zerx.v1.DictService/DeleteDict:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: DeleteDict
+      operationId: zerx.v1.DictService.DeleteDict
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteDictRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteDictResponse'
+  /zerx.v1.DictService/DeleteDictItem:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: DeleteDictItem
+      operationId: zerx.v1.DictService.DeleteDictItem
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteDictItemRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteDictItemResponse'
+  /zerx.v1.DictService/GetDictByType:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: GetDictByType
+      operationId: zerx.v1.DictService.GetDictByType
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetDictByTypeRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetDictByTypeResponse'
+  /zerx.v1.DictService/ListDictItems:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: ListDictItems
+      operationId: zerx.v1.DictService.ListDictItems
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListDictItemsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListDictItemsResponse'
+  /zerx.v1.DictService/ListDicts:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: ListDicts
+      operationId: zerx.v1.DictService.ListDicts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListDictsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListDictsResponse'
+  /zerx.v1.DictService/UpdateDict:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: UpdateDict
+      operationId: zerx.v1.DictService.UpdateDict
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateDictRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Dict'
+  /zerx.v1.DictService/UpdateDictItem:
+    post:
+      tags:
+        - zerx.v1.DictService
+      summary: UpdateDictItem
+      operationId: zerx.v1.DictService.UpdateDictItem
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateDictItemRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DictItem'
+  /zerx.v1.FileService/DeleteFile:
+    post:
+      tags:
+        - zerx.v1.FileService
+      summary: DeleteFile
+      operationId: zerx.v1.FileService.DeleteFile
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteFileRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteFileResponse'
+  /zerx.v1.FileService/ListFiles:
+    post:
+      tags:
+        - zerx.v1.FileService
+      summary: ListFiles
+      operationId: zerx.v1.FileService.ListFiles
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListFilesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListFilesResponse'
+  /zerx.v1.JobService/CreateJob:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: CreateJob
+      operationId: zerx.v1.JobService.CreateJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Job'
+  /zerx.v1.JobService/DeleteJob:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: DeleteJob
+      operationId: zerx.v1.JobService.DeleteJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteJobResponse'
+  /zerx.v1.JobService/ListHandlers:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: ListHandlers
+      operationId: zerx.v1.JobService.ListHandlers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListHandlersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListHandlersResponse'
+  /zerx.v1.JobService/ListJobExecutions:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: ListJobExecutions
+      operationId: zerx.v1.JobService.ListJobExecutions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListJobExecutionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListJobExecutionsResponse'
+  /zerx.v1.JobService/ListJobs:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: ListJobs
+      operationId: zerx.v1.JobService.ListJobs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListJobsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListJobsResponse'
+  /zerx.v1.JobService/RunJobNow:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: RunJobNow
+      operationId: zerx.v1.JobService.RunJobNow
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.RunJobNowRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.RunJobNowResponse'
+  /zerx.v1.JobService/UpdateJob:
+    post:
+      tags:
+        - zerx.v1.JobService
+      summary: UpdateJob
+      operationId: zerx.v1.JobService.UpdateJob
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateJobRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Job'
+  /zerx.v1.LogService/CleanLogs:
+    post:
+      tags:
+        - zerx.v1.LogService
+      summary: CleanLogs
+      operationId: zerx.v1.LogService.CleanLogs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CleanLogsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.CleanLogsResponse'
+  /zerx.v1.LogService/ListErrorLogs:
+    post:
+      tags:
+        - zerx.v1.LogService
+      summary: ListErrorLogs
+      operationId: zerx.v1.LogService.ListErrorLogs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListErrorLogsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListErrorLogsResponse'
+  /zerx.v1.LogService/ListLoginLogs:
+    post:
+      tags:
+        - zerx.v1.LogService
+      summary: ListLoginLogs
+      operationId: zerx.v1.LogService.ListLoginLogs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListLoginLogsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListLoginLogsResponse'
+  /zerx.v1.LogService/ListOperationLogs:
+    post:
+      tags:
+        - zerx.v1.LogService
+      summary: ListOperationLogs
+      operationId: zerx.v1.LogService.ListOperationLogs
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListOperationLogsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListOperationLogsResponse'
+  /zerx.v1.MenuService/CreateMenu:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: CreateMenu
+      operationId: zerx.v1.MenuService.CreateMenu
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateMenuRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Menu'
+  /zerx.v1.MenuService/CreateMenuButton:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: CreateMenuButton
+      operationId: zerx.v1.MenuService.CreateMenuButton
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateMenuButtonRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.MenuButton'
+  /zerx.v1.MenuService/DeleteMenu:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: DeleteMenu
+      operationId: zerx.v1.MenuService.DeleteMenu
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteMenuRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteMenuResponse'
+  /zerx.v1.MenuService/DeleteMenuButton:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: DeleteMenuButton
+      operationId: zerx.v1.MenuService.DeleteMenuButton
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteMenuButtonRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteMenuButtonResponse'
+  /zerx.v1.MenuService/GetUserButtons:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: GetUserButtons
+      operationId: zerx.v1.MenuService.GetUserButtons
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetUserButtonsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetUserButtonsResponse'
+  /zerx.v1.MenuService/GetUserMenus:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: GetUserMenus
+      operationId: zerx.v1.MenuService.GetUserMenus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetUserMenusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetUserMenusResponse'
+  /zerx.v1.MenuService/ListMenus:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: ListMenus
+      operationId: zerx.v1.MenuService.ListMenus
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListMenusRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListMenusResponse'
+  /zerx.v1.MenuService/UpdateMenu:
+    post:
+      tags:
+        - zerx.v1.MenuService
+      summary: UpdateMenu
+      operationId: zerx.v1.MenuService.UpdateMenu
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateMenuRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Menu'
+  /zerx.v1.RoleService/CreateRole:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: CreateRole
+      operationId: zerx.v1.RoleService.CreateRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Role'
+  /zerx.v1.RoleService/DeleteRole:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: DeleteRole
+      operationId: zerx.v1.RoleService.DeleteRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteRoleResponse'
+  /zerx.v1.RoleService/GetRolePermissions:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: GetRolePermissions
+      operationId: zerx.v1.RoleService.GetRolePermissions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetRolePermissionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.GetRolePermissionsResponse'
+  /zerx.v1.RoleService/ListRoles:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: ListRoles
+      operationId: zerx.v1.RoleService.ListRoles
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListRolesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListRolesResponse'
+  /zerx.v1.RoleService/SetRolePermissions:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: SetRolePermissions
+      operationId: zerx.v1.RoleService.SetRolePermissions
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.SetRolePermissionsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SetRolePermissionsResponse'
+  /zerx.v1.RoleService/UpdateRole:
+    post:
+      tags:
+        - zerx.v1.RoleService
+      summary: UpdateRole
+      operationId: zerx.v1.RoleService.UpdateRole
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateRoleRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.Role'
+  /zerx.v1.SiteSettingsService/GetSiteSettings:
+    post:
+      tags:
+        - zerx.v1.SiteSettingsService
+      summary: GetSiteSettings
+      operationId: zerx.v1.SiteSettingsService.GetSiteSettings
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetSiteSettingsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SiteSettings'
+  /zerx.v1.SiteSettingsService/UpdateSiteSettings:
+    post:
+      tags:
+        - zerx.v1.SiteSettingsService
+      summary: UpdateSiteSettings
+      operationId: zerx.v1.SiteSettingsService.UpdateSiteSettings
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateSiteSettingsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SiteSettings'
+  /zerx.v1.SysParamService/CreateParam:
+    post:
+      tags:
+        - zerx.v1.SysParamService
+      summary: CreateParam
+      operationId: zerx.v1.SysParamService.CreateParam
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateParamRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SysParam'
+  /zerx.v1.SysParamService/DeleteParam:
+    post:
+      tags:
+        - zerx.v1.SysParamService
+      summary: DeleteParam
+      operationId: zerx.v1.SysParamService.DeleteParam
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteParamRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteParamResponse'
+  /zerx.v1.SysParamService/GetParam:
+    post:
+      tags:
+        - zerx.v1.SysParamService
+      summary: GetParam
+      operationId: zerx.v1.SysParamService.GetParam
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetParamRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SysParam'
+  /zerx.v1.SysParamService/ListParams:
+    post:
+      tags:
+        - zerx.v1.SysParamService
+      summary: ListParams
+      operationId: zerx.v1.SysParamService.ListParams
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListParamsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListParamsResponse'
+  /zerx.v1.SysParamService/UpdateParam:
+    post:
+      tags:
+        - zerx.v1.SysParamService
+      summary: UpdateParam
+      operationId: zerx.v1.SysParamService.UpdateParam
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateParamRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.SysParam'
+  /zerx.v1.UserService/CreateUser:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: CreateUser
+      operationId: zerx.v1.UserService.CreateUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.User'
+  /zerx.v1.UserService/DeleteUser:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: DeleteUser
+      operationId: zerx.v1.UserService.DeleteUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteUserResponse'
+  /zerx.v1.UserService/DisableUserTotp:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: DisableUserTotp
+      description: DisableUserTotp force-disables a user's 2FA (admin/RBAC-gated).
+      operationId: zerx.v1.UserService.DisableUserTotp
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DisableUserTotpRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DisableUserTotpResponse'
+  /zerx.v1.UserService/GetUser:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: GetUser
+      operationId: zerx.v1.UserService.GetUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.User'
+  /zerx.v1.UserService/ListUsers:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: ListUsers
+      operationId: zerx.v1.UserService.ListUsers
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListUsersRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListUsersResponse'
+  /zerx.v1.UserService/ResetPassword:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: ResetPassword
+      description: ResetPassword sets a user's password to a new value (admin/RBAC-gated).
+      operationId: zerx.v1.UserService.ResetPassword
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ResetPasswordRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ResetPasswordResponse'
+  /zerx.v1.UserService/UpdateUser:
+    post:
+      tags:
+        - zerx.v1.UserService
+      summary: UpdateUser
+      operationId: zerx.v1.UserService.UpdateUser
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateUserRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.User'
+components:
+  schemas:
+    connect-protocol-version:
+      type: number
+      title: Connect-Protocol-Version
+      enum:
+        - 1
+      description: Define the version of the Connect protocol
+      const: 1
+    connect-timeout-header:
+      type: number
+      title: Connect-Timeout-Ms
+      description: Define the timeout, in ms
+    connect.error:
+      type: object
+      properties:
+        code:
+          type: string
+          examples:
+            - not_found
+          enum:
+            - canceled
+            - unknown
+            - invalid_argument
+            - deadline_exceeded
+            - not_found
+            - already_exists
+            - permission_denied
+            - resource_exhausted
+            - failed_precondition
+            - aborted
+            - out_of_range
+            - unimplemented
+            - internal
+            - unavailable
+            - data_loss
+            - unauthenticated
+          description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+        message:
+          type: string
+          description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/connect.error_details.Any'
+          description: A list of messages that carry the error details. There is no limit on the number of messages.
+      title: Connect Error
+      additionalProperties: true
+      description: 'Error type returned by Connect: https://connectrpc.com/docs/go/errors/#http-representation'
+    connect.error_details.Any:
+      type: object
+      properties:
+        type:
+          type: string
+          description: 'A URL that acts as a globally unique identifier for the type of the serialized message. For example: `type.googleapis.com/google.rpc.ErrorInfo`. This is used to determine the schema of the data in the `value` field and is the discriminator for the `debug` field.'
+        value:
+          type: string
+          format: binary
+          description: The Protobuf message, serialized as bytes and base64-encoded. The specific message type is identified by the `type` field.
+        debug:
+          oneOf:
+            - type: object
+              title: Any
+              additionalProperties: true
+              description: Detailed error information.
+          discriminator:
+            propertyName: type
+          title: Debug
+          description: Deserialized error detail payload. The 'type' field indicates the schema. This field is for easier debugging and should not be relied upon for application logic.
+      additionalProperties: true
+      description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message, with an additional debug field for ConnectRPC error details.
+    zerx.v1.ActivateTotpRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+          minLength: 6
+      title: ActivateTotpRequest
+      additionalProperties: false
+    zerx.v1.ActivateTotpResponse:
+      type: object
+      properties:
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+          title: recovery_codes
+      title: ActivateTotpResponse
+      additionalProperties: false
+    zerx.v1.Api:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        procedure:
+          type: string
+          title: procedure
+        service:
+          type: string
+          title: service
+        method:
+          type: string
+          title: method
+        description:
+          type: string
+          title: description
+        group:
+          type: string
+          title: group
+        createdAt:
+          type: string
+          title: created_at
+      title: Api
+      additionalProperties: false
+    zerx.v1.ChangePasswordRequest:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+          title: old_password
+          minLength: 1
+        newPassword:
+          type: string
+          title: new_password
+          minLength: 8
+      title: ChangePasswordRequest
+      additionalProperties: false
+    zerx.v1.ChangePasswordResponse:
+      type: object
+      title: ChangePasswordResponse
+      additionalProperties: false
+    zerx.v1.CleanLogsRequest:
+      type: object
+      properties:
+        type:
+          title: type
+          $ref: '#/components/schemas/zerx.v1.LogType'
+        days:
+          type: integer
+          title: days
+          format: int32
+      title: CleanLogsRequest
+      additionalProperties: false
+    zerx.v1.CleanLogsResponse:
+      type: object
+      properties:
+        removed:
+          type:
+            - integer
+            - string
+          title: removed
+          format: int64
+      title: CleanLogsResponse
+      additionalProperties: false
+    zerx.v1.ConfirmPasswordResetRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          title: token
+          minLength: 1
+        newPassword:
+          type: string
+          title: new_password
+          minLength: 8
+      title: ConfirmPasswordResetRequest
+      additionalProperties: false
+    zerx.v1.ConfirmPasswordResetResponse:
+      type: object
+      title: ConfirmPasswordResetResponse
+      additionalProperties: false
+    zerx.v1.CreateDictItemRequest:
+      type: object
+      properties:
+        dictId:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: dict_id
+          format: int64
+        label:
+          type: string
+          title: label
+          minLength: 1
+        value:
+          type: string
+          title: value
+          minLength: 1
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        status:
+          type: boolean
+          title: status
+      title: CreateDictItemRequest
+      additionalProperties: false
+    zerx.v1.CreateDictRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          title: type
+          minLength: 1
+        name:
+          type: string
+          title: name
+          minLength: 1
+        description:
+          type: string
+          title: description
+        status:
+          type: boolean
+          title: status
+      title: CreateDictRequest
+      additionalProperties: false
+    zerx.v1.CreateJobRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          minLength: 1
+        handler:
+          type: string
+          title: handler
+          minLength: 1
+        cronExpr:
+          type: string
+          title: cron_expr
+          minLength: 1
+        enabled:
+          type: boolean
+          title: enabled
+        description:
+          type: string
+          title: description
+      title: CreateJobRequest
+      additionalProperties: false
+    zerx.v1.CreateMenuButtonRequest:
+      type: object
+      properties:
+        menuId:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: menu_id
+          format: int64
+        code:
+          type: string
+          title: code
+          minLength: 1
+        name:
+          type: string
+          title: name
+          minLength: 1
+      title: CreateMenuButtonRequest
+      additionalProperties: false
+    zerx.v1.CreateMenuRequest:
+      type: object
+      properties:
+        parentId:
+          type:
+            - integer
+            - string
+          title: parent_id
+          format: int64
+        path:
+          type: string
+          title: path
+        name:
+          type: string
+          title: name
+          minLength: 1
+        component:
+          type: string
+          title: component
+        title:
+          type: string
+          title: title
+          minLength: 1
+        icon:
+          type: string
+          title: icon
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        hidden:
+          type: boolean
+          title: hidden
+      title: CreateMenuRequest
+      additionalProperties: false
+    zerx.v1.CreateParamRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+          minLength: 1
+        name:
+          type: string
+          title: name
+          minLength: 1
+        value:
+          type: string
+          title: value
+        description:
+          type: string
+          title: description
+      title: CreateParamRequest
+      additionalProperties: false
+    zerx.v1.CreateRoleRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+          minLength: 1
+          pattern: ^[a-z][a-z0-9_]*$
+        name:
+          type: string
+          title: name
+          minLength: 1
+        description:
+          type: string
+          title: description
+        sort:
+          type: integer
+          title: sort
+          format: int32
+      title: CreateRoleRequest
+      additionalProperties: false
+    zerx.v1.CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          title: email
+          format: email
+        name:
+          type: string
+          title: name
+          minLength: 1
+        password:
+          type: string
+          title: password
+          minLength: 8
+        roles:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]*$
+          title: roles
+          minItems: 1
+        nickname:
+          type: string
+          title: nickname
+        phone:
+          type: string
+          title: phone
+      title: CreateUserRequest
+      additionalProperties: false
+    zerx.v1.DeleteApiRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteApiRequest
+      additionalProperties: false
+    zerx.v1.DeleteApiResponse:
+      type: object
+      title: DeleteApiResponse
+      additionalProperties: false
+    zerx.v1.DeleteDictItemRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteDictItemRequest
+      additionalProperties: false
+    zerx.v1.DeleteDictItemResponse:
+      type: object
+      title: DeleteDictItemResponse
+      additionalProperties: false
+    zerx.v1.DeleteDictRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteDictRequest
+      additionalProperties: false
+    zerx.v1.DeleteDictResponse:
+      type: object
+      title: DeleteDictResponse
+      additionalProperties: false
+    zerx.v1.DeleteFileRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteFileRequest
+      additionalProperties: false
+    zerx.v1.DeleteFileResponse:
+      type: object
+      title: DeleteFileResponse
+      additionalProperties: false
+    zerx.v1.DeleteJobRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteJobRequest
+      additionalProperties: false
+    zerx.v1.DeleteJobResponse:
+      type: object
+      title: DeleteJobResponse
+      additionalProperties: false
+    zerx.v1.DeleteMenuButtonRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteMenuButtonRequest
+      additionalProperties: false
+    zerx.v1.DeleteMenuButtonResponse:
+      type: object
+      title: DeleteMenuButtonResponse
+      additionalProperties: false
+    zerx.v1.DeleteMenuRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteMenuRequest
+      additionalProperties: false
+    zerx.v1.DeleteMenuResponse:
+      type: object
+      title: DeleteMenuResponse
+      additionalProperties: false
+    zerx.v1.DeleteParamRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteParamRequest
+      additionalProperties: false
+    zerx.v1.DeleteParamResponse:
+      type: object
+      title: DeleteParamResponse
+      additionalProperties: false
+    zerx.v1.DeleteRoleRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteRoleRequest
+      additionalProperties: false
+    zerx.v1.DeleteRoleResponse:
+      type: object
+      title: DeleteRoleResponse
+      additionalProperties: false
+    zerx.v1.DeleteUserRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteUserRequest
+      additionalProperties: false
+    zerx.v1.DeleteUserResponse:
+      type: object
+      title: DeleteUserResponse
+      additionalProperties: false
+    zerx.v1.Dict:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        type:
+          type: string
+          title: type
+        name:
+          type: string
+          title: name
+        description:
+          type: string
+          title: description
+        status:
+          type: boolean
+          title: status
+        createdAt:
+          type: string
+          title: created_at
+      title: Dict
+      additionalProperties: false
+    zerx.v1.DictItem:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        dictId:
+          type:
+            - integer
+            - string
+          title: dict_id
+          format: int64
+        label:
+          type: string
+          title: label
+        value:
+          type: string
+          title: value
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        status:
+          type: boolean
+          title: status
+      title: DictItem
+      additionalProperties: false
+    zerx.v1.DisableTotpRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          title: code
+          minLength: 1
+      title: DisableTotpRequest
+      additionalProperties: false
+    zerx.v1.DisableTotpResponse:
+      type: object
+      title: DisableTotpResponse
+      additionalProperties: false
+    zerx.v1.DisableUserTotpRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DisableUserTotpRequest
+      additionalProperties: false
+    zerx.v1.DisableUserTotpResponse:
+      type: object
+      title: DisableUserTotpResponse
+      additionalProperties: false
+    zerx.v1.File:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        key:
+          type: string
+          title: key
+        url:
+          type: string
+          title: url
+        size:
+          type:
+            - integer
+            - string
+          title: size
+          format: int64
+        contentType:
+          type: string
+          title: content_type
+        uploadedBy:
+          type:
+            - integer
+            - string
+          title: uploaded_by
+          format: int64
+        createdAt:
+          type: string
+          title: created_at
+      title: File
+      additionalProperties: false
+    zerx.v1.GetCaptchaRequest:
+      type: object
+      title: GetCaptchaRequest
+      additionalProperties: false
+    zerx.v1.GetCaptchaResponse:
+      type: object
+      properties:
+        captchaId:
+          type: string
+          title: captcha_id
+        imageBase64:
+          type: string
+          title: image_base64
+          description: image_base64 is a base64-encoded PNG data URL.
+      title: GetCaptchaResponse
+      additionalProperties: false
+    zerx.v1.GetDashboardStatsRequest:
+      type: object
+      title: GetDashboardStatsRequest
+      additionalProperties: false
+    zerx.v1.GetDashboardStatsResponse:
+      type: object
+      properties:
+        totalUsers:
+          type:
+            - integer
+            - string
+          title: total_users
+          format: int64
+        totalRoles:
+          type:
+            - integer
+            - string
+          title: total_roles
+          format: int64
+        activeSessions:
+          type:
+            - integer
+            - string
+          title: active_sessions
+          format: int64
+        todayLogins:
+          type:
+            - integer
+            - string
+          title: today_logins
+          format: int64
+        userGrowth:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.TimePoint'
+          title: user_growth
+        loginSuccess:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.TimePoint'
+          title: login_success
+        loginFailure:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.TimePoint'
+          title: login_failure
+        operationCount:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.TimePoint'
+          title: operation_count
+      title: GetDashboardStatsResponse
+      additionalProperties: false
+    zerx.v1.GetDictByTypeRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          title: type
+          minLength: 1
+      title: GetDictByTypeRequest
+      additionalProperties: false
+    zerx.v1.GetDictByTypeResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.DictItem'
+          title: items
+      title: GetDictByTypeResponse
+      additionalProperties: false
+    zerx.v1.GetParamRequest:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+          minLength: 1
+      title: GetParamRequest
+      additionalProperties: false
+    zerx.v1.GetRolePermissionsRequest:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          title: role_code
+          minLength: 1
+      title: GetRolePermissionsRequest
+      additionalProperties: false
+    zerx.v1.GetRolePermissionsResponse:
+      type: object
+      properties:
+        menuIds:
+          type: array
+          items:
+            type:
+              - integer
+              - string
+            format: int64
+          title: menu_ids
+        procedures:
+          type: array
+          items:
+            type: string
+          title: procedures
+        buttonIds:
+          type: array
+          items:
+            type:
+              - integer
+              - string
+            format: int64
+          title: button_ids
+      title: GetRolePermissionsResponse
+      additionalProperties: false
+    zerx.v1.GetSiteSettingsRequest:
+      type: object
+      title: GetSiteSettingsRequest
+      additionalProperties: false
+    zerx.v1.GetUserButtonsRequest:
+      type: object
+      title: GetUserButtonsRequest
+      additionalProperties: false
+    zerx.v1.GetUserButtonsResponse:
+      type: object
+      properties:
+        codes:
+          type: array
+          items:
+            type: string
+          title: codes
+      title: GetUserButtonsResponse
+      additionalProperties: false
+    zerx.v1.GetUserMenusRequest:
+      type: object
+      title: GetUserMenusRequest
+      additionalProperties: false
+    zerx.v1.GetUserMenusResponse:
+      type: object
+      properties:
+        menus:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Menu'
+          title: menus
+      title: GetUserMenusResponse
+      additionalProperties: false
+    zerx.v1.GetUserRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: GetUserRequest
+      additionalProperties: false
+    zerx.v1.Job:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        handler:
+          type: string
+          title: handler
+        cronExpr:
+          type: string
+          title: cron_expr
+        enabled:
+          type: boolean
+          title: enabled
+        description:
+          type: string
+          title: description
+        lastRunAt:
+          type: string
+          title: last_run_at
+        createdAt:
+          type: string
+          title: created_at
+      title: Job
+      additionalProperties: false
+    zerx.v1.JobExecution:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        jobId:
+          type:
+            - integer
+            - string
+          title: job_id
+          format: int64
+        startedAt:
+          type: string
+          title: started_at
+        finishedAt:
+          type: string
+          title: finished_at
+        status:
+          type: string
+          title: status
+        error:
+          type: string
+          title: error
+        durationMs:
+          type:
+            - integer
+            - string
+          title: duration_ms
+          format: int64
+      title: JobExecution
+      additionalProperties: false
+    zerx.v1.JobHandler:
+      type: object
+      properties:
+        key:
+          type: string
+          title: key
+        description:
+          type: string
+          title: description
+      title: JobHandler
+      additionalProperties: false
+    zerx.v1.ListApisRequest:
+      type: object
+      title: ListApisRequest
+      additionalProperties: false
+    zerx.v1.ListApisResponse:
+      type: object
+      properties:
+        apis:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Api'
+          title: apis
+      title: ListApisResponse
+      additionalProperties: false
+    zerx.v1.ListDictItemsRequest:
+      type: object
+      properties:
+        dictId:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: dict_id
+          format: int64
+      title: ListDictItemsRequest
+      additionalProperties: false
+    zerx.v1.ListDictItemsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.DictItem'
+          title: items
+      title: ListDictItemsResponse
+      additionalProperties: false
+    zerx.v1.ListDictsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+      title: ListDictsRequest
+      additionalProperties: false
+    zerx.v1.ListDictsResponse:
+      type: object
+      properties:
+        dicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Dict'
+          title: dicts
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListDictsResponse
+      additionalProperties: false
+    zerx.v1.ListErrorLogsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+        status:
+          type: string
+          title: status
+        method:
+          type: string
+          title: method
+        startAt:
+          type: string
+          title: start_at
+        endAt:
+          type: string
+          title: end_at
+      title: ListErrorLogsRequest
+      additionalProperties: false
+    zerx.v1.ListErrorLogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.OperationLog'
+          title: logs
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListErrorLogsResponse
+      additionalProperties: false
+    zerx.v1.ListFilesRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+      title: ListFilesRequest
+      additionalProperties: false
+    zerx.v1.ListFilesResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.File'
+          title: files
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListFilesResponse
+      additionalProperties: false
+    zerx.v1.ListHandlersRequest:
+      type: object
+      title: ListHandlersRequest
+      additionalProperties: false
+    zerx.v1.ListHandlersResponse:
+      type: object
+      properties:
+        handlers:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.JobHandler'
+          title: handlers
+      title: ListHandlersResponse
+      additionalProperties: false
+    zerx.v1.ListJobExecutionsRequest:
+      type: object
+      properties:
+        jobId:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: job_id
+          format: int64
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+      title: ListJobExecutionsRequest
+      additionalProperties: false
+    zerx.v1.ListJobExecutionsResponse:
+      type: object
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.JobExecution'
+          title: executions
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListJobExecutionsResponse
+      additionalProperties: false
+    zerx.v1.ListJobsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+      title: ListJobsRequest
+      additionalProperties: false
+    zerx.v1.ListJobsResponse:
+      type: object
+      properties:
+        jobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Job'
+          title: jobs
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListJobsResponse
+      additionalProperties: false
+    zerx.v1.ListLoginLogsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+        startAt:
+          type: string
+          title: start_at
+        endAt:
+          type: string
+          title: end_at
+        success:
+          type: integer
+          title: success
+          format: int32
+      title: ListLoginLogsRequest
+      additionalProperties: false
+    zerx.v1.ListLoginLogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.LoginLog'
+          title: logs
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListLoginLogsResponse
+      additionalProperties: false
+    zerx.v1.ListMenusRequest:
+      type: object
+      title: ListMenusRequest
+      additionalProperties: false
+    zerx.v1.ListMenusResponse:
+      type: object
+      properties:
+        menus:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Menu'
+          title: menus
+      title: ListMenusResponse
+      additionalProperties: false
+    zerx.v1.ListOperationLogsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+        status:
+          type: string
+          title: status
+        method:
+          type: string
+          title: method
+        startAt:
+          type: string
+          title: start_at
+        endAt:
+          type: string
+          title: end_at
+      title: ListOperationLogsRequest
+      additionalProperties: false
+    zerx.v1.ListOperationLogsResponse:
+      type: object
+      properties:
+        logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.OperationLog'
+          title: logs
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListOperationLogsResponse
+      additionalProperties: false
+    zerx.v1.ListParamsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+      title: ListParamsRequest
+      additionalProperties: false
+    zerx.v1.ListParamsResponse:
+      type: object
+      properties:
+        params:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.SysParam'
+          title: params
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListParamsResponse
+      additionalProperties: false
+    zerx.v1.ListRolesRequest:
+      type: object
+      title: ListRolesRequest
+      additionalProperties: false
+    zerx.v1.ListRolesResponse:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Role'
+          title: roles
+      title: ListRolesResponse
+      additionalProperties: false
+    zerx.v1.ListSessionsRequest:
+      type: object
+      properties:
+        userId:
+          type:
+            - integer
+            - string
+          title: user_id
+          format: int64
+      title: ListSessionsRequest
+      additionalProperties: false
+      description: 'ListSessionsRequest: user_id 0 means "the caller". Non-zero requires admin.'
+    zerx.v1.ListSessionsResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Session'
+          title: sessions
+      title: ListSessionsResponse
+      additionalProperties: false
+    zerx.v1.ListUsersRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+      title: ListUsersRequest
+      additionalProperties: false
+    zerx.v1.ListUsersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.User'
+          title: users
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListUsersResponse
+      additionalProperties: false
+    zerx.v1.LogType:
+      type: string
+      title: LogType
+      enum:
+        - LOG_TYPE_UNSPECIFIED
+        - LOG_TYPE_OPERATION
+        - LOG_TYPE_LOGIN
+    zerx.v1.LoginLog:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        userId:
+          type:
+            - integer
+            - string
+          title: user_id
+          format: int64
+        email:
+          type: string
+          title: email
+        ip:
+          type: string
+          title: ip
+        userAgent:
+          type: string
+          title: user_agent
+        success:
+          type: boolean
+          title: success
+        error:
+          type: string
+          title: error
+        createdAt:
+          type: string
+          title: created_at
+      title: LoginLog
+      additionalProperties: false
+    zerx.v1.LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          title: email
+          format: email
+        password:
+          type: string
+          title: password
+          minLength: 8
+        captchaId:
+          type: string
+          title: captcha_id
+        captchaCode:
+          type: string
+          title: captcha_code
+        totpCode:
+          type: string
+          title: totp_code
+      title: LoginRequest
+      additionalProperties: false
+    zerx.v1.LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          title: access_token
+        refreshToken:
+          type: string
+          title: refresh_token
+        user:
+          title: user
+          $ref: '#/components/schemas/zerx.v1.User'
+        sessionId:
+          type: string
+          title: session_id
+        totpRequired:
+          type: boolean
+          title: totp_required
+      title: LoginResponse
+      additionalProperties: false
+    zerx.v1.LogoutRequest:
+      type: object
+      title: LogoutRequest
+      additionalProperties: false
+    zerx.v1.LogoutResponse:
+      type: object
+      title: LogoutResponse
+      additionalProperties: false
+    zerx.v1.MeRequest:
+      type: object
+      title: MeRequest
+      additionalProperties: false
+    zerx.v1.MeResponse:
+      type: object
+      properties:
+        user:
+          title: user
+          $ref: '#/components/schemas/zerx.v1.User'
+      title: MeResponse
+      additionalProperties: false
+    zerx.v1.Menu:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        parentId:
+          type:
+            - integer
+            - string
+          title: parent_id
+          format: int64
+        path:
+          type: string
+          title: path
+        name:
+          type: string
+          title: name
+        component:
+          type: string
+          title: component
+        title:
+          type: string
+          title: title
+        icon:
+          type: string
+          title: icon
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        hidden:
+          type: boolean
+          title: hidden
+        buttons:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.MenuButton'
+          title: buttons
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.Menu'
+          title: children
+        createdAt:
+          type: string
+          title: created_at
+      title: Menu
+      additionalProperties: false
+    zerx.v1.MenuButton:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        menuId:
+          type:
+            - integer
+            - string
+          title: menu_id
+          format: int64
+        code:
+          type: string
+          title: code
+        name:
+          type: string
+          title: name
+      title: MenuButton
+      additionalProperties: false
+    zerx.v1.OperationLog:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        userId:
+          type:
+            - integer
+            - string
+          title: user_id
+          format: int64
+        userEmail:
+          type: string
+          title: user_email
+        procedure:
+          type: string
+          title: procedure
+        method:
+          type: string
+          title: method
+        ip:
+          type: string
+          title: ip
+        userAgent:
+          type: string
+          title: user_agent
+        latencyMs:
+          type:
+            - integer
+            - string
+          title: latency_ms
+          format: int64
+        status:
+          type: string
+          title: status
+        error:
+          type: string
+          title: error
+        stack:
+          type: string
+          title: stack
+        createdAt:
+          type: string
+          title: created_at
+        detail:
+          type: string
+          title: detail
+      title: OperationLog
+      additionalProperties: false
+    zerx.v1.PageRequest:
+      type: object
+      properties:
+        page:
+          type: integer
+          title: page
+          format: int32
+        pageSize:
+          type: integer
+          title: page_size
+          format: int32
+      title: PageRequest
+      additionalProperties: false
+      description: PageRequest is a reusable pagination request fragment.
+    zerx.v1.PageResponse:
+      type: object
+      properties:
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: PageResponse
+      additionalProperties: false
+      description: PageResponse is a reusable pagination response fragment.
+    zerx.v1.RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          title: refresh_token
+          minLength: 1
+      title: RefreshRequest
+      additionalProperties: false
+    zerx.v1.RefreshResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          title: access_token
+      title: RefreshResponse
+      additionalProperties: false
+    zerx.v1.RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          title: email
+          format: email
+        name:
+          type: string
+          title: name
+          minLength: 1
+        password:
+          type: string
+          title: password
+          minLength: 8
+      title: RegisterRequest
+      additionalProperties: false
+    zerx.v1.RegisterResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          title: access_token
+        refreshToken:
+          type: string
+          title: refresh_token
+        user:
+          title: user
+          $ref: '#/components/schemas/zerx.v1.User'
+        sessionId:
+          type: string
+          title: session_id
+      title: RegisterResponse
+      additionalProperties: false
+    zerx.v1.RequestPasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          title: email
+          format: email
+      title: RequestPasswordResetRequest
+      additionalProperties: false
+    zerx.v1.RequestPasswordResetResponse:
+      type: object
+      title: RequestPasswordResetResponse
+      additionalProperties: false
+    zerx.v1.ResetPasswordRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        password:
+          type: string
+          title: password
+          minLength: 8
+      title: ResetPasswordRequest
+      additionalProperties: false
+    zerx.v1.ResetPasswordResponse:
+      type: object
+      title: ResetPasswordResponse
+      additionalProperties: false
+    zerx.v1.RevokeSessionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+          minLength: 1
+      title: RevokeSessionRequest
+      additionalProperties: false
+    zerx.v1.RevokeSessionResponse:
+      type: object
+      title: RevokeSessionResponse
+      additionalProperties: false
+    zerx.v1.Role:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        code:
+          type: string
+          title: code
+        name:
+          type: string
+          title: name
+        description:
+          type: string
+          title: description
+        builtin:
+          type: boolean
+          title: builtin
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        createdAt:
+          type: string
+          title: created_at
+      title: Role
+      additionalProperties: false
+    zerx.v1.RunJobNowRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: RunJobNowRequest
+      additionalProperties: false
+    zerx.v1.RunJobNowResponse:
+      type: object
+      title: RunJobNowResponse
+      additionalProperties: false
+    zerx.v1.Session:
+      type: object
+      properties:
+        id:
+          type: string
+          title: id
+        userId:
+          type:
+            - integer
+            - string
+          title: user_id
+          format: int64
+        ip:
+          type: string
+          title: ip
+        userAgent:
+          type: string
+          title: user_agent
+        createdAt:
+          type: string
+          title: created_at
+        lastSeenAt:
+          type: string
+          title: last_seen_at
+      title: Session
+      additionalProperties: false
+    zerx.v1.SetRolePermissionsRequest:
+      type: object
+      properties:
+        roleCode:
+          type: string
+          title: role_code
+          minLength: 1
+        menuIds:
+          type: array
+          items:
+            type:
+              - integer
+              - string
+            format: int64
+          title: menu_ids
+        procedures:
+          type: array
+          items:
+            type: string
+          title: procedures
+        buttonIds:
+          type: array
+          items:
+            type:
+              - integer
+              - string
+            format: int64
+          title: button_ids
+      title: SetRolePermissionsRequest
+      additionalProperties: false
+    zerx.v1.SetRolePermissionsResponse:
+      type: object
+      title: SetRolePermissionsResponse
+      additionalProperties: false
+    zerx.v1.SetupTotpRequest:
+      type: object
+      title: SetupTotpRequest
+      additionalProperties: false
+    zerx.v1.SetupTotpResponse:
+      type: object
+      properties:
+        secret:
+          type: string
+          title: secret
+        qrImageBase64:
+          type: string
+          title: qr_image_base64
+      title: SetupTotpResponse
+      additionalProperties: false
+    zerx.v1.SiteSettings:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        logo:
+          type: string
+          title: logo
+        domain:
+          type: string
+          title: domain
+      title: SiteSettings
+      additionalProperties: false
+    zerx.v1.SyncApisRequest:
+      type: object
+      title: SyncApisRequest
+      additionalProperties: false
+    zerx.v1.SyncApisResponse:
+      type: object
+      properties:
+        added:
+          type: integer
+          title: added
+          format: int32
+        removed:
+          type: integer
+          title: removed
+          format: int32
+      title: SyncApisResponse
+      additionalProperties: false
+    zerx.v1.SysParam:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        key:
+          type: string
+          title: key
+        name:
+          type: string
+          title: name
+        value:
+          type: string
+          title: value
+        description:
+          type: string
+          title: description
+        createdAt:
+          type: string
+          title: created_at
+      title: SysParam
+      additionalProperties: false
+    zerx.v1.TimePoint:
+      type: object
+      properties:
+        date:
+          type: string
+          title: date
+        value:
+          type:
+            - integer
+            - string
+          title: value
+          format: int64
+      title: TimePoint
+      additionalProperties: false
+    zerx.v1.UpdateApiRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        description:
+          type: string
+          title: description
+        group:
+          type: string
+          title: group
+      title: UpdateApiRequest
+      additionalProperties: false
+    zerx.v1.UpdateDictItemRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        label:
+          type: string
+          title: label
+        value:
+          type: string
+          title: value
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        status:
+          type: boolean
+          title: status
+      title: UpdateDictItemRequest
+      additionalProperties: false
+    zerx.v1.UpdateDictRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        description:
+          type: string
+          title: description
+        status:
+          type: boolean
+          title: status
+      title: UpdateDictRequest
+      additionalProperties: false
+    zerx.v1.UpdateJobRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+          minLength: 1
+        handler:
+          type: string
+          title: handler
+          minLength: 1
+        cronExpr:
+          type: string
+          title: cron_expr
+          minLength: 1
+        enabled:
+          type: boolean
+          title: enabled
+        description:
+          type: string
+          title: description
+      title: UpdateJobRequest
+      additionalProperties: false
+    zerx.v1.UpdateMenuRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        parentId:
+          type:
+            - integer
+            - string
+          title: parent_id
+          format: int64
+        path:
+          type: string
+          title: path
+        name:
+          type: string
+          title: name
+          minLength: 1
+        component:
+          type: string
+          title: component
+        title:
+          type: string
+          title: title
+          minLength: 1
+        icon:
+          type: string
+          title: icon
+        sort:
+          type: integer
+          title: sort
+          format: int32
+        hidden:
+          type: boolean
+          title: hidden
+      title: UpdateMenuRequest
+      additionalProperties: false
+    zerx.v1.UpdateParamRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        value:
+          type: string
+          title: value
+        description:
+          type: string
+          title: description
+      title: UpdateParamRequest
+      additionalProperties: false
+    zerx.v1.UpdateProfileRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+          title: nickname
+        avatar:
+          type: string
+          title: avatar
+        phone:
+          type: string
+          title: phone
+      title: UpdateProfileRequest
+      additionalProperties: false
+    zerx.v1.UpdateRoleRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+          minLength: 1
+        description:
+          type: string
+          title: description
+        sort:
+          type: integer
+          title: sort
+          format: int32
+      title: UpdateRoleRequest
+      additionalProperties: false
+    zerx.v1.UpdateSiteSettingsRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          maxLength: 128
+        logo:
+          type: string
+          title: logo
+          maxLength: 512
+        domain:
+          type: string
+          title: domain
+          maxLength: 256
+      title: UpdateSiteSettingsRequest
+      additionalProperties: false
+    zerx.v1.UpdateUserRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        roles:
+          type: array
+          items:
+            type: string
+            pattern: ^[a-z][a-z0-9_]*$
+          title: roles
+          minItems: 1
+        nickname:
+          type: string
+          title: nickname
+        phone:
+          type: string
+          title: phone
+        status:
+          type: boolean
+          title: status
+      title: UpdateUserRequest
+      additionalProperties: false
+    zerx.v1.User:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        email:
+          type: string
+          title: email
+        name:
+          type: string
+          title: name
+        roles:
+          type: array
+          items:
+            type: string
+          title: roles
+        createdAt:
+          type: string
+          title: created_at
+          description: created_at is RFC3339 formatted.
+        nickname:
+          type: string
+          title: nickname
+        avatar:
+          type: string
+          title: avatar
+        phone:
+          type: string
+          title: phone
+        status:
+          type: boolean
+          title: status
+        totpEnabled:
+          type: boolean
+          title: totp_enabled
+      title: User
+      additionalProperties: false
+      description: User is the public representation of an account (no password hash).
+security: []
+tags:
+  - name: zerx.v1.ApiService
+    description: ApiService manages the catalog of connectRPC procedures used for RBAC.
+  - name: zerx.v1.UserService
+    description: |-
+      UserService manages user accounts. Authorization is enforced by the Casbin
+       interceptor (admin bypasses); handlers carry no role checks.
+  - name: zerx.v1.AuthService
+    description: |-
+      AuthService handles authentication and session management. Login, Register,
+       Refresh and GetCaptcha are public; the session and self-serve RPCs require a
+       valid access token.
+  - name: zerx.v1.DashboardService
+    description: |-
+      DashboardService exposes aggregate statistics for the admin dashboard.
+       Authorization is enforced by the Casbin interceptor (admin bypasses).
+  - name: zerx.v1.DictService
+    description: DictService manages lookup dictionaries. GetDictByType is self-serve.
+  - name: zerx.v1.FileService
+    description: |-
+      FileService lists and deletes uploaded files. Uploading itself is a plain
+       multipart HTTP endpoint at /api/upload (not a connectRPC method).
+  - name: zerx.v1.JobService
+    description: |-
+      JobService manages cron-scheduled jobs. Authorization is enforced by the
+       Casbin interceptor (admin bypasses); handlers carry no role checks.
+  - name: zerx.v1.LogService
+    description: |-
+      LogService exposes operation, error (operation rows with non-ok status), and
+       login logs.
+  - name: zerx.v1.MenuService
+    description: |-
+      MenuService manages the navigation tree and button permissions. GetUserMenus
+       and GetUserButtons are self-serve; the rest are Casbin-gated.
+  - name: zerx.v1.SysParamService
+    description: SysParamService manages runtime system parameters.
+  - name: zerx.v1.RoleService
+    description: |-
+      RoleService manages RBAC roles and their permission assignments. Authorization
+       is enforced by the Casbin interceptor (admin bypasses).
+  - name: zerx.v1.SiteSettingsService
+    description: |-
+      SiteSettingsService manages site-wide presentation settings (name, logo,
+       access domain), stored as fixed-key system parameters.

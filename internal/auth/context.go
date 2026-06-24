@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"connectrpc.com/connect"
 )
@@ -28,7 +29,7 @@ func RequireRole(ctx context.Context, role string) error {
 	if !ok {
 		return connect.NewError(connect.CodePermissionDenied, errors.New("authentication required"))
 	}
-	if claims.Role != role {
+	if !slices.Contains(claims.Roles, role) {
 		return connect.NewError(connect.CodePermissionDenied, fmt.Errorf("requires %q role", role))
 	}
 

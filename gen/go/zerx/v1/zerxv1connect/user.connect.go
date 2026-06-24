@@ -46,6 +46,9 @@ const (
 	// UserServiceResetPasswordProcedure is the fully-qualified name of the UserService's ResetPassword
 	// RPC.
 	UserServiceResetPasswordProcedure = "/zerx.v1.UserService/ResetPassword"
+	// UserServiceDisableUserTotpProcedure is the fully-qualified name of the UserService's
+	// DisableUserTotp RPC.
+	UserServiceDisableUserTotpProcedure = "/zerx.v1.UserService/DisableUserTotp"
 )
 
 // UserServiceClient is a client for the zerx.v1.UserService service.
@@ -57,6 +60,8 @@ type UserServiceClient interface {
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
 	// ResetPassword sets a user's password to a new value (admin/RBAC-gated).
 	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
+	// DisableUserTotp force-disables a user's 2FA (admin/RBAC-gated).
+	DisableUserTotp(context.Context, *connect.Request[v1.DisableUserTotpRequest]) (*connect.Response[v1.DisableUserTotpResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the zerx.v1.UserService service. By default, it uses
@@ -106,17 +111,24 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("ResetPassword")),
 			connect.WithClientOptions(opts...),
 		),
+		disableUserTotp: connect.NewClient[v1.DisableUserTotpRequest, v1.DisableUserTotpResponse](
+			httpClient,
+			baseURL+UserServiceDisableUserTotpProcedure,
+			connect.WithSchema(userServiceMethods.ByName("DisableUserTotp")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	listUsers     *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	getUser       *connect.Client[v1.GetUserRequest, v1.User]
-	createUser    *connect.Client[v1.CreateUserRequest, v1.User]
-	updateUser    *connect.Client[v1.UpdateUserRequest, v1.User]
-	deleteUser    *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
-	resetPassword *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
+	listUsers       *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	getUser         *connect.Client[v1.GetUserRequest, v1.User]
+	createUser      *connect.Client[v1.CreateUserRequest, v1.User]
+	updateUser      *connect.Client[v1.UpdateUserRequest, v1.User]
+	deleteUser      *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	resetPassword   *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
+	disableUserTotp *connect.Client[v1.DisableUserTotpRequest, v1.DisableUserTotpResponse]
 }
 
 // ListUsers calls zerx.v1.UserService.ListUsers.
@@ -149,6 +161,11 @@ func (c *userServiceClient) ResetPassword(ctx context.Context, req *connect.Requ
 	return c.resetPassword.CallUnary(ctx, req)
 }
 
+// DisableUserTotp calls zerx.v1.UserService.DisableUserTotp.
+func (c *userServiceClient) DisableUserTotp(ctx context.Context, req *connect.Request[v1.DisableUserTotpRequest]) (*connect.Response[v1.DisableUserTotpResponse], error) {
+	return c.disableUserTotp.CallUnary(ctx, req)
+}
+
 // UserServiceHandler is an implementation of the zerx.v1.UserService service.
 type UserServiceHandler interface {
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
@@ -158,6 +175,8 @@ type UserServiceHandler interface {
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
 	// ResetPassword sets a user's password to a new value (admin/RBAC-gated).
 	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
+	// DisableUserTotp force-disables a user's 2FA (admin/RBAC-gated).
+	DisableUserTotp(context.Context, *connect.Request[v1.DisableUserTotpRequest]) (*connect.Response[v1.DisableUserTotpResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -203,6 +222,12 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("ResetPassword")),
 		connect.WithHandlerOptions(opts...),
 	)
+	userServiceDisableUserTotpHandler := connect.NewUnaryHandler(
+		UserServiceDisableUserTotpProcedure,
+		svc.DisableUserTotp,
+		connect.WithSchema(userServiceMethods.ByName("DisableUserTotp")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/zerx.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceListUsersProcedure:
@@ -217,6 +242,8 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceDeleteUserHandler.ServeHTTP(w, r)
 		case UserServiceResetPasswordProcedure:
 			userServiceResetPasswordHandler.ServeHTTP(w, r)
+		case UserServiceDisableUserTotpProcedure:
+			userServiceDisableUserTotpHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -248,4 +275,8 @@ func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *connect.Requ
 
 func (UnimplementedUserServiceHandler) ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.UserService.ResetPassword is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) DisableUserTotp(context.Context, *connect.Request[v1.DisableUserTotpRequest]) (*connect.Response[v1.DisableUserTotpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.UserService.DisableUserTotp is not implemented"))
 }

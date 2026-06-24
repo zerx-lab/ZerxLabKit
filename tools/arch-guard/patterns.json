@@ -1,0 +1,49 @@
+[
+  {
+    "name": "arch-i18n-no-hardcoded-cjk",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["web/src/routes/**/*.tsx", "web/src/components/**/*.tsx"],
+    "regex": "[\\u4e00-\\u9fff\\u3400-\\u4dbf\\u3000-\\u303f\\uff01-\\uff60]",
+    "message": "前端页面/组件禁止硬编码 CJK:用户可见文本必须经 i18n 的 t(key),并在 web/src/lib/i18n.tsx 的 en 与 zh 同步加同名 key。参考 web/src/routes/_authed/users.tsx。"
+  },
+  {
+    "name": "arch-no-requirerole-in-service",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["internal/service/**/*.go"],
+    "regex": "RequireRole",
+    "message": "service handler 一律不得调用 auth.RequireRole:接口鉴权唯一权威是 Casbin 拦截器。删除 RequireRole,授权交拦截器;public/selfServe 在 server.go 配置。"
+  },
+  {
+    "name": "arch-react-query-v5-naming",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["web/src/**/*.tsx", "web/src/**/*.ts"],
+    "regex": "\\bcacheTime\\b",
+    "message": "TanStack Query v5:cacheTime 已更名为 gcTime,请改用 gcTime。"
+  },
+  {
+    "name": "arch-no-hardcoded-tailwind-color",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["web/src/routes/**/*.tsx", "web/src/components/**/*.tsx"],
+    "regex": "(?:text|bg|border|ring|fill|stroke|from|to|via)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|gray|zinc|neutral|stone|slate)-[0-9]{2,3}",
+    "message": "Tailwind v4:禁止写死调色板色值,用语义 token(bg-background/text-foreground/border-border/bg-primary,定义在 web/src/styles.css)。"
+  },
+  {
+    "name": "arch-gorm-removed-api",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": ["internal/**/*.go"],
+    "regex": "FirstOrCreate|\\.Save\\(|\\.Count\\(ctx\\)",
+    "message": "GORM:FirstOrCreate/.Save 已移除→用 gorm.G[T](db).Create / Updates(map);.Count(ctx) 缺列名→Count(ctx,\"id\");泛型 First 无 .Error,用 errors.Is(err, gorm.ErrRecordNotFound)。"
+  },
+  {
+    "name": "arch-no-bare-fetch-api",
+    "tools": ["write", "edit", "apply_patch"],
+    "globs": [
+      "web/src/routes/**/*.tsx",
+      "web/src/routes/**/*.ts",
+      "web/src/components/**/*.tsx",
+      "web/src/components/**/*.ts"
+    ],
+    "regex": "(^|[^a-zA-Z])fetch\\([\"'`]/api",
+    "message": "前端禁止裸 fetch 调后端 /api:绕过 transport.ts 的 401 single-flight 刷新。connectRPC 用 connect-query hook;非 RPC 端点(上传/导入导出)用 authedFetch(\"@/lib/transport\")。参考 files.tsx / users.tsx。"
+  }
+]

@@ -51,6 +51,25 @@ const (
 	// AuthServiceRevokeSessionProcedure is the fully-qualified name of the AuthService's RevokeSession
 	// RPC.
 	AuthServiceRevokeSessionProcedure = "/zerx.v1.AuthService/RevokeSession"
+	// AuthServiceChangePasswordProcedure is the fully-qualified name of the AuthService's
+	// ChangePassword RPC.
+	AuthServiceChangePasswordProcedure = "/zerx.v1.AuthService/ChangePassword"
+	// AuthServiceUpdateProfileProcedure is the fully-qualified name of the AuthService's UpdateProfile
+	// RPC.
+	AuthServiceUpdateProfileProcedure = "/zerx.v1.AuthService/UpdateProfile"
+	// AuthServiceRequestPasswordResetProcedure is the fully-qualified name of the AuthService's
+	// RequestPasswordReset RPC.
+	AuthServiceRequestPasswordResetProcedure = "/zerx.v1.AuthService/RequestPasswordReset"
+	// AuthServiceConfirmPasswordResetProcedure is the fully-qualified name of the AuthService's
+	// ConfirmPasswordReset RPC.
+	AuthServiceConfirmPasswordResetProcedure = "/zerx.v1.AuthService/ConfirmPasswordReset"
+	// AuthServiceSetupTotpProcedure is the fully-qualified name of the AuthService's SetupTotp RPC.
+	AuthServiceSetupTotpProcedure = "/zerx.v1.AuthService/SetupTotp"
+	// AuthServiceActivateTotpProcedure is the fully-qualified name of the AuthService's ActivateTotp
+	// RPC.
+	AuthServiceActivateTotpProcedure = "/zerx.v1.AuthService/ActivateTotp"
+	// AuthServiceDisableTotpProcedure is the fully-qualified name of the AuthService's DisableTotp RPC.
+	AuthServiceDisableTotpProcedure = "/zerx.v1.AuthService/DisableTotp"
 )
 
 // AuthServiceClient is a client for the zerx.v1.AuthService service.
@@ -67,6 +86,20 @@ type AuthServiceClient interface {
 	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
 	// RevokeSession deletes one session (own session, or any when admin).
 	RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error)
+	// ChangePassword changes the caller's own password (self-serve).
+	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	// UpdateProfile updates the caller's own profile fields (self-serve).
+	UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.User], error)
+	// RequestPasswordReset emails a reset link (public; no enumeration).
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error)
+	// ConfirmPasswordReset sets a new password using an emailed token (public).
+	ConfirmPasswordReset(context.Context, *connect.Request[v1.ConfirmPasswordResetRequest]) (*connect.Response[v1.ConfirmPasswordResetResponse], error)
+	// SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+	SetupTotp(context.Context, *connect.Request[v1.SetupTotpRequest]) (*connect.Response[v1.SetupTotpResponse], error)
+	// ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+	ActivateTotp(context.Context, *connect.Request[v1.ActivateTotpRequest]) (*connect.Response[v1.ActivateTotpResponse], error)
+	// DisableTotp turns off the caller's 2FA (self-serve).
+	DisableTotp(context.Context, *connect.Request[v1.DisableTotpRequest]) (*connect.Response[v1.DisableTotpResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the zerx.v1.AuthService service. By default, it uses
@@ -128,19 +161,68 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("RevokeSession")),
 			connect.WithClientOptions(opts...),
 		),
+		changePassword: connect.NewClient[v1.ChangePasswordRequest, v1.ChangePasswordResponse](
+			httpClient,
+			baseURL+AuthServiceChangePasswordProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ChangePassword")),
+			connect.WithClientOptions(opts...),
+		),
+		updateProfile: connect.NewClient[v1.UpdateProfileRequest, v1.User](
+			httpClient,
+			baseURL+AuthServiceUpdateProfileProcedure,
+			connect.WithSchema(authServiceMethods.ByName("UpdateProfile")),
+			connect.WithClientOptions(opts...),
+		),
+		requestPasswordReset: connect.NewClient[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse](
+			httpClient,
+			baseURL+AuthServiceRequestPasswordResetProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+			connect.WithClientOptions(opts...),
+		),
+		confirmPasswordReset: connect.NewClient[v1.ConfirmPasswordResetRequest, v1.ConfirmPasswordResetResponse](
+			httpClient,
+			baseURL+AuthServiceConfirmPasswordResetProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ConfirmPasswordReset")),
+			connect.WithClientOptions(opts...),
+		),
+		setupTotp: connect.NewClient[v1.SetupTotpRequest, v1.SetupTotpResponse](
+			httpClient,
+			baseURL+AuthServiceSetupTotpProcedure,
+			connect.WithSchema(authServiceMethods.ByName("SetupTotp")),
+			connect.WithClientOptions(opts...),
+		),
+		activateTotp: connect.NewClient[v1.ActivateTotpRequest, v1.ActivateTotpResponse](
+			httpClient,
+			baseURL+AuthServiceActivateTotpProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ActivateTotp")),
+			connect.WithClientOptions(opts...),
+		),
+		disableTotp: connect.NewClient[v1.DisableTotpRequest, v1.DisableTotpResponse](
+			httpClient,
+			baseURL+AuthServiceDisableTotpProcedure,
+			connect.WithSchema(authServiceMethods.ByName("DisableTotp")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	login         *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	register      *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
-	refresh       *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
-	logout        *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
-	me            *connect.Client[v1.MeRequest, v1.MeResponse]
-	getCaptcha    *connect.Client[v1.GetCaptchaRequest, v1.GetCaptchaResponse]
-	listSessions  *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
-	revokeSession *connect.Client[v1.RevokeSessionRequest, v1.RevokeSessionResponse]
+	login                *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	register             *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
+	refresh              *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
+	logout               *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
+	me                   *connect.Client[v1.MeRequest, v1.MeResponse]
+	getCaptcha           *connect.Client[v1.GetCaptchaRequest, v1.GetCaptchaResponse]
+	listSessions         *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	revokeSession        *connect.Client[v1.RevokeSessionRequest, v1.RevokeSessionResponse]
+	changePassword       *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
+	updateProfile        *connect.Client[v1.UpdateProfileRequest, v1.User]
+	requestPasswordReset *connect.Client[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse]
+	confirmPasswordReset *connect.Client[v1.ConfirmPasswordResetRequest, v1.ConfirmPasswordResetResponse]
+	setupTotp            *connect.Client[v1.SetupTotpRequest, v1.SetupTotpResponse]
+	activateTotp         *connect.Client[v1.ActivateTotpRequest, v1.ActivateTotpResponse]
+	disableTotp          *connect.Client[v1.DisableTotpRequest, v1.DisableTotpResponse]
 }
 
 // Login calls zerx.v1.AuthService.Login.
@@ -183,6 +265,41 @@ func (c *authServiceClient) RevokeSession(ctx context.Context, req *connect.Requ
 	return c.revokeSession.CallUnary(ctx, req)
 }
 
+// ChangePassword calls zerx.v1.AuthService.ChangePassword.
+func (c *authServiceClient) ChangePassword(ctx context.Context, req *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
+	return c.changePassword.CallUnary(ctx, req)
+}
+
+// UpdateProfile calls zerx.v1.AuthService.UpdateProfile.
+func (c *authServiceClient) UpdateProfile(ctx context.Context, req *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.User], error) {
+	return c.updateProfile.CallUnary(ctx, req)
+}
+
+// RequestPasswordReset calls zerx.v1.AuthService.RequestPasswordReset.
+func (c *authServiceClient) RequestPasswordReset(ctx context.Context, req *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error) {
+	return c.requestPasswordReset.CallUnary(ctx, req)
+}
+
+// ConfirmPasswordReset calls zerx.v1.AuthService.ConfirmPasswordReset.
+func (c *authServiceClient) ConfirmPasswordReset(ctx context.Context, req *connect.Request[v1.ConfirmPasswordResetRequest]) (*connect.Response[v1.ConfirmPasswordResetResponse], error) {
+	return c.confirmPasswordReset.CallUnary(ctx, req)
+}
+
+// SetupTotp calls zerx.v1.AuthService.SetupTotp.
+func (c *authServiceClient) SetupTotp(ctx context.Context, req *connect.Request[v1.SetupTotpRequest]) (*connect.Response[v1.SetupTotpResponse], error) {
+	return c.setupTotp.CallUnary(ctx, req)
+}
+
+// ActivateTotp calls zerx.v1.AuthService.ActivateTotp.
+func (c *authServiceClient) ActivateTotp(ctx context.Context, req *connect.Request[v1.ActivateTotpRequest]) (*connect.Response[v1.ActivateTotpResponse], error) {
+	return c.activateTotp.CallUnary(ctx, req)
+}
+
+// DisableTotp calls zerx.v1.AuthService.DisableTotp.
+func (c *authServiceClient) DisableTotp(ctx context.Context, req *connect.Request[v1.DisableTotpRequest]) (*connect.Response[v1.DisableTotpResponse], error) {
+	return c.disableTotp.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the zerx.v1.AuthService service.
 type AuthServiceHandler interface {
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
@@ -197,6 +314,20 @@ type AuthServiceHandler interface {
 	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
 	// RevokeSession deletes one session (own session, or any when admin).
 	RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error)
+	// ChangePassword changes the caller's own password (self-serve).
+	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	// UpdateProfile updates the caller's own profile fields (self-serve).
+	UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.User], error)
+	// RequestPasswordReset emails a reset link (public; no enumeration).
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error)
+	// ConfirmPasswordReset sets a new password using an emailed token (public).
+	ConfirmPasswordReset(context.Context, *connect.Request[v1.ConfirmPasswordResetRequest]) (*connect.Response[v1.ConfirmPasswordResetResponse], error)
+	// SetupTotp begins 2FA enrollment, returning a secret + QR (self-serve).
+	SetupTotp(context.Context, *connect.Request[v1.SetupTotpRequest]) (*connect.Response[v1.SetupTotpResponse], error)
+	// ActivateTotp confirms 2FA and returns recovery codes (self-serve).
+	ActivateTotp(context.Context, *connect.Request[v1.ActivateTotpRequest]) (*connect.Response[v1.ActivateTotpResponse], error)
+	// DisableTotp turns off the caller's 2FA (self-serve).
+	DisableTotp(context.Context, *connect.Request[v1.DisableTotpRequest]) (*connect.Response[v1.DisableTotpResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -254,6 +385,48 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("RevokeSession")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceChangePasswordHandler := connect.NewUnaryHandler(
+		AuthServiceChangePasswordProcedure,
+		svc.ChangePassword,
+		connect.WithSchema(authServiceMethods.ByName("ChangePassword")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceUpdateProfileHandler := connect.NewUnaryHandler(
+		AuthServiceUpdateProfileProcedure,
+		svc.UpdateProfile,
+		connect.WithSchema(authServiceMethods.ByName("UpdateProfile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRequestPasswordResetHandler := connect.NewUnaryHandler(
+		AuthServiceRequestPasswordResetProcedure,
+		svc.RequestPasswordReset,
+		connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceConfirmPasswordResetHandler := connect.NewUnaryHandler(
+		AuthServiceConfirmPasswordResetProcedure,
+		svc.ConfirmPasswordReset,
+		connect.WithSchema(authServiceMethods.ByName("ConfirmPasswordReset")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceSetupTotpHandler := connect.NewUnaryHandler(
+		AuthServiceSetupTotpProcedure,
+		svc.SetupTotp,
+		connect.WithSchema(authServiceMethods.ByName("SetupTotp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceActivateTotpHandler := connect.NewUnaryHandler(
+		AuthServiceActivateTotpProcedure,
+		svc.ActivateTotp,
+		connect.WithSchema(authServiceMethods.ByName("ActivateTotp")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceDisableTotpHandler := connect.NewUnaryHandler(
+		AuthServiceDisableTotpProcedure,
+		svc.DisableTotp,
+		connect.WithSchema(authServiceMethods.ByName("DisableTotp")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/zerx.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceLoginProcedure:
@@ -272,6 +445,20 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceListSessionsHandler.ServeHTTP(w, r)
 		case AuthServiceRevokeSessionProcedure:
 			authServiceRevokeSessionHandler.ServeHTTP(w, r)
+		case AuthServiceChangePasswordProcedure:
+			authServiceChangePasswordHandler.ServeHTTP(w, r)
+		case AuthServiceUpdateProfileProcedure:
+			authServiceUpdateProfileHandler.ServeHTTP(w, r)
+		case AuthServiceRequestPasswordResetProcedure:
+			authServiceRequestPasswordResetHandler.ServeHTTP(w, r)
+		case AuthServiceConfirmPasswordResetProcedure:
+			authServiceConfirmPasswordResetHandler.ServeHTTP(w, r)
+		case AuthServiceSetupTotpProcedure:
+			authServiceSetupTotpHandler.ServeHTTP(w, r)
+		case AuthServiceActivateTotpProcedure:
+			authServiceActivateTotpHandler.ServeHTTP(w, r)
+		case AuthServiceDisableTotpProcedure:
+			authServiceDisableTotpHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -311,4 +498,32 @@ func (UnimplementedAuthServiceHandler) ListSessions(context.Context, *connect.Re
 
 func (UnimplementedAuthServiceHandler) RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.RevokeSession is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.ChangePassword is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.User], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.UpdateProfile is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.RequestPasswordReset is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ConfirmPasswordReset(context.Context, *connect.Request[v1.ConfirmPasswordResetRequest]) (*connect.Response[v1.ConfirmPasswordResetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.ConfirmPasswordReset is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) SetupTotp(context.Context, *connect.Request[v1.SetupTotpRequest]) (*connect.Response[v1.SetupTotpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.SetupTotp is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ActivateTotp(context.Context, *connect.Request[v1.ActivateTotpRequest]) (*connect.Response[v1.ActivateTotpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.ActivateTotp is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) DisableTotp(context.Context, *connect.Request[v1.DisableTotpRequest]) (*connect.Response[v1.DisableTotpResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.DisableTotp is not implemented"))
 }

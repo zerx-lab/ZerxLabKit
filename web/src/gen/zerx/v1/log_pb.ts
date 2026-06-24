@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file zerx/v1/log.proto.
  */
 export const file_zerx_v1_log: GenFile = /*@__PURE__*/
-  fileDesc("ChF6ZXJ4L3YxL2xvZy5wcm90bxIHemVyeC52MSLYAQoMT3BlcmF0aW9uTG9nEgoKAmlkGAEgASgEEg8KB3VzZXJfaWQYAiABKAQSEgoKdXNlcl9lbWFpbBgDIAEoCRIRCglwcm9jZWR1cmUYBCABKAkSDgoGbWV0aG9kGAUgASgJEgoKAmlwGAYgASgJEhIKCnVzZXJfYWdlbnQYByABKAkSEgoKbGF0ZW5jeV9tcxgIIAEoAxIOCgZzdGF0dXMYCSABKAkSDQoFZXJyb3IYCiABKAkSDQoFc3RhY2sYCyABKAkSEgoKY3JlYXRlZF9hdBgMIAEoCSKKAQoITG9naW5Mb2cSCgoCaWQYASABKAQSDwoHdXNlcl9pZBgCIAEoBBINCgVlbWFpbBgDIAEoCRIKCgJpcBgEIAEoCRISCgp1c2VyX2FnZW50GAUgASgJEg8KB3N1Y2Nlc3MYBiABKAgSDQoFZXJyb3IYByABKAkSEgoKY3JlYXRlZF9hdBgIIAEoCSJPChhMaXN0T3BlcmF0aW9uTG9nc1JlcXVlc3QSIgoEcGFnZRgBIAEoCzIULnplcngudjEuUGFnZVJlcXVlc3QSDwoHa2V5d29yZBgCIAEoCSJPChlMaXN0T3BlcmF0aW9uTG9nc1Jlc3BvbnNlEiMKBGxvZ3MYASADKAsyFS56ZXJ4LnYxLk9wZXJhdGlvbkxvZxINCgV0b3RhbBgCIAEoAyJLChRMaXN0RXJyb3JMb2dzUmVxdWVzdBIiCgRwYWdlGAEgASgLMhQuemVyeC52MS5QYWdlUmVxdWVzdBIPCgdrZXl3b3JkGAIgASgJIksKFUxpc3RFcnJvckxvZ3NSZXNwb25zZRIjCgRsb2dzGAEgAygLMhUuemVyeC52MS5PcGVyYXRpb25Mb2cSDQoFdG90YWwYAiABKAMiSwoUTGlzdExvZ2luTG9nc1JlcXVlc3QSIgoEcGFnZRgBIAEoCzIULnplcngudjEuUGFnZVJlcXVlc3QSDwoHa2V5d29yZBgCIAEoCSJHChVMaXN0TG9naW5Mb2dzUmVzcG9uc2USHwoEbG9ncxgBIAMoCzIRLnplcngudjEuTG9naW5Mb2cSDQoFdG90YWwYAiABKAMiQAoQQ2xlYW5Mb2dzUmVxdWVzdBIeCgR0eXBlGAEgASgOMhAuemVyeC52MS5Mb2dUeXBlEgwKBGRheXMYAiABKAUiJAoRQ2xlYW5Mb2dzUmVzcG9uc2USDwoHcmVtb3ZlZBgBIAEoAypPCgdMb2dUeXBlEhgKFExPR19UWVBFX1VOU1BFQ0lGSUVEEAASFgoSTE9HX1RZUEVfT1BFUkFUSU9OEAESEgoOTE9HX1RZUEVfTE9HSU4QAjLMAgoKTG9nU2VydmljZRJaChFMaXN0T3BlcmF0aW9uTG9ncxIhLnplcngudjEuTGlzdE9wZXJhdGlvbkxvZ3NSZXF1ZXN0GiIuemVyeC52MS5MaXN0T3BlcmF0aW9uTG9nc1Jlc3BvbnNlEk4KDUxpc3RFcnJvckxvZ3MSHS56ZXJ4LnYxLkxpc3RFcnJvckxvZ3NSZXF1ZXN0Gh4uemVyeC52MS5MaXN0RXJyb3JMb2dzUmVzcG9uc2USTgoNTGlzdExvZ2luTG9ncxIdLnplcngudjEuTGlzdExvZ2luTG9nc1JlcXVlc3QaHi56ZXJ4LnYxLkxpc3RMb2dpbkxvZ3NSZXNwb25zZRJCCglDbGVhbkxvZ3MSGS56ZXJ4LnYxLkNsZWFuTG9nc1JlcXVlc3QaGi56ZXJ4LnYxLkNsZWFuTG9nc1Jlc3BvbnNlQjZaNGdpdGh1Yi5jb20vemVyeC1sYWIvemVyeGxhYmtpdC9nZW4vZ28vemVyeC92MTt6ZXJ4djFiBnByb3RvMw", [file_buf_validate_validate, file_zerx_v1_common]);
+  fileDesc("ChF6ZXJ4L3YxL2xvZy5wcm90bxIHemVyeC52MSLoAQoMT3BlcmF0aW9uTG9nEgoKAmlkGAEgASgEEg8KB3VzZXJfaWQYAiABKAQSEgoKdXNlcl9lbWFpbBgDIAEoCRIRCglwcm9jZWR1cmUYBCABKAkSDgoGbWV0aG9kGAUgASgJEgoKAmlwGAYgASgJEhIKCnVzZXJfYWdlbnQYByABKAkSEgoKbGF0ZW5jeV9tcxgIIAEoAxIOCgZzdGF0dXMYCSABKAkSDQoFZXJyb3IYCiABKAkSDQoFc3RhY2sYCyABKAkSEgoKY3JlYXRlZF9hdBgMIAEoCRIOCgZkZXRhaWwYDSABKAkiigEKCExvZ2luTG9nEgoKAmlkGAEgASgEEg8KB3VzZXJfaWQYAiABKAQSDQoFZW1haWwYAyABKAkSCgoCaXAYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIPCgdzdWNjZXNzGAYgASgIEg0KBWVycm9yGAcgASgJEhIKCmNyZWF0ZWRfYXQYCCABKAkikQEKGExpc3RPcGVyYXRpb25Mb2dzUmVxdWVzdBIiCgRwYWdlGAEgASgLMhQuemVyeC52MS5QYWdlUmVxdWVzdBIPCgdrZXl3b3JkGAIgASgJEg4KBnN0YXR1cxgDIAEoCRIOCgZtZXRob2QYBCABKAkSEAoIc3RhcnRfYXQYBSABKAkSDgoGZW5kX2F0GAYgASgJIk8KGUxpc3RPcGVyYXRpb25Mb2dzUmVzcG9uc2USIwoEbG9ncxgBIAMoCzIVLnplcngudjEuT3BlcmF0aW9uTG9nEg0KBXRvdGFsGAIgASgDIo0BChRMaXN0RXJyb3JMb2dzUmVxdWVzdBIiCgRwYWdlGAEgASgLMhQuemVyeC52MS5QYWdlUmVxdWVzdBIPCgdrZXl3b3JkGAIgASgJEg4KBnN0YXR1cxgDIAEoCRIOCgZtZXRob2QYBCABKAkSEAoIc3RhcnRfYXQYBSABKAkSDgoGZW5kX2F0GAYgASgJIksKFUxpc3RFcnJvckxvZ3NSZXNwb25zZRIjCgRsb2dzGAEgAygLMhUuemVyeC52MS5PcGVyYXRpb25Mb2cSDQoFdG90YWwYAiABKAMifgoUTGlzdExvZ2luTG9nc1JlcXVlc3QSIgoEcGFnZRgBIAEoCzIULnplcngudjEuUGFnZVJlcXVlc3QSDwoHa2V5d29yZBgCIAEoCRIQCghzdGFydF9hdBgDIAEoCRIOCgZlbmRfYXQYBCABKAkSDwoHc3VjY2VzcxgFIAEoBSJHChVMaXN0TG9naW5Mb2dzUmVzcG9uc2USHwoEbG9ncxgBIAMoCzIRLnplcngudjEuTG9naW5Mb2cSDQoFdG90YWwYAiABKAMiQAoQQ2xlYW5Mb2dzUmVxdWVzdBIeCgR0eXBlGAEgASgOMhAuemVyeC52MS5Mb2dUeXBlEgwKBGRheXMYAiABKAUiJAoRQ2xlYW5Mb2dzUmVzcG9uc2USDwoHcmVtb3ZlZBgBIAEoAypPCgdMb2dUeXBlEhgKFExPR19UWVBFX1VOU1BFQ0lGSUVEEAASFgoSTE9HX1RZUEVfT1BFUkFUSU9OEAESEgoOTE9HX1RZUEVfTE9HSU4QAjLMAgoKTG9nU2VydmljZRJaChFMaXN0T3BlcmF0aW9uTG9ncxIhLnplcngudjEuTGlzdE9wZXJhdGlvbkxvZ3NSZXF1ZXN0GiIuemVyeC52MS5MaXN0T3BlcmF0aW9uTG9nc1Jlc3BvbnNlEk4KDUxpc3RFcnJvckxvZ3MSHS56ZXJ4LnYxLkxpc3RFcnJvckxvZ3NSZXF1ZXN0Gh4uemVyeC52MS5MaXN0RXJyb3JMb2dzUmVzcG9uc2USTgoNTGlzdExvZ2luTG9ncxIdLnplcngudjEuTGlzdExvZ2luTG9nc1JlcXVlc3QaHi56ZXJ4LnYxLkxpc3RMb2dpbkxvZ3NSZXNwb25zZRJCCglDbGVhbkxvZ3MSGS56ZXJ4LnYxLkNsZWFuTG9nc1JlcXVlc3QaGi56ZXJ4LnYxLkNsZWFuTG9nc1Jlc3BvbnNlQjZaNGdpdGh1Yi5jb20vemVyeC1sYWIvemVyeGxhYmtpdC9nZW4vZ28vemVyeC92MTt6ZXJ4djFiBnByb3RvMw", [file_buf_validate_validate, file_zerx_v1_common]);
 
 /**
  * @generated from message zerx.v1.OperationLog
@@ -78,6 +78,11 @@ export type OperationLog = Message<"zerx.v1.OperationLog"> & {
    * @generated from field: string created_at = 12;
    */
   createdAt: string;
+
+  /**
+   * @generated from field: string detail = 13;
+   */
+  detail: string;
 };
 
 /**
@@ -152,6 +157,26 @@ export type ListOperationLogsRequest = Message<"zerx.v1.ListOperationLogsRequest
    * @generated from field: string keyword = 2;
    */
   keyword: string;
+
+  /**
+   * @generated from field: string status = 3;
+   */
+  status: string;
+
+  /**
+   * @generated from field: string method = 4;
+   */
+  method: string;
+
+  /**
+   * @generated from field: string start_at = 5;
+   */
+  startAt: string;
+
+  /**
+   * @generated from field: string end_at = 6;
+   */
+  endAt: string;
 };
 
 /**
@@ -196,6 +221,26 @@ export type ListErrorLogsRequest = Message<"zerx.v1.ListErrorLogsRequest"> & {
    * @generated from field: string keyword = 2;
    */
   keyword: string;
+
+  /**
+   * @generated from field: string status = 3;
+   */
+  status: string;
+
+  /**
+   * @generated from field: string method = 4;
+   */
+  method: string;
+
+  /**
+   * @generated from field: string start_at = 5;
+   */
+  startAt: string;
+
+  /**
+   * @generated from field: string end_at = 6;
+   */
+  endAt: string;
 };
 
 /**
@@ -240,6 +285,21 @@ export type ListLoginLogsRequest = Message<"zerx.v1.ListLoginLogsRequest"> & {
    * @generated from field: string keyword = 2;
    */
   keyword: string;
+
+  /**
+   * @generated from field: string start_at = 3;
+   */
+  startAt: string;
+
+  /**
+   * @generated from field: string end_at = 4;
+   */
+  endAt: string;
+
+  /**
+   * @generated from field: int32 success = 5;
+   */
+  success: number;
 };
 
 /**

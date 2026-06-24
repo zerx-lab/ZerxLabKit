@@ -25,7 +25,7 @@ func NewLogService(db *gorm.DB) *LogService {
 }
 
 func (s *LogService) ListOperationLogs(ctx context.Context, req *connect.Request[zerxv1.ListOperationLogsRequest]) (*connect.Response[zerxv1.ListOperationLogsResponse], error) {
-	logs, total, err := s.queryOperation(ctx, req.Msg.GetPage().GetPage(), req.Msg.GetPage().GetPageSize(), req.Msg.GetKeyword(), false)
+	logs, total, err := s.queryOperation(ctx, req.Msg.GetPage().GetPage(), req.Msg.GetPage().GetPageSize(), req.Msg.GetKeyword(), false, req.Msg.GetStatus(), req.Msg.GetMethod(), req.Msg.GetStartAt(), req.Msg.GetEndAt())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -34,7 +34,7 @@ func (s *LogService) ListOperationLogs(ctx context.Context, req *connect.Request
 }
 
 func (s *LogService) ListErrorLogs(ctx context.Context, req *connect.Request[zerxv1.ListErrorLogsRequest]) (*connect.Response[zerxv1.ListErrorLogsResponse], error) {
-	logs, total, err := s.queryOperation(ctx, req.Msg.GetPage().GetPage(), req.Msg.GetPage().GetPageSize(), req.Msg.GetKeyword(), true)
+	logs, total, err := s.queryOperation(ctx, req.Msg.GetPage().GetPage(), req.Msg.GetPage().GetPageSize(), req.Msg.GetKeyword(), true, req.Msg.GetStatus(), req.Msg.GetMethod(), req.Msg.GetStartAt(), req.Msg.GetEndAt())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -42,7 +42,7 @@ func (s *LogService) ListErrorLogs(ctx context.Context, req *connect.Request[zer
 	return connect.NewResponse(&zerxv1.ListErrorLogsResponse{Logs: logs, Total: total}), nil
 }
 
-func (s *LogService) queryOperation(ctx context.Context, page, pageSize int32, keyword string, errorsOnly bool) ([]*zerxv1.OperationLog, int64, error) {
+func (s *LogService) queryOperation(ctx context.Context, page, pageSize int32, keyword string, errorsOnly bool, status, method, startAt, endAt string) ([]*zerxv1.OperationLog, int64, error) {
 	_, ps, offset := normalizePage(page, pageSize)
 
 	q := s.db.WithContext(ctx).Model(&model.OperationLog{})
@@ -52,6 +52,18 @@ func (s *LogService) queryOperation(ctx context.Context, page, pageSize int32, k
 	if keyword != "" {
 		like := "%" + keyword + "%"
 		q = q.Where("procedure LIKE ? OR user_email LIKE ?", like, like)
+	}
+	if status != "" {
+		q = q.Where("status = ?", status)
+	}
+	if method != "" {
+		q = q.Where("method = ?", method)
+	}
+	if t, err := time.Parse(time.RFC3339, startAt); err == nil {
+		q = q.Where("created_at >= ?", t)
+	}
+	if t, err := time.Parse(time.RFC3339, endAt); err == nil {
+		q = q.Where("created_at <= ?", t)
 	}
 
 	var total int64
@@ -79,6 +91,18 @@ func (s *LogService) ListLoginLogs(ctx context.Context, req *connect.Request[zer
 	if kw := req.Msg.GetKeyword(); kw != "" {
 		like := "%" + kw + "%"
 		q = q.Where("email LIKE ? OR ip LIKE ?", like, like)
+	}
+	if t, err := time.Parse(time.RFC3339, req.Msg.GetStartAt()); err == nil {
+		q = q.Where("created_at >= ?", t)
+	}
+	if t, err := time.Parse(time.RFC3339, req.Msg.GetEndAt()); err == nil {
+		q = q.Where("created_at <= ?", t)
+	}
+	switch req.Msg.GetSuccess() {
+	case 1:
+		q = q.Where("success = ?", true)
+	case 2:
+		q = q.Where("success = ?", false)
 	}
 
 	var total int64

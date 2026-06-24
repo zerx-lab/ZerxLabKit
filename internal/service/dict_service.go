@@ -9,6 +9,7 @@ import (
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
 
@@ -83,12 +84,14 @@ func (s *DictService) CreateDict(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": d.ID, "type": d.Type, "name": d.Name, "status": d.Status}}))
 	return connect.NewResponse(toProtoDict(d)), nil
 }
 
 func (s *DictService) UpdateDict(ctx context.Context, req *connect.Request[zerxv1.UpdateDictRequest]) (*connect.Response[zerxv1.Dict], error) {
 	id := req.Msg.GetId()
-	if _, err := gorm.G[model.Dictionary](s.db).Where("id = ?", id).First(ctx); err != nil {
+	old, err := gorm.G[model.Dictionary](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("dictionary not found"))
 		}
@@ -109,11 +112,19 @@ func (s *DictService) UpdateDict(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "type": old.Type, "name": old.Name, "status": old.Status}, "after": map[string]any{"id": d.ID, "type": d.Type, "name": d.Name, "status": d.Status}}))
 	return connect.NewResponse(toProtoDict(d)), nil
 }
 
 func (s *DictService) DeleteDict(ctx context.Context, req *connect.Request[zerxv1.DeleteDictRequest]) (*connect.Response[zerxv1.DeleteDictResponse], error) {
 	id := req.Msg.GetId()
+	old, err := gorm.G[model.Dictionary](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("dictionary not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
 	txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("dict_id = ?", id).Delete(&model.DictionaryItem{}).Error; err != nil {
 			return err
@@ -135,6 +146,7 @@ func (s *DictService) DeleteDict(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, txErr)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "type": old.Type, "name": old.Name}}))
 	return connect.NewResponse(&zerxv1.DeleteDictResponse{}), nil
 }
 
@@ -164,12 +176,14 @@ func (s *DictService) CreateDictItem(ctx context.Context, req *connect.Request[z
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": item.ID, "dict_id": item.DictID, "label": item.Label, "value": item.Value}}))
 	return connect.NewResponse(toProtoDictItem(item)), nil
 }
 
 func (s *DictService) UpdateDictItem(ctx context.Context, req *connect.Request[zerxv1.UpdateDictItemRequest]) (*connect.Response[zerxv1.DictItem], error) {
 	id := req.Msg.GetId()
-	if _, err := gorm.G[model.DictionaryItem](s.db).Where("id = ?", id).First(ctx); err != nil {
+	old, err := gorm.G[model.DictionaryItem](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("item not found"))
 		}
@@ -191,18 +205,27 @@ func (s *DictService) UpdateDictItem(ctx context.Context, req *connect.Request[z
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "dict_id": old.DictID, "label": old.Label, "value": old.Value}, "after": map[string]any{"id": item.ID, "dict_id": item.DictID, "label": item.Label, "value": item.Value}}))
 	return connect.NewResponse(toProtoDictItem(item)), nil
 }
 
 func (s *DictService) DeleteDictItem(ctx context.Context, req *connect.Request[zerxv1.DeleteDictItemRequest]) (*connect.Response[zerxv1.DeleteDictItemResponse], error) {
-	rows, err := gorm.G[model.DictionaryItem](s.db).Where("id = ?", req.Msg.GetId()).Delete(ctx)
+	id := req.Msg.GetId()
+	old, err := gorm.G[model.DictionaryItem](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("item not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	rows, err := gorm.G[model.DictionaryItem](s.db).Where("id = ?", id).Delete(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	if rows == 0 {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("item not found"))
 	}
-
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "dict_id": old.DictID, "label": old.Label, "value": old.Value}}))
 	return connect.NewResponse(&zerxv1.DeleteDictItemResponse{}), nil
 }
 

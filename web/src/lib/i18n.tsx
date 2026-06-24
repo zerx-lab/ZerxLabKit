@@ -23,6 +23,7 @@ const en = {
     password: "Password",
     name: "Name",
     role: "Role",
+    roles: "Roles",
     save: "Save",
     cancel: "Cancel",
     create: "Create",
@@ -57,6 +58,11 @@ const en = {
     phone: "Phone",
     current: "current",
     builtin: "Built-in",
+    export: "Export",
+    import: "Import",
+    download: "Download",
+    upload: "Upload",
+    run: "Run",
   },
   nav: {
     dashboard: "Dashboard",
@@ -75,6 +81,8 @@ const en = {
     loginLogs: "Login Logs",
     errorLogs: "Error Logs",
     siteSettings: "Site Settings",
+    profile: "Profile",
+    jobs: "Scheduled Jobs",
   },
   login: {
     title: "Welcome back",
@@ -86,6 +94,10 @@ const en = {
     captchaLabel: "Captcha",
     captchaPlaceholder: "Enter the code",
     captchaRefresh: "Refresh captcha",
+    forgotPassword: "Forgot password?",
+    totpLabel: "Authenticator code",
+    totpPlaceholder: "6-digit code or recovery code",
+    totpPrompt: "Two-factor authentication required",
   },
   register: {
     title: "Create your account",
@@ -101,8 +113,18 @@ const en = {
     currentUser: "Current user",
     accountDesc: "Your authenticated account.",
     totalUsers: "Total users",
-    yourRole: "Your role",
+    totalRoles: "Total roles",
+    activeSessions: "Active sessions",
+    todayLogins: "Today's logins",
+    yourRole: "Your roles",
     accountId: "Account ID",
+    userGrowth: "User Growth (14d)",
+    loginTrend: "Login Trend (14d)",
+    operationTrend: "Operations (14d)",
+    loginSuccess: "Success",
+    loginFailure: "Failure",
+    operations: "Operations",
+    noPermission: "No dashboard data permission.",
   },
   users: {
     title: "Users",
@@ -127,6 +149,17 @@ const en = {
     resetDesc: "Set a new password for {email}. Their sessions will be revoked.",
     resetToast: "Password reset",
     newPassword: "New password",
+    exportToast: "Exporting…",
+    importTitle: "Import users",
+    importDesc: "Upload an Excel file to batch-create users.",
+    importBtn: "Import",
+    importTemplate: "Download template",
+    importSuccess: "Imported {created} user(s).",
+    importFailures: "{count} row(s) failed:",
+    importSelect: "Select Excel file (.xlsx)",
+    disableTotp: "Disable 2FA",
+    disableTotpToast: "2FA disabled for user",
+    rolesLabel: "Roles (select one or more)",
   },
   roles: { admin: "Admin", user: "User" },
   theme: { toggle: "Toggle theme" },
@@ -136,6 +169,7 @@ const en = {
     nameRequired: "Name is required",
     required: "This field is required",
     codePattern: "Lowercase letters, digits and underscores; must start with a letter",
+    rolesRequired: "Select at least one role",
   },
   rolePage: {
     title: "Roles",
@@ -179,6 +213,11 @@ const en = {
     method: "Method",
     updatedToast: "API updated",
     deletedToast: "API deleted",
+    searchPlaceholder: "Search procedure / method / description",
+    filterGroup: "Group",
+    allGroups: "All groups",
+    expandAll: "Expand all",
+    collapseAll: "Collapse all",
   },
   dictPage: {
     title: "Dictionaries",
@@ -212,6 +251,14 @@ const en = {
     size: "Size",
     contentType: "Type",
     open: "Open",
+    searchPlaceholder: "Search by name…",
+    viewList: "List",
+    viewGallery: "Gallery",
+    preview: "Preview",
+    previewImageAlt: "Preview",
+    previewTextLoading: "Loading content…",
+    previewUnavailable: "Preview not available for this file type.",
+    previewLoadFailed: "Failed to load preview.",
   },
   sitePage: {
     title: "Site Settings",
@@ -255,6 +302,97 @@ const en = {
     cleanDays: "Days to keep",
     cleanedToast: "{count} logs removed",
     searchPlaceholder: "Search…",
+    filterStatus: "Status filter",
+    filterMethod: "Method",
+    filterStartDate: "Start date",
+    filterEndDate: "End date",
+    filterSuccess: "Result",
+    allStatuses: "All statuses",
+    allResults: "All",
+    statusOk: "OK",
+    methodPlaceholder: "e.g. POST",
+    detailTitle: "Detail",
+    exportToast: "Exporting…",
+  },
+  profile: {
+    title: "Profile",
+    subtitle: "Manage your account information and security settings.",
+    profileSection: "Personal information",
+    profileDesc: "Update your display name, avatar, and phone number.",
+    avatarLabel: "Avatar URL",
+    avatarUpload: "Upload avatar",
+    savedToast: "Profile updated",
+    passwordSection: "Change password",
+    passwordDesc: "After changing your password all your sessions will be revoked.",
+    oldPassword: "Current password",
+    newPassword: "New password",
+    confirmPassword: "Confirm new password",
+    passwordChanged: "Password changed. Please sign in again.",
+    passwordMismatch: "Passwords do not match",
+    twoFactorSection: "Two-factor authentication",
+    twoFactorDesc: "Protect your account with an authenticator app.",
+    twoFactorEnabled: "2FA is enabled",
+    twoFactorDisabled: "2FA is not enabled",
+    enableBtn: "Enable 2FA",
+    disableBtn: "Disable 2FA",
+    setupStep1: "Scan the QR code with your authenticator app.",
+    setupStep2: "Enter the 6-digit code to verify and activate.",
+    secretLabel: "Manual entry key",
+    activateBtn: "Activate",
+    activatedToast: "2FA enabled",
+    disabledToast: "2FA disabled",
+    recoveryCodes: "Recovery codes",
+    recoveryCodesDesc: "Save these codes in a secure place. Each can be used once.",
+    disableCodeLabel: "Enter your current 2FA code to disable",
+  },
+  jobs: {
+    title: "Scheduled Jobs",
+    subtitle: "Manage and monitor cron-scheduled background tasks.",
+    add: "Add job",
+    addTitle: "Add job",
+    editTitle: "Edit job",
+    deleteTitle: "Delete job",
+    deleteDesc: "Permanently remove job '{name}'?",
+    createdToast: "Job created",
+    updatedToast: "Job updated",
+    deletedToast: "Job deleted",
+    runToast: "Job triggered",
+    runBtn: "Run now",
+    nameLabel: "Name",
+    handlerLabel: "Handler",
+    handlerPlaceholder: "Select a handler",
+    cronLabel: "Cron expression",
+    cronPlaceholder: "e.g. 0 3 * * *",
+    enabledLabel: "Enabled",
+    descriptionLabel: "Description",
+    lastRunAt: "Last run",
+    history: "History",
+    historyTitle: "Execution history: {name}",
+    execStatus: "Status",
+    execStarted: "Started",
+    execDuration: "Duration (ms)",
+    execError: "Error",
+    noJobs: "No jobs found.",
+    noHistory: "No executions yet.",
+  },
+  passwordReset: {
+    forgotTitle: "Forgot password",
+    forgotSubtitle: "Enter your email to receive a reset link.",
+    forgotSubmit: "Send reset link",
+    forgotSubmitting: "Sending…",
+    forgotSuccess: "If an account with that email exists, a reset link has been sent.",
+    backToLogin: "Back to sign in",
+    resetTitle: "Set new password",
+    resetSubtitle: "Enter your new password below.",
+    resetSubmit: "Set password",
+    resetSubmitting: "Setting…",
+    resetSuccess: "Password set successfully. You can now sign in.",
+    tokenLabel: "Token",
+    newPassword: "New password",
+  },
+  totp: {
+    label: "Two-factor code",
+    placeholder: "Enter 6-digit code",
   },
 };
 
@@ -269,6 +407,7 @@ const zh: typeof en = {
     password: "密码",
     name: "名称",
     role: "角色",
+    roles: "角色",
     save: "保存",
     cancel: "取消",
     create: "创建",
@@ -303,6 +442,11 @@ const zh: typeof en = {
     phone: "手机号",
     current: "当前",
     builtin: "内置",
+    export: "导出",
+    import: "导入",
+    download: "下载",
+    upload: "上传",
+    run: "执行",
   },
   nav: {
     dashboard: "仪表盘",
@@ -321,6 +465,8 @@ const zh: typeof en = {
     loginLogs: "登录日志",
     errorLogs: "错误日志",
     siteSettings: "网站设置",
+    profile: "个人中心",
+    jobs: "定时任务",
   },
   login: {
     title: "欢迎回来",
@@ -332,6 +478,10 @@ const zh: typeof en = {
     captchaLabel: "验证码",
     captchaPlaceholder: "请输入验证码",
     captchaRefresh: "刷新验证码",
+    forgotPassword: "忘记密码？",
+    totpLabel: "动态验证码",
+    totpPlaceholder: "6 位动态码或恢复码",
+    totpPrompt: "需要双因素认证",
   },
   register: {
     title: "创建账号",
@@ -347,8 +497,18 @@ const zh: typeof en = {
     currentUser: "当前用户",
     accountDesc: "你已认证的账号信息。",
     totalUsers: "用户总数",
+    totalRoles: "角色总数",
+    activeSessions: "活跃会话",
+    todayLogins: "今日登录",
     yourRole: "你的角色",
     accountId: "账号 ID",
+    userGrowth: "用户增长（近 14 天）",
+    loginTrend: "登录趋势（近 14 天）",
+    operationTrend: "操作次数（近 14 天）",
+    loginSuccess: "成功",
+    loginFailure: "失败",
+    operations: "操作",
+    noPermission: "暂无仪表盘数据权限。",
   },
   users: {
     title: "用户管理",
@@ -373,6 +533,17 @@ const zh: typeof en = {
     resetDesc: "为 {email} 设置新密码，其所有会话将被注销。",
     resetToast: "密码已重置",
     newPassword: "新密码",
+    exportToast: "导出中…",
+    importTitle: "导入用户",
+    importDesc: "上传 Excel 文件批量创建用户。",
+    importBtn: "导入",
+    importTemplate: "下载模板",
+    importSuccess: "成功导入 {created} 位用户。",
+    importFailures: "{count} 行失败：",
+    importSelect: "选择 Excel 文件（.xlsx）",
+    disableTotp: "关闭双因素认证",
+    disableTotpToast: "已为用户关闭双因素认证",
+    rolesLabel: "角色（可多选）",
   },
   roles: { admin: "管理员", user: "普通用户" },
   theme: { toggle: "切换主题" },
@@ -382,6 +553,7 @@ const zh: typeof en = {
     nameRequired: "名称不能为空",
     required: "此项为必填",
     codePattern: "仅小写字母、数字和下划线，且以字母开头",
+    rolesRequired: "请至少选择一个角色",
   },
   rolePage: {
     title: "角色管理",
@@ -425,6 +597,11 @@ const zh: typeof en = {
     method: "方法",
     updatedToast: "接口已更新",
     deletedToast: "接口已删除",
+    searchPlaceholder: "搜索接口 / 方法 / 描述",
+    filterGroup: "分组",
+    allGroups: "全部分组",
+    expandAll: "展开全部",
+    collapseAll: "折叠全部",
   },
   dictPage: {
     title: "字典管理",
@@ -458,6 +635,14 @@ const zh: typeof en = {
     size: "大小",
     contentType: "类型",
     open: "打开",
+    searchPlaceholder: "按名称搜索…",
+    viewList: "列表",
+    viewGallery: "图廊",
+    preview: "预览",
+    previewImageAlt: "预览",
+    previewTextLoading: "正在加载内容…",
+    previewUnavailable: "该文件类型不支持预览。",
+    previewLoadFailed: "预览加载失败。",
   },
   sitePage: {
     title: "网站设置",
@@ -501,66 +686,149 @@ const zh: typeof en = {
     cleanDays: "保留天数",
     cleanedToast: "已清理 {count} 条日志",
     searchPlaceholder: "搜索…",
+    filterStatus: "状态筛选",
+    filterMethod: "请求方法",
+    filterStartDate: "开始日期",
+    filterEndDate: "结束日期",
+    filterSuccess: "结果",
+    allStatuses: "全部状态",
+    allResults: "全部",
+    statusOk: "OK",
+    methodPlaceholder: "如 POST",
+    detailTitle: "详情",
+    exportToast: "导出中…",
+  },
+  profile: {
+    title: "个人中心",
+    subtitle: "管理你的账号信息与安全设置。",
+    profileSection: "个人信息",
+    profileDesc: "更新你的昵称、头像和手机号。",
+    avatarLabel: "头像地址",
+    avatarUpload: "上传头像",
+    savedToast: "个人资料已保存",
+    passwordSection: "修改密码",
+    passwordDesc: "修改密码后，你的所有会话将被注销。",
+    oldPassword: "当前密码",
+    newPassword: "新密码",
+    confirmPassword: "确认新密码",
+    passwordChanged: "密码已修改，请重新登录。",
+    passwordMismatch: "两次密码不一致",
+    twoFactorSection: "双因素认证",
+    twoFactorDesc: "使用身份验证器 App 保护你的账号。",
+    twoFactorEnabled: "双因素认证已启用",
+    twoFactorDisabled: "双因素认证未启用",
+    enableBtn: "启用双因素认证",
+    disableBtn: "关闭双因素认证",
+    setupStep1: "请用验证器 App 扫描二维码。",
+    setupStep2: "输入 6 位验证码以完成激活。",
+    secretLabel: "手动输入密钥",
+    activateBtn: "激活",
+    activatedToast: "双因素认证已启用",
+    disabledToast: "双因素认证已关闭",
+    recoveryCodes: "恢复码",
+    recoveryCodesDesc: "请将以下恢复码保存到安全的地方，每个只能使用一次。",
+    disableCodeLabel: "输入当前验证码以关闭",
+  },
+  jobs: {
+    title: "定时任务",
+    subtitle: "管理和监控定时调度的后台任务。",
+    add: "新增任务",
+    addTitle: "新增任务",
+    editTitle: "编辑任务",
+    deleteTitle: "删除任务",
+    deleteDesc: "确认删除任务 '{name}'？",
+    createdToast: "任务已创建",
+    updatedToast: "任务已更新",
+    deletedToast: "任务已删除",
+    runToast: "任务已触发",
+    runBtn: "立即执行",
+    nameLabel: "任务名称",
+    handlerLabel: "处理器",
+    handlerPlaceholder: "请选择处理器",
+    cronLabel: "Cron 表达式",
+    cronPlaceholder: "如 0 3 * * *",
+    enabledLabel: "启用",
+    descriptionLabel: "描述",
+    lastRunAt: "上次执行",
+    history: "执行历史",
+    historyTitle: "{name} 的执行历史",
+    execStatus: "状态",
+    execStarted: "开始时间",
+    execDuration: "耗时 (ms)",
+    execError: "错误",
+    noJobs: "暂无任务。",
+    noHistory: "暂无执行记录。",
+  },
+  passwordReset: {
+    forgotTitle: "忘记密码",
+    forgotSubtitle: "输入邮箱以接收重置链接。",
+    forgotSubmit: "发送重置链接",
+    forgotSubmitting: "发送中…",
+    forgotSuccess: "如果该邮箱已注册，重置链接已发送，请查收邮件。",
+    backToLogin: "返回登录",
+    resetTitle: "设置新密码",
+    resetSubtitle: "请输入新密码。",
+    resetSubmit: "设置密码",
+    resetSubmitting: "设置中…",
+    resetSuccess: "密码设置成功，请使用新密码登录。",
+    tokenLabel: "令牌",
+    newPassword: "新密码",
+  },
+  totp: {
+    label: "双因素验证码",
+    placeholder: "请输入 6 位验证码",
   },
 };
 
 const dictionaries: Record<Locale, typeof en> = { en, zh };
 
 function resolve(dict: typeof en, path: string): string | undefined {
-  return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object" && key in acc) {
-      return (acc as Record<string, unknown>)[key];
-    }
-    return undefined;
-  }, dict) as string | undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return path.split(".").reduce<any>((obj, key) => obj?.[key], dict) as string | undefined;
 }
 
 function interpolate(template: string, params?: Record<string, string | number>): string {
-  if (!params) {
-    return template;
-  }
-  return template.replace(/\{(\w+)\}/g, (_, key: string) =>
-    key in params ? String(params[key]) : `{${key}}`,
-  );
+  if (!params) return template;
+  return template.replace(/\{(\w+)\}/g, (_, key) => String(params[key] ?? `{${key}}`));
 }
 
 export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
 
 interface I18nContextValue {
   locale: Locale;
-  setLocale: (locale: Locale) => void;
-  toggleLocale: () => void;
+  setLocale: (l: Locale) => void;
   t: TranslateFn;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(getStoredLocale);
+  const [locale, setLocaleState] = useState<Locale>(getStoredLocale);
+
+  const setLocale = (l: Locale) => {
+    setLocaleState(l);
+    localStorage.setItem(STORAGE_KEY, l);
+  };
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, locale);
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const value = useMemo<I18nContextValue>(() => {
-    const t: TranslateFn = (key, params) =>
-      interpolate(resolve(dictionaries[locale], key) ?? resolve(en, key) ?? key, params);
-    return {
-      locale,
-      setLocale,
-      toggleLocale: () => setLocale((prev) => (prev === "en" ? "zh" : "en")),
-      t,
-    };
-  }, [locale]);
+  const t: TranslateFn = useMemo(
+    () => (key, params) => {
+      const dict = dictionaries[locale];
+      const raw = resolve(dict, key);
+      if (typeof raw !== "string") return key;
+      return interpolate(raw, params);
+    },
+    [locale],
+  );
 
-  return <I18nContext value={value}>{children}</I18nContext>;
+  return <I18nContext value={{ locale, setLocale, t }}>{children}</I18nContext>;
 }
 
 export function useI18n(): I18nContextValue {
   const ctx = use(I18nContext);
-  if (!ctx) {
-    throw new Error("useI18n must be used within I18nProvider");
-  }
+  if (!ctx) throw new Error("useI18n must be used within an I18nProvider");
   return ctx;
 }

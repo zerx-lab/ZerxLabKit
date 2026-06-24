@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"net"
+	"slices"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
+	"github.com/pquerna/otp/totp"
 	"gorm.io/gorm"
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
@@ -15,7 +17,9 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/config"
+	"github.com/zerx-lab/zerxlabkit/internal/mailer"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
+	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
 )
 
@@ -26,13 +30,16 @@ type AuthService struct {
 	guard   *ratelimit.LoginGuard
 	captcha *captcha.Manager
 	cfg     config.AuthConfig
+	mailer  *mailer.Mailer
+	policy  *auth.Policy
+	param   *param.Cache
 }
 
 var _ zerxv1connect.AuthServiceHandler = (*AuthService)(nil)
 
 // NewAuthService constructs the auth handler.
-func NewAuthService(db *gorm.DB, issuer *auth.Issuer, guard *ratelimit.LoginGuard, cap *captcha.Manager, cfg config.AuthConfig) *AuthService {
-	return &AuthService{db: db, issuer: issuer, guard: guard, captcha: cap, cfg: cfg}
+func NewAuthService(db *gorm.DB, issuer *auth.Issuer, guard *ratelimit.LoginGuard, cap *captcha.Manager, cfg config.AuthConfig, m *mailer.Mailer, policy *auth.Policy, paramCache *param.Cache) *AuthService {
+	return &AuthService{db: db, issuer: issuer, guard: guard, captcha: cap, cfg: cfg, mailer: m, policy: policy, param: paramCache}
 }
 
 // clientIP returns the request peer's host portion (port stripped).
@@ -96,7 +103,28 @@ func (s *AuthService) Login(ctx context.Context, req *connect.Request[zerxv1.Log
 	if !u.Status {
 		return nil, fail(u.ID, connect.NewError(connect.CodePermissionDenied, errors.New("账号已禁用")))
 	}
-	sid, access, refresh, err := s.startSessionTx(ctx, u, ip, ua)
+
+	// 2FA: if enabled, require a valid TOTP or recovery code.
+	tt, ttErr := gorm.G[model.UserTOTP](s.db).Where("user_id = ?", u.ID).First(ctx)
+	totpOn := ttErr == nil && tt.Enabled
+	if totpOn {
+		code := req.Msg.GetTotpCode()
+		if code == "" {
+			// Not a failure: prompt the client for the second factor.
+			return connect.NewResponse(&zerxv1.LoginResponse{TotpRequired: true}), nil
+		}
+		if !totp.Validate(code, tt.Secret) {
+			if !s.consumeRecoveryCode(ctx, u.ID, code) {
+				return nil, fail(u.ID, connect.NewError(connect.CodeUnauthenticated, errors.New("两步验证码错误")))
+			}
+		}
+	}
+
+	roles, err := userRoleCodes(ctx, s.db, u.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	sid, access, refresh, err := s.startSessionTx(ctx, u, roles, ip, ua)
 	if err != nil {
 		return nil, err
 	}
@@ -107,14 +135,31 @@ func (s *AuthService) Login(ctx context.Context, req *connect.Request[zerxv1.Log
 	return connect.NewResponse(&zerxv1.LoginResponse{
 		AccessToken:  access,
 		RefreshToken: refresh,
-		User:         toProtoUser(u),
+		User:         toProtoUser(u, roles, totpOn),
 		SessionId:    sid,
 	}), nil
 }
 
+// consumeRecoveryCode marks a matching unused recovery code used and returns
+// whether one matched.
+func (s *AuthService) consumeRecoveryCode(ctx context.Context, userID uint64, code string) bool {
+	rows, err := gorm.G[model.TOTPRecoveryCode](s.db).Where("user_id = ? AND used_at IS NULL", userID).Find(ctx)
+	if err != nil {
+		return false
+	}
+	for i := range rows {
+		if auth.Verify(rows[i].CodeHash, code) == nil {
+			now := time.Now()
+			_ = s.db.WithContext(ctx).Model(&model.TOTPRecoveryCode{}).Where("id = ?", rows[i].ID).Update("used_at", now).Error
+			return true
+		}
+	}
+	return false
+}
+
 // startSessionTx persists a UserSession (enforcing single-session if configured)
 // and mints the access + refresh token pair.
-func (s *AuthService) startSessionTx(ctx context.Context, u model.User, ip, ua string) (sid, access, refresh string, err error) {
+func (s *AuthService) startSessionTx(ctx context.Context, u model.User, roles []string, ip, ua string) (sid, access, refresh string, err error) {
 	sid = uuid.NewString()
 	now := time.Now()
 	session := model.UserSession{
@@ -143,7 +188,7 @@ func (s *AuthService) startSessionTx(ctx context.Context, u model.User, ip, ua s
 		return "", "", "", connect.NewError(connect.CodeInternal, txErr)
 	}
 
-	access, err = s.issuer.IssueAccess(u.ID, u.Role)
+	access, err = s.issuer.IssueAccess(u.ID, roles)
 	if err != nil {
 		return "", "", "", connect.NewError(connect.CodeInternal, err)
 	}
@@ -171,28 +216,38 @@ func (s *AuthService) Register(ctx context.Context, req *connect.Request[zerxv1.
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	if err := s.policy.Validate(req.Msg.GetPassword()); err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
 	hash, err := auth.Hash(req.Msg.GetPassword())
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	role := model.RoleUser
+	roleCode := model.RoleUser
 	if count == 0 {
-		role = model.RoleAdmin
+		roleCode = model.RoleAdmin
 	}
 
 	u := model.User{
 		Email:        req.Msg.GetEmail(),
 		Name:         req.Msg.GetName(),
 		PasswordHash: hash,
-		Role:         role,
 		Status:       true,
 	}
-	if err := gorm.G[model.User](s.db).Create(ctx, &u); err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
+	txErr := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&u).Error; err != nil {
+			return err
+		}
+		return tx.Create(&model.UserRole{UserID: u.ID, RoleCode: roleCode}).Error
+	})
+	if txErr != nil {
+		return nil, connect.NewError(connect.CodeInternal, txErr)
 	}
+	_ = s.policy.RecordHistory(ctx, s.db, u.ID, hash)
 
-	sid, access, refresh, err := s.startSessionTx(ctx, u, clientIP(req), userAgent(req))
+	roles := []string{roleCode}
+	sid, access, refresh, err := s.startSessionTx(ctx, u, roles, clientIP(req), userAgent(req))
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +257,7 @@ func (s *AuthService) Register(ctx context.Context, req *connect.Request[zerxv1.
 	return connect.NewResponse(&zerxv1.RegisterResponse{
 		AccessToken:  access,
 		RefreshToken: refresh,
-		User:         toProtoUser(u),
+		User:         toProtoUser(u, roles, false),
 		SessionId:    sid,
 	}), nil
 }
@@ -229,7 +284,11 @@ func (s *AuthService) Refresh(ctx context.Context, req *connect.Request[zerxv1.R
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("user not found"))
 	}
 
-	access, err := s.issuer.IssueAccess(u.ID, u.Role)
+	roles, err := userRoleCodes(ctx, s.db, u.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	access, err := s.issuer.IssueAccess(u.ID, roles)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -262,8 +321,13 @@ func (s *AuthService) Me(ctx context.Context, _ *connect.Request[zerxv1.MeReques
 	if err != nil {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
 	}
+	roles, err := userRoleCodes(ctx, s.db, u.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	totpOn, _ := userTOTPEnabled(ctx, s.db, u.ID)
 
-	return connect.NewResponse(&zerxv1.MeResponse{User: toProtoUser(u)}), nil
+	return connect.NewResponse(&zerxv1.MeResponse{User: toProtoUser(u, roles, totpOn)}), nil
 }
 
 // ListSessions returns the caller's sessions; admins may target another user.
@@ -276,7 +340,7 @@ func (s *AuthService) ListSessions(ctx context.Context, req *connect.Request[zer
 	target := req.Msg.GetUserId()
 	if target == 0 {
 		target = claims.UserID
-	} else if target != claims.UserID && claims.Role != model.RoleAdmin {
+	} else if target != claims.UserID && !slices.Contains(claims.Roles, model.RoleAdmin) {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("forbidden"))
 	}
 
@@ -307,7 +371,7 @@ func (s *AuthService) RevokeSession(ctx context.Context, req *connect.Request[ze
 		}
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	if session.UserID != claims.UserID && claims.Role != model.RoleAdmin {
+	if session.UserID != claims.UserID && !slices.Contains(claims.Roles, model.RoleAdmin) {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("forbidden"))
 	}
 

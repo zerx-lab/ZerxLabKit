@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
@@ -20,6 +21,8 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/casbin"
 	"github.com/zerx-lab/zerxlabkit/internal/config"
+	"github.com/zerx-lab/zerxlabkit/internal/jobs"
+	"github.com/zerx-lab/zerxlabkit/internal/mailer"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
 	"github.com/zerx-lab/zerxlabkit/internal/service"
@@ -29,7 +32,7 @@ import (
 
 // New builds the root HTTP handler: connectRPC services under /api, a multipart
 // upload endpoint at /api/upload, the embedded SPA at /, and /healthz.
-func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, error) {
+func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.Scheduler) (http.Handler, error) {
 	issuer := auth.NewIssuer(cfg.JWT)
 
 	enforcer, err := casbin.New(db)
@@ -39,6 +42,10 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 
 	guard := ratelimit.New(cfg.Auth.CaptchaThreshold, cfg.Auth.LockThreshold, cfg.Auth.LockFor)
 	cap := captcha.New()
+	limiter := ratelimit.NewLimiter(cfg.RateLimit.RPS, cfg.RateLimit.Burst, cfg.RateLimit.TTL)
+	policy := auth.NewPolicy(cfg.Password)
+	mail := mailer.NewMailer(cfg.SMTP, logger)
+	registry := jobs.NewRegistry(db)
 
 	store, err := storage.New(cfg.Storage)
 	if err != nil {
@@ -56,6 +63,8 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 		zerxv1connect.AuthServiceRegisterProcedure:   true,
 		zerxv1connect.AuthServiceRefreshProcedure:    true,
 		zerxv1connect.AuthServiceGetCaptchaProcedure: true,
+		zerxv1connect.AuthServiceRequestPasswordResetProcedure: true,
+		zerxv1connect.AuthServiceConfirmPasswordResetProcedure: true,
 	}
 
 	// selfServe: any authenticated caller is allowed (no Casbin check).
@@ -68,18 +77,29 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 		zerxv1connect.MenuServiceGetUserButtonsProcedure: true,
 		zerxv1connect.DictServiceGetDictByTypeProcedure:  true,
 		zerxv1connect.SiteSettingsServiceGetSiteSettingsProcedure: true,
+		zerxv1connect.AuthServiceChangePasswordProcedure:          true,
+		zerxv1connect.AuthServiceUpdateProfileProcedure:           true,
+		zerxv1connect.AuthServiceSetupTotpProcedure:               true,
+		zerxv1connect.AuthServiceActivateTotpProcedure:            true,
+		zerxv1connect.AuthServiceDisableTotpProcedure:             true,
 	}
 
 	// Interceptor chain (outermost first): logging -> auth -> operation log
 	// (also recovers panics) -> casbin -> validate. WithRecover is intentionally
 	// omitted; the operation-log interceptor records handler panics with stack.
-	opts := connect.WithInterceptors(
+	chain := []connect.Interceptor{
 		NewLoggingInterceptor(logger),
+	}
+	if cfg.RateLimit.Enabled {
+		chain = append(chain, NewRateLimitInterceptor(limiter))
+	}
+	chain = append(chain,
 		auth.NewAuthInterceptor(issuer, public),
 		NewOperationLogInterceptor(db),
 		auth.NewCasbinInterceptor(enforcer, public, selfServe),
 		validate.NewInterceptor(),
 	)
+	opts := connect.WithInterceptors(chain...)
 
 	api := http.NewServeMux()
 	var registered []string
@@ -87,8 +107,8 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 		registered = append(registered, path)
 		api.Handle(path, h)
 	}
-	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth), opts))
-	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db), opts))
+	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth, mail, policy, paramCache), opts))
+	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db, policy), opts))
 	reg(zerxv1connect.NewRoleServiceHandler(service.NewRoleService(db, enforcer), opts))
 	reg(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db), opts))
 	reg(zerxv1connect.NewApiServiceHandler(service.NewApiService(db, enforcer), opts))
@@ -97,19 +117,42 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 	reg(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store), opts))
 	reg(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
 	reg(zerxv1connect.NewSiteSettingsServiceHandler(service.NewSiteSettingsService(paramCache), opts))
+	reg(zerxv1connect.NewDashboardServiceHandler(service.NewDashboardService(db), opts))
+	reg(zerxv1connect.NewJobServiceHandler(service.NewJobService(db, scheduler, registry), opts))
 
 	if err := assertServicesRegistered(registered); err != nil {
 		return nil, err
 	}
 
 	root := http.NewServeMux()
-	// Exact path registered before the /api/ subtree so it wins routing.
+	root.HandleFunc("/api/export/", exportHandler(issuer, enforcer, db))
+	root.HandleFunc("/api/import/users/template", importUsersTemplateHandler(issuer, enforcer))
+	root.HandleFunc("/api/import/users", importUsersHandler(issuer, enforcer, db, policy))
 	root.HandleFunc("/api/upload", uploadHandler(issuer, store, db))
 	root.Handle("/api/", http.StripPrefix("/api", api))
 	if cfg.Storage.Driver == "local" {
 		prefix := cfg.Storage.LocalBaseURL
 		root.Handle(prefix+"/", http.StripPrefix(prefix, http.FileServer(http.Dir(cfg.Storage.LocalDir))))
 	}
+	if cfg.Server.DocsEnabled {
+		root.HandleFunc("/api/openapi.yaml", openAPIHandler())
+		root.HandleFunc("/api/docs", docsHandler())
+	}
+	root.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+		sqlDB, err := db.DB()
+		if err == nil {
+			ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+			defer cancel()
+			err = sqlDB.PingContext(ctx)
+		}
+		if err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = w.Write([]byte("db unavailable"))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ready"))
+	})
 	root.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))

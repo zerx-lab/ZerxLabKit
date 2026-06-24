@@ -15,7 +15,6 @@ var User = struct {
 	Avatar       field.String
 	Phone        field.String
 	PasswordHash field.String
-	Role         field.String
 	Status       field.Bool
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
@@ -28,7 +27,6 @@ var User = struct {
 	Avatar:       field.String{}.WithColumn("avatar"),
 	Phone:        field.String{}.WithColumn("phone"),
 	PasswordHash: field.String{}.WithColumn("password_hash"),
-	Role:         field.String{}.WithColumn("role"),
 	Status:       field.Bool{}.WithColumn("status"),
 	CreatedAt:    field.Time{}.WithColumn("created_at"),
 	UpdatedAt:    field.Time{}.WithColumn("updated_at"),

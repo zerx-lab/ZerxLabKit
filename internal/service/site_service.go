@@ -7,6 +7,7 @@ import (
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 )
 
@@ -42,6 +43,7 @@ func (s *SiteSettingsService) GetSiteSettings(_ context.Context, _ *connect.Requ
 }
 
 func (s *SiteSettingsService) UpdateSiteSettings(ctx context.Context, req *connect.Request[zerxv1.UpdateSiteSettingsRequest]) (*connect.Response[zerxv1.SiteSettings], error) {
+	before := s.current()
 	for key, val := range map[string]string{
 		siteNameKey:   req.Msg.GetName(),
 		siteLogoKey:   req.Msg.GetLogo(),
@@ -51,5 +53,9 @@ func (s *SiteSettingsService) UpdateSiteSettings(ctx context.Context, req *conne
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 	}
+	audit.Record(ctx, auditJSON(map[string]any{
+		"before": map[string]any{"name": before.Name, "logo": before.Logo, "domain": before.Domain},
+		"after":  map[string]any{"name": req.Msg.GetName(), "logo": req.Msg.GetLogo(), "domain": req.Msg.GetDomain()},
+	}))
 	return connect.NewResponse(s.current()), nil
 }

@@ -219,9 +219,17 @@ function Header({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="gap-2 px-2">
-              <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {initial}
-              </span>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || user.email}
+                  className="size-7 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  {initial}
+                </span>
+              )}
               {user ? (
                 <span className="hidden max-w-32 truncate text-sm sm:inline">
                   {user.name || user.email}

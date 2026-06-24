@@ -9,6 +9,7 @@ import (
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 )
@@ -87,12 +88,14 @@ func (s *SysParamService) CreateParam(ctx context.Context, req *connect.Request[
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": p.ID, "key": p.Key, "name": p.Name}}))
 	return connect.NewResponse(toProtoSysParam(p)), nil
 }
 
 func (s *SysParamService) UpdateParam(ctx context.Context, req *connect.Request[zerxv1.UpdateParamRequest]) (*connect.Response[zerxv1.SysParam], error) {
 	id := req.Msg.GetId()
-	if _, err := gorm.G[model.SysParam](s.db).Where("id = ?", id).First(ctx); err != nil {
+	old, err := gorm.G[model.SysParam](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("param not found"))
 		}
@@ -116,11 +119,20 @@ func (s *SysParamService) UpdateParam(ctx context.Context, req *connect.Request[
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "key": old.Key, "name": old.Name, "value": old.Value}, "after": map[string]any{"id": p.ID, "key": p.Key, "name": p.Name, "value": p.Value}}))
 	return connect.NewResponse(toProtoSysParam(p)), nil
 }
 
 func (s *SysParamService) DeleteParam(ctx context.Context, req *connect.Request[zerxv1.DeleteParamRequest]) (*connect.Response[zerxv1.DeleteParamResponse], error) {
-	rows, err := gorm.G[model.SysParam](s.db).Where("id = ?", req.Msg.GetId()).Delete(ctx)
+	id := req.Msg.GetId()
+	old, err := gorm.G[model.SysParam](s.db).Where("id = ?", id).First(ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("param not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	rows, err := gorm.G[model.SysParam](s.db).Where("id = ?", id).Delete(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
@@ -130,7 +142,7 @@ func (s *SysParamService) DeleteParam(ctx context.Context, req *connect.Request[
 	if err := s.cache.Reload(ctx); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-
+	audit.Record(ctx, auditJSON(map[string]any{"before": map[string]any{"id": old.ID, "key": old.Key, "name": old.Name}}))
 	return connect.NewResponse(&zerxv1.DeleteParamResponse{}), nil
 }
 

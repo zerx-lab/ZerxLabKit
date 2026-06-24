@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// DashboardService exposes aggregate statistics for the admin dashboard.
+// Authorization is enforced by the Casbin interceptor (admin bypasses).
+service DashboardService {
+  rpc GetDashboardStats(GetDashboardStatsRequest) returns (GetDashboardStatsResponse);
+}
+
+message GetDashboardStatsRequest {}
+
+message TimePoint {
+  string date = 1;
+  int64 value = 2;
+}
+
+message GetDashboardStatsResponse {
+  int64 total_users = 1;
+  int64 total_roles = 2;
+  int64 active_sessions = 3;
+  int64 today_logins = 4;
+  repeated TimePoint user_growth = 5;
+  repeated TimePoint login_success = 6;
+  repeated TimePoint login_failure = 7;
+  repeated TimePoint operation_count = 8;
+}

@@ -22,7 +22,6 @@ type User struct {
 	Avatar       string
 	Phone        string
 	PasswordHash string `gorm:"not null"`
-	Role         string `gorm:"not null;default:user"`
 	Status       bool   `gorm:"not null;default:true"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
