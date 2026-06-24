@@ -10,6 +10,7 @@ import {
 import { LogOutIcon, PanelLeftIcon } from "lucide-react";
 import { useState } from "react";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import { useI18n } from "@/lib/i18n";
 import { menuIcon } from "@/lib/menu-icons";
 import { queryClient } from "@/lib/query-client";
 import { PermissionProvider } from "@/lib/permissions";
+import { SiteProvider, useSite } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed")({
@@ -48,13 +50,16 @@ export const Route = createFileRoute("/_authed")({
 function AuthedLayout() {
   return (
     <PermissionProvider>
-      <AuthedShell />
+      <SiteProvider>
+        <AuthedShell />
+      </SiteProvider>
     </PermissionProvider>
   );
 }
 
 function AuthedShell() {
   const { t } = useI18n();
+  const site = useSite();
   const [collapsed, setCollapsed] = useState(false);
   const { data, isPending } = useQuery(getUserMenus);
   const menus = data?.menus ?? [];
@@ -68,10 +73,14 @@ function AuthedShell() {
         )}
       >
         <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
-          <div className="size-7 shrink-0 rounded-md bg-primary" />
+          {site.logo ? (
+            <img src={site.logo} alt="" className="size-7 shrink-0 rounded object-contain" />
+          ) : (
+            <BrandLogo className="size-7" />
+          )}
           {!collapsed && (
             <span className="truncate font-semibold text-sidebar-accent-foreground">
-              {t("app.name")}
+              {site.name || t("app.name")}
             </span>
           )}
         </div>

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// SiteSettingsService manages site-wide presentation settings (name, logo,
+// access domain), stored as fixed-key system parameters.
+service SiteSettingsService {
+  rpc GetSiteSettings(GetSiteSettingsRequest) returns (SiteSettings);
+  rpc UpdateSiteSettings(UpdateSiteSettingsRequest) returns (SiteSettings);
+}
+
+message SiteSettings {
+  string name = 1;
+  string logo = 2;
+  string domain = 3;
+}
+
+message GetSiteSettingsRequest {}
+
+message UpdateSiteSettingsRequest {
+  string name = 1 [(buf.validate.field).string.max_len = 128];
+  string logo = 2 [(buf.validate.field).string.max_len = 512];
+  string domain = 3 [(buf.validate.field).string.max_len = 256];
+}

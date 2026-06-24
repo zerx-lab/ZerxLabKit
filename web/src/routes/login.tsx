@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <div className="mb-1 flex items-center gap-2.5">
-            <div className="size-8 rounded-md bg-primary" />
+            <BrandLogo />
             <span className="text-lg font-semibold">{t("app.name")}</span>
           </div>
           <CardTitle className="text-xl">{t("login.title")}</CardTitle>

@@ -47,8 +47,9 @@ var seedMenuTree = []seedMenuNode{
 			{node: seedMenu{menu: model.Menu{Path: "/apis", Name: "apis", Title: "nav.apis", Icon: "PlugIcon", Sort: 4}, buttons: crudButtons("api", "接口")}},
 			{node: seedMenu{menu: model.Menu{Path: "/dicts", Name: "dicts", Title: "nav.dicts", Icon: "BookIcon", Sort: 5}, buttons: crudButtons("dict", "字典")}},
 			{node: seedMenu{menu: model.Menu{Path: "/params", Name: "params", Title: "nav.params", Icon: "SlidersHorizontalIcon", Sort: 6}, buttons: crudButtons("param", "参数")}},
-			{node: seedMenu{menu: model.Menu{Path: "/files", Name: "files", Title: "nav.files", Icon: "FolderIcon", Sort: 7}}},
-			{node: seedMenu{menu: model.Menu{Path: "/sessions", Name: "sessions", Title: "nav.sessions", Icon: "MonitorIcon", Sort: 8}}},
+			{node: seedMenu{menu: model.Menu{Path: "/site-settings", Name: "site-settings", Title: "nav.siteSettings", Icon: "GlobeIcon", Sort: 7}, buttons: []model.MenuButton{{Code: "site:update", Name: "网站设置保存"}}}},
+			{node: seedMenu{menu: model.Menu{Path: "/files", Name: "files", Title: "nav.files", Icon: "FolderIcon", Sort: 8}}},
+			{node: seedMenu{menu: model.Menu{Path: "/sessions", Name: "sessions", Title: "nav.sessions", Icon: "MonitorIcon", Sort: 9}}},
 		},
 	},
 	{

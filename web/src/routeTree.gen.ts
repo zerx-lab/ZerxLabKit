@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
+import { Route as AuthedSiteSettingsRouteImport } from './routes/_authed/site-settings'
 import { Route as AuthedSessionsRouteImport } from './routes/_authed/sessions'
 import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
 import { Route as AuthedParamsRouteImport } from './routes/_authed/params'
@@ -48,6 +49,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthedUsersRoute = AuthedUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedSiteSettingsRoute = AuthedSiteSettingsRouteImport.update({
+  id: '/site-settings',
+  path: '/site-settings',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedSessionsRoute = AuthedSessionsRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/params': typeof AuthedParamsRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
+  '/site-settings': typeof AuthedSiteSettingsRoute
   '/users': typeof AuthedUsersRoute
 }
 export interface FileRoutesByTo {
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/params': typeof AuthedParamsRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
+  '/site-settings': typeof AuthedSiteSettingsRoute
   '/users': typeof AuthedUsersRoute
 }
 export interface FileRoutesById {
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authed/params': typeof AuthedParamsRoute
   '/_authed/roles': typeof AuthedRolesRoute
   '/_authed/sessions': typeof AuthedSessionsRoute
+  '/_authed/site-settings': typeof AuthedSiteSettingsRoute
   '/_authed/users': typeof AuthedUsersRoute
 }
 export interface FileRouteTypes {
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/params'
     | '/roles'
     | '/sessions'
+    | '/site-settings'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/params'
     | '/roles'
     | '/sessions'
+    | '/site-settings'
     | '/users'
   id:
     | '__root__'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authed/params'
     | '/_authed/roles'
     | '/_authed/sessions'
+    | '/_authed/site-settings'
     | '/_authed/users'
   fileRoutesById: FileRoutesById
 }
@@ -256,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof AuthedUsersRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/site-settings': {
+      id: '/_authed/site-settings'
+      path: '/site-settings'
+      fullPath: '/site-settings'
+      preLoaderRoute: typeof AuthedSiteSettingsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/sessions': {
@@ -350,6 +369,7 @@ interface AuthedRouteRouteChildren {
   AuthedParamsRoute: typeof AuthedParamsRoute
   AuthedRolesRoute: typeof AuthedRolesRoute
   AuthedSessionsRoute: typeof AuthedSessionsRoute
+  AuthedSiteSettingsRoute: typeof AuthedSiteSettingsRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
 }
 
@@ -365,6 +385,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedParamsRoute: AuthedParamsRoute,
   AuthedRolesRoute: AuthedRolesRoute,
   AuthedSessionsRoute: AuthedSessionsRoute,
+  AuthedSiteSettingsRoute: AuthedSiteSettingsRoute,
   AuthedUsersRoute: AuthedUsersRoute,
 }
 

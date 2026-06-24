@@ -22,6 +22,8 @@ export default defineConfig({
       // Proxy backend calls during development. Keep the trailing slash so
       // SPA routes like "/apis" are NOT swallowed by a bare "/api" prefix.
       "/api/": { target: "http://localhost:8080", changeOrigin: true },
+      // Static uploads served by the backend (local storage driver).
+      "/uploads/": { target: "http://localhost:8080", changeOrigin: true },
     },
   },
   build: {

@@ -67,6 +67,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 		zerxv1connect.MenuServiceGetUserMenusProcedure:   true,
 		zerxv1connect.MenuServiceGetUserButtonsProcedure: true,
 		zerxv1connect.DictServiceGetDictByTypeProcedure:  true,
+		zerxv1connect.SiteSettingsServiceGetSiteSettingsProcedure: true,
 	}
 
 	// Interceptor chain (outermost first): logging -> auth -> operation log
@@ -95,6 +96,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 	reg(zerxv1connect.NewSysParamServiceHandler(service.NewSysParamService(db, paramCache), opts))
 	reg(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store), opts))
 	reg(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
+	reg(zerxv1connect.NewSiteSettingsServiceHandler(service.NewSiteSettingsService(paramCache), opts))
 
 	if err := assertServicesRegistered(registered); err != nil {
 		return nil, err
