@@ -42,8 +42,8 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		return nil, err
 	}
 
-	guard := ratelimit.New(cfg.Auth.CaptchaThreshold, cfg.Auth.LockThreshold, cfg.Auth.LockFor)
-	cap := captcha.New()
+	guard := ratelimit.New(cfg.Auth.CaptchaThreshold, cfg.Auth.LockThreshold, cfg.Auth.LockFor, db)
+	cap := captcha.New(db)
 	limiter := ratelimit.NewLimiter(cfg.RateLimit.RPS, cfg.RateLimit.Burst, cfg.RateLimit.TTL)
 	policy := auth.NewPolicy(cfg.Password)
 	mail := mailer.NewMailer(cfg.SMTP, logger)
@@ -64,6 +64,10 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	paramCache := param.New(db)
 	if err := paramCache.Load(context.Background()); err != nil {
 		return nil, err
+	}
+	// Reload periodically only on multi-replica drivers; single-node sqlite stays query-free.
+	if cfg.DB.Driver == "postgres" || cfg.DB.Driver == "mysql" {
+		go paramCache.StartReloader(context.Background(), 30*time.Second)
 	}
 
 	// public: callable without authentication.

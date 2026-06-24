@@ -44,6 +44,16 @@ func NewRegistry(db *gorm.DB) Registry {
 				return db.WithContext(ctx).Where("expires_at < ?", time.Now()).Delete(&model.UserSession{}).Error
 			},
 		},
+		"auth_state_cleanup": {
+			Description: "清理过期的验证码与登录失败记录",
+			Handler: func(ctx context.Context) error {
+				now := time.Now()
+				if err := db.WithContext(ctx).Where("expires_at < ?", now).Delete(&model.CaptchaCode{}).Error; err != nil {
+					return err
+				}
+				return db.WithContext(ctx).Where("expires_at < ?", now).Delete(&model.LoginAttempt{}).Error
+			},
+		},
 	}
 }
 

@@ -42,6 +42,9 @@ func Migrate(db *gorm.DB) error {
 					&model.TOTPRecoveryCode{},
 					&model.ScheduledJob{},
 					&model.JobExecution{},
+					&model.JobLock{},
+					&model.CaptchaCode{},
+					&model.LoginAttempt{},
 				)
 			},
 			Rollback: func(*gorm.DB) error { return nil },
@@ -96,6 +99,13 @@ func Migrate(db *gorm.DB) error {
 				// UPDATE only ever touches rows that existed at migration time, keeping
 				// their current "anonymously reachable" semantics. A fresh DB hits 0 rows.
 				return tx.Model(&model.File{}).Where("1 = 1").Update("visibility", model.VisibilityPublic).Error
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
+		{
+			ID: "0005_shared_state",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(&model.JobLock{}, &model.CaptchaCode{}, &model.LoginAttempt{})
 			},
 			Rollback: func(*gorm.DB) error { return nil },
 		},

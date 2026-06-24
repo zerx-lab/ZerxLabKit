@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -72,4 +73,19 @@ func (c *Cache) Set(ctx context.Context, key, val string) error {
 // Reload re-reads the whole table into the cache.
 func (c *Cache) Reload(ctx context.Context) error {
 	return c.Load(ctx)
+}
+
+// StartReloader 周期性从库重载缓存,直到 ctx 结束。它是【每实例】goroutine,
+// 绝不可注册为 ScheduledJob —— 否则会被分布式锁锁住,只剩一个实例刷新,适得其反。
+func (c *Cache) StartReloader(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			_ = c.Reload(ctx) // best-effort;出错保留上次值,下个 tick 重试
+		}
+	}
 }

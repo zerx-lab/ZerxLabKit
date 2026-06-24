@@ -297,6 +297,7 @@ func syncJobs(db *gorm.DB) error {
 	defaults := []model.ScheduledJob{
 		{Name: "每日日志清理", Handler: "log_cleanup", CronExpr: "0 3 * * *", Enabled: true, Description: "清理 30 天前的操作日志与登录日志"},
 		{Name: "每日会话清理", Handler: "session_cleanup", CronExpr: "30 3 * * *", Enabled: true, Description: "清理已过期的用户会话"},
+		{Name: "认证状态清理", Handler: "auth_state_cleanup", CronExpr: "15 3 * * *", Enabled: true, Description: "清理过期的验证码与登录失败记录"},
 	}
 	for i := range defaults {
 		n, err := gorm.G[model.ScheduledJob](db).Where("name = ?", defaults[i].Name).Count(ctx, "id")

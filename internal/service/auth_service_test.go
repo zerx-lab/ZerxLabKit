@@ -24,14 +24,14 @@ import (
 func newAuthService(t *testing.T, db *gorm.DB, cfg config.AuthConfig) *AuthService {
 	t.Helper()
 	issuer := auth.NewIssuer(config.JWTConfig{Secret: "test-secret", AccessTTL: 15 * time.Minute, RefreshTTL: time.Hour})
-	guard := ratelimit.New(cfg.CaptchaThreshold, cfg.LockThreshold, cfg.LockFor)
+	guard := ratelimit.New(cfg.CaptchaThreshold, cfg.LockThreshold, cfg.LockFor, db)
 	policy := auth.NewPolicy(config.PasswordPolicyConfig{MinLength: 8, HistoryCount: 3})
 	m := mailer.NewMailer(config.SMTPConfig{}, slog.Default())
 	paramCache := param.New(db)
 	_ = paramCache.Load(context.Background())
 	store, _ := storage.New(config.StorageConfig{Driver: "local", LocalDir: t.TempDir(), LocalBaseURL: "/uploads"})
 	mr := media.New(store, config.StorageConfig{LocalBaseURL: "/uploads", SignedURLTTL: time.Hour}, []byte("test-sign-key"))
-	return NewAuthService(db, issuer, guard, captcha.New(), cfg, m, policy, paramCache, mr)
+	return NewAuthService(db, issuer, guard, captcha.New(db), cfg, m, policy, paramCache, mr)
 }
 
 func seedUser(t *testing.T, db *gorm.DB, email, password, role string) {

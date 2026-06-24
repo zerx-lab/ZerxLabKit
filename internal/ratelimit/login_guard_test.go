@@ -3,10 +3,28 @@ package ratelimit
 import (
 	"testing"
 	"time"
+
+	"github.com/glebarez/sqlite"
+	"gorm.io/gorm"
+
+	"github.com/zerx-lab/zerxlabkit/internal/database"
 )
 
+func newTestDB(t *testing.T) *gorm.DB {
+	t.Helper()
+	dsn := "file:" + t.Name() + "?mode=memory&cache=shared"
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("open db: %v", err)
+	}
+	if err := database.Migrate(db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+	return db
+}
+
 func TestLoginGuardThresholds(t *testing.T) {
-	g := New(2, 4, time.Hour)
+	g := New(2, 4, time.Hour, newTestDB(t))
 	const key = "a@b.com|1.2.3.4"
 
 	if g.NeedCaptcha(key) {
@@ -41,7 +59,7 @@ func TestLoginGuardThresholds(t *testing.T) {
 }
 
 func TestLoginGuardWindowReset(t *testing.T) {
-	g := New(2, 4, time.Millisecond)
+	g := New(2, 4, time.Millisecond, newTestDB(t))
 	const key = "x"
 
 	g.Fail(key)
@@ -55,5 +73,20 @@ func TestLoginGuardWindowReset(t *testing.T) {
 	g.Fail(key)
 	if g.NeedCaptcha(key) {
 		t.Fatal("window elapsed; counter should have reset to 1 fail")
+	}
+}
+
+// TestLoginGuardCrossInstance proves failure counts aggregate across instances
+// sharing the same DB.
+func TestLoginGuardCrossInstance(t *testing.T) {
+	db := newTestDB(t)
+	g1 := New(2, 5, 15*time.Minute, db)
+	g2 := New(2, 5, 15*time.Minute, db)
+	const key = "c@d.com|9.9.9.9"
+
+	g1.Fail(key)
+	g1.Fail(key)
+	if !g2.NeedCaptcha(key) {
+		t.Fatal("instance B must see failure count from instance A")
 	}
 }

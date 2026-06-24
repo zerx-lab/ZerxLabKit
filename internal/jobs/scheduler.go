@@ -25,7 +25,11 @@ type Scheduler struct {
 
 // New builds a Scheduler. Call Start to load and schedule enabled jobs.
 func New(db *gorm.DB, registry Registry, logger *slog.Logger) (*Scheduler, error) {
-	sch, err := gocron.NewScheduler()
+	sch, err := gocron.NewScheduler(gocron.WithDistributedLocker(&dbLocker{
+		db:    db,
+		owner: uuid.NewString(),
+		ttl:   30 * time.Second,
+	}))
 	if err != nil {
 		return nil, err
 	}
