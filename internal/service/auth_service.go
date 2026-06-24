@@ -18,6 +18,7 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 	"github.com/zerx-lab/zerxlabkit/internal/mailer"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
@@ -33,13 +34,14 @@ type AuthService struct {
 	mailer  *mailer.Mailer
 	policy  *auth.Policy
 	param   *param.Cache
+	media   *media.Media
 }
 
 var _ zerxv1connect.AuthServiceHandler = (*AuthService)(nil)
 
 // NewAuthService constructs the auth handler.
-func NewAuthService(db *gorm.DB, issuer *auth.Issuer, guard *ratelimit.LoginGuard, cap *captcha.Manager, cfg config.AuthConfig, m *mailer.Mailer, policy *auth.Policy, paramCache *param.Cache) *AuthService {
-	return &AuthService{db: db, issuer: issuer, guard: guard, captcha: cap, cfg: cfg, mailer: m, policy: policy, param: paramCache}
+func NewAuthService(db *gorm.DB, issuer *auth.Issuer, guard *ratelimit.LoginGuard, cap *captcha.Manager, cfg config.AuthConfig, m *mailer.Mailer, policy *auth.Policy, paramCache *param.Cache, mr *media.Media) *AuthService {
+	return &AuthService{db: db, issuer: issuer, guard: guard, captcha: cap, cfg: cfg, mailer: m, policy: policy, param: paramCache, media: mr}
 }
 
 // clientIP returns the request peer's host portion (port stripped).
@@ -135,7 +137,7 @@ func (s *AuthService) Login(ctx context.Context, req *connect.Request[zerxv1.Log
 	return connect.NewResponse(&zerxv1.LoginResponse{
 		AccessToken:  access,
 		RefreshToken: refresh,
-		User:         toProtoUser(u, roles, totpOn),
+		User:         toProtoUser(u, roles, totpOn, s.media),
 		SessionId:    sid,
 	}), nil
 }
@@ -257,7 +259,7 @@ func (s *AuthService) Register(ctx context.Context, req *connect.Request[zerxv1.
 	return connect.NewResponse(&zerxv1.RegisterResponse{
 		AccessToken:  access,
 		RefreshToken: refresh,
-		User:         toProtoUser(u, roles, false),
+		User:         toProtoUser(u, roles, false, s.media),
 		SessionId:    sid,
 	}), nil
 }
@@ -327,7 +329,7 @@ func (s *AuthService) Me(ctx context.Context, _ *connect.Request[zerxv1.MeReques
 	}
 	totpOn, _ := userTOTPEnabled(ctx, s.db, u.ID)
 
-	return connect.NewResponse(&zerxv1.MeResponse{User: toProtoUser(u, roles, totpOn)}), nil
+	return connect.NewResponse(&zerxv1.MeResponse{User: toProtoUser(u, roles, totpOn, s.media)}), nil
 }
 
 // ListSessions returns the caller's sessions; admins may target another user.

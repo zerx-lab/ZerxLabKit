@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"connectrpc.com/connect"
 	casbinlib "github.com/casbin/casbin/v3"
 	casbinmodel "github.com/casbin/casbin/v3/model"
-	"connectrpc.com/connect"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"

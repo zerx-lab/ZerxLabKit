@@ -11,6 +11,7 @@ import (
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
 	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/query"
 )
@@ -25,13 +26,14 @@ const (
 type UserService struct {
 	db     *gorm.DB
 	policy *auth.Policy
+	media  *media.Media
 }
 
 var _ zerxv1connect.UserServiceHandler = (*UserService)(nil)
 
 // NewUserService constructs the user handler.
-func NewUserService(db *gorm.DB, policy *auth.Policy) *UserService {
-	return &UserService{db: db, policy: policy}
+func NewUserService(db *gorm.DB, policy *auth.Policy, m *media.Media) *UserService {
+	return &UserService{db: db, policy: policy, media: m}
 }
 
 // ListUsers returns a page of users, or name-matched users when a keyword is
@@ -106,7 +108,7 @@ func (s *UserService) GetUser(ctx context.Context, req *connect.Request[zerxv1.G
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return connect.NewResponse(toProtoUser(u, roles, totpOn)), nil
+	return connect.NewResponse(toProtoUser(u, roles, totpOn, s.media)), nil
 }
 
 // CreateUser creates a user. Authorization is enforced by the Casbin interceptor.
@@ -158,7 +160,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *connect.Request[zerxv
 	_ = s.policy.RecordHistory(ctx, s.db, u.ID, hash)
 	audit.Record(ctx, auditJSON(map[string]any{"after": map[string]any{"id": u.ID, "email": u.Email, "name": u.Name, "roles": roles}}))
 
-	return connect.NewResponse(toProtoUser(u, roles, false)), nil
+	return connect.NewResponse(toProtoUser(u, roles, false, s.media)), nil
 }
 
 // UpdateUser updates a user's profile, role, and status. Authorization is
@@ -219,7 +221,7 @@ func (s *UserService) UpdateUser(ctx context.Context, req *connect.Request[zerxv
 		"after":  map[string]any{"name": u.Name, "nickname": u.Nickname, "phone": u.Phone, "status": u.Status, "roles": roles},
 	}))
 
-	return connect.NewResponse(toProtoUser(u, roles, totpOn)), nil
+	return connect.NewResponse(toProtoUser(u, roles, totpOn, s.media)), nil
 }
 
 // DeleteUser soft-deletes a user. Authorization is enforced by the Casbin
@@ -305,7 +307,7 @@ func (s *UserService) enrichUsers(ctx context.Context, users []model.User) ([]*z
 	}
 	out := make([]*zerxv1.User, 0, len(users))
 	for i := range users {
-		out = append(out, toProtoUser(users[i], rolesByUser[users[i].ID], totpByUser[users[i].ID]))
+		out = append(out, toProtoUser(users[i], rolesByUser[users[i].ID], totpByUser[users[i].ID], s.media))
 	}
 
 	return out, nil

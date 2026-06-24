@@ -14,6 +14,7 @@ var File = struct {
 	URL         field.String
 	Size        field.Number[int64]
 	ContentType field.String
+	Visibility  field.String
 	UploadedBy  field.Number[uint64]
 	CreatedAt   field.Time
 	UpdatedAt   field.Time
@@ -25,6 +26,7 @@ var File = struct {
 	URL:         field.String{}.WithColumn("url"),
 	Size:        field.Number[int64]{}.WithColumn("size"),
 	ContentType: field.String{}.WithColumn("content_type"),
+	Visibility:  field.String{}.WithColumn("visibility"),
 	UploadedBy:  field.Number[uint64]{}.WithColumn("uploaded_by"),
 	CreatedAt:   field.Time{}.WithColumn("created_at"),
 	UpdatedAt:   field.Time{}.WithColumn("updated_at"),

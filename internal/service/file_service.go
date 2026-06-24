@@ -3,12 +3,15 @@ package service
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"connectrpc.com/connect"
 	"gorm.io/gorm"
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/auth"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/storage"
 )
@@ -17,49 +20,48 @@ import (
 type FileService struct {
 	db    *gorm.DB
 	store storage.Storage
+	media *media.Media
 }
 
 var _ zerxv1connect.FileServiceHandler = (*FileService)(nil)
 
 // NewFileService constructs the file handler.
-func NewFileService(db *gorm.DB, store storage.Storage) *FileService {
-	return &FileService{db: db, store: store}
+func NewFileService(db *gorm.DB, store storage.Storage, m *media.Media) *FileService {
+	return &FileService{db: db, store: store, media: m}
 }
 
 func (s *FileService) ListFiles(ctx context.Context, req *connect.Request[zerxv1.ListFilesRequest]) (*connect.Response[zerxv1.ListFilesResponse], error) {
 	_, ps, offset := normalizePage(req.Msg.GetPage().GetPage(), req.Msg.GetPage().GetPageSize())
-	like := "%" + req.Msg.GetKeyword() + "%"
 
-	base := gorm.G[model.File](s.db)
-	if req.Msg.GetKeyword() != "" {
-		filtered := base.Where("name LIKE ?", like)
-		total, err := filtered.Count(ctx, "id")
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+	// Apply the keyword filter and a visibility filter for non-admin callers
+	// (they see public/authenticated files plus their own).
+	apply := func() gorm.ChainInterface[model.File] {
+		q := gorm.G[model.File](s.db).Where("1 = 1")
+		if kw := req.Msg.GetKeyword(); kw != "" {
+			q = q.Where("name LIKE ?", "%"+kw+"%")
 		}
-		files, err := filtered.Order("id DESC").Limit(ps).Offset(offset).Find(ctx)
-		if err != nil {
-			return nil, connect.NewError(connect.CodeInternal, err)
+		if claims, ok := auth.ClaimsFromContext(ctx); ok && !slices.Contains(claims.Roles, model.RoleAdmin) {
+			q = q.Where("visibility IN ? OR uploaded_by = ?",
+				[]string{model.VisibilityPublic, model.VisibilityAuthenticated}, claims.UserID)
 		}
-		return connect.NewResponse(&zerxv1.ListFilesResponse{Files: protoFiles(files), Total: total}), nil
+		return q
 	}
-
-	total, err := base.Count(ctx, "id")
+	total, err := apply().Count(ctx, "id")
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	files, err := gorm.G[model.File](s.db).Order("id DESC").Limit(ps).Offset(offset).Find(ctx)
+	files, err := apply().Order("id DESC").Limit(ps).Offset(offset).Find(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return connect.NewResponse(&zerxv1.ListFilesResponse{Files: protoFiles(files), Total: total}), nil
+	return connect.NewResponse(&zerxv1.ListFilesResponse{Files: protoFiles(files, s.media), Total: total}), nil
 }
 
-func protoFiles(files []model.File) []*zerxv1.File {
+func protoFiles(files []model.File, m *media.Media) []*zerxv1.File {
 	out := make([]*zerxv1.File, 0, len(files))
 	for i := range files {
-		out = append(out, toProtoFile(files[i]))
+		out = append(out, toProtoFile(files[i], m))
 	}
 
 	return out
@@ -72,6 +74,11 @@ func (s *FileService) DeleteFile(ctx context.Context, req *connect.Request[zerxv
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("file not found"))
 		}
 		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if claims, ok := auth.ClaimsFromContext(ctx); ok &&
+		!slices.Contains(claims.Roles, model.RoleAdmin) && f.UploadedBy != claims.UserID {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("无权删除该文件"))
 	}
 
 	if _, err := gorm.G[model.File](s.db).Where("id = ?", f.ID).Delete(ctx); err != nil {

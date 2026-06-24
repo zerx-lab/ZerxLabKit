@@ -61,7 +61,7 @@ func (s *AuthService) UpdateProfile(ctx context.Context, req *connect.Request[ze
 	}
 	updates := map[string]any{
 		"nickname": req.Msg.GetNickname(),
-		"avatar":   req.Msg.GetAvatar(),
+		"avatar":   s.media.NormalizeStored(req.Msg.GetAvatar()),
 		"phone":    req.Msg.GetPhone(),
 	}
 	if err := s.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", claims.UserID).Updates(updates).Error; err != nil {
@@ -77,7 +77,7 @@ func (s *AuthService) UpdateProfile(ctx context.Context, req *connect.Request[ze
 	}
 	totpOn, _ := userTOTPEnabled(ctx, s.db, u.ID)
 
-	return connect.NewResponse(toProtoUser(u, roles, totpOn)), nil
+	return connect.NewResponse(toProtoUser(u, roles, totpOn, s.media)), nil
 }
 
 // RequestPasswordReset emails a reset link. To avoid account enumeration it

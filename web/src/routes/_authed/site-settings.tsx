@@ -60,6 +60,7 @@ function SiteSettingsPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("visibility", "public");
       const res = await authedFetch("/api/upload", { method: "POST", body: fd });
       if (res.ok) {
         const body = (await res.json().catch(() => null)) as { url?: string } | null;

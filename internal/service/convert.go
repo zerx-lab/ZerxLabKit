@@ -7,12 +7,13 @@ import (
 	"time"
 
 	zerxv1 "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 )
 
 // toProtoUser maps a data-layer user to its public proto representation
 // (password hash intentionally omitted).
-func toProtoUser(u model.User, roles []string, totpEnabled bool) *zerxv1.User {
+func toProtoUser(u model.User, roles []string, totpEnabled bool, m *media.Media) *zerxv1.User {
 	return &zerxv1.User{
 		Id:          u.ID,
 		Email:       u.Email,
@@ -20,7 +21,7 @@ func toProtoUser(u model.User, roles []string, totpEnabled bool) *zerxv1.User {
 		Roles:       roles,
 		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
 		Nickname:    u.Nickname,
-		Avatar:      u.Avatar,
+		Avatar:      m.ResolveAvatar(u.Avatar),
 		Phone:       u.Phone,
 		Status:      u.Status,
 		TotpEnabled: totpEnabled,
@@ -156,16 +157,17 @@ func toProtoSysParam(p model.SysParam) *zerxv1.SysParam {
 }
 
 // toProtoFile maps a file row to its proto representation.
-func toProtoFile(f model.File) *zerxv1.File {
+func toProtoFile(f model.File, m *media.Media) *zerxv1.File {
 	return &zerxv1.File{
 		Id:          f.ID,
 		Name:        f.Name,
 		Key:         f.Key,
-		Url:         f.URL,
+		Url:         m.ResolveFile(f.Key, f.Visibility),
 		Size:        f.Size,
 		ContentType: f.ContentType,
 		UploadedBy:  f.UploadedBy,
 		CreatedAt:   f.CreatedAt.Format(time.RFC3339),
+		Visibility:  f.Visibility,
 	}
 }
 

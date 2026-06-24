@@ -23,8 +23,8 @@ type ScheduledJob struct {
 
 // JobExecution is an append-only record of one job run.
 type JobExecution struct {
-	ID         uint64    `gorm:"primaryKey"`
-	JobID      uint64    `gorm:"index"`
+	ID         uint64 `gorm:"primaryKey"`
+	JobID      uint64 `gorm:"index"`
 	StartedAt  time.Time
 	FinishedAt time.Time
 	Status     string

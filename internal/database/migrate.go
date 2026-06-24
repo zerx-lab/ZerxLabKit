@@ -83,6 +83,22 @@ func Migrate(db *gorm.DB) error {
 			},
 			Rollback: func(*gorm.DB) error { return nil },
 		},
+		{
+			ID: "0004_file_visibility",
+			Migrate: func(tx *gorm.DB) error {
+				// Existing DB: add the visibility column (NOT NULL DEFAULT 'private',
+				// so pre-existing rows initially become 'private'). A fresh DB already
+				// has the column from 0001's AutoMigrate(&model.File{}).
+				if err := tx.AutoMigrate(&model.File{}); err != nil {
+					return err
+				}
+				// Grandfather: this migration runs exactly once, so the unconditional
+				// UPDATE only ever touches rows that existed at migration time, keeping
+				// their current "anonymously reachable" semantics. A fresh DB hits 0 rows.
+				return tx.Model(&model.File{}).Where("1 = 1").Update("visibility", model.VisibilityPublic).Error
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
 	}
 
 	return gormigrate.New(db, gormigrate.DefaultOptions, migrations).Migrate()

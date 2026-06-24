@@ -24,9 +24,9 @@ var ErrInvalidToken = errors.New("invalid token")
 // Claims is the JWT payload.
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID    uint64 `json:"uid"`
+	UserID    uint64   `json:"uid"`
 	Roles     []string `json:"roles,omitempty"`
-	TokenType string `json:"typ"`
+	TokenType string   `json:"typ"`
 }
 
 // Issuer signs and verifies HS256 JWTs.

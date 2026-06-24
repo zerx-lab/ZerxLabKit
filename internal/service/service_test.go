@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	casbinlib "github.com/casbin/casbin/v3"
 	"connectrpc.com/connect"
+	casbinlib "github.com/casbin/casbin/v3"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 

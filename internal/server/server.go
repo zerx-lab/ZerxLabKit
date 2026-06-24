@@ -4,6 +4,7 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -23,6 +24,7 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 	"github.com/zerx-lab/zerxlabkit/internal/jobs"
 	"github.com/zerx-lab/zerxlabkit/internal/mailer"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
 	"github.com/zerx-lab/zerxlabkit/internal/service"
@@ -52,6 +54,13 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		return nil, err
 	}
 
+	var signKey []byte
+	if cfg.Storage.Driver == "local" {
+		sum := sha256.Sum256([]byte(cfg.JWT.Secret + "/media-url-v1"))
+		signKey = sum[:]
+	}
+	mediaResolver := media.New(store, cfg.Storage, signKey)
+
 	paramCache := param.New(db)
 	if err := paramCache.Load(context.Background()); err != nil {
 		return nil, err
@@ -59,12 +68,13 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 
 	// public: callable without authentication.
 	public := map[string]bool{
-		zerxv1connect.AuthServiceLoginProcedure:      true,
-		zerxv1connect.AuthServiceRegisterProcedure:   true,
-		zerxv1connect.AuthServiceRefreshProcedure:    true,
-		zerxv1connect.AuthServiceGetCaptchaProcedure: true,
-		zerxv1connect.AuthServiceRequestPasswordResetProcedure: true,
-		zerxv1connect.AuthServiceConfirmPasswordResetProcedure: true,
+		zerxv1connect.AuthServiceLoginProcedure:                   true,
+		zerxv1connect.AuthServiceRegisterProcedure:                true,
+		zerxv1connect.AuthServiceRefreshProcedure:                 true,
+		zerxv1connect.AuthServiceGetCaptchaProcedure:              true,
+		zerxv1connect.AuthServiceRequestPasswordResetProcedure:    true,
+		zerxv1connect.AuthServiceConfirmPasswordResetProcedure:    true,
+		zerxv1connect.SiteSettingsServiceGetSiteSettingsProcedure: true,
 	}
 
 	// selfServe: any authenticated caller is allowed (no Casbin check).
@@ -76,12 +86,11 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		zerxv1connect.MenuServiceGetUserMenusProcedure:   true,
 		zerxv1connect.MenuServiceGetUserButtonsProcedure: true,
 		zerxv1connect.DictServiceGetDictByTypeProcedure:  true,
-		zerxv1connect.SiteSettingsServiceGetSiteSettingsProcedure: true,
-		zerxv1connect.AuthServiceChangePasswordProcedure:          true,
-		zerxv1connect.AuthServiceUpdateProfileProcedure:           true,
-		zerxv1connect.AuthServiceSetupTotpProcedure:               true,
-		zerxv1connect.AuthServiceActivateTotpProcedure:            true,
-		zerxv1connect.AuthServiceDisableTotpProcedure:             true,
+		zerxv1connect.AuthServiceChangePasswordProcedure: true,
+		zerxv1connect.AuthServiceUpdateProfileProcedure:  true,
+		zerxv1connect.AuthServiceSetupTotpProcedure:      true,
+		zerxv1connect.AuthServiceActivateTotpProcedure:   true,
+		zerxv1connect.AuthServiceDisableTotpProcedure:    true,
 	}
 
 	// Interceptor chain (outermost first): logging -> auth -> operation log
@@ -107,16 +116,16 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		registered = append(registered, path)
 		api.Handle(path, h)
 	}
-	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth, mail, policy, paramCache), opts))
-	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db, policy), opts))
+	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth, mail, policy, paramCache, mediaResolver), opts))
+	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db, policy, mediaResolver), opts))
 	reg(zerxv1connect.NewRoleServiceHandler(service.NewRoleService(db, enforcer), opts))
 	reg(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db), opts))
 	reg(zerxv1connect.NewApiServiceHandler(service.NewApiService(db, enforcer), opts))
 	reg(zerxv1connect.NewDictServiceHandler(service.NewDictService(db), opts))
 	reg(zerxv1connect.NewSysParamServiceHandler(service.NewSysParamService(db, paramCache), opts))
-	reg(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store), opts))
+	reg(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store, mediaResolver), opts))
 	reg(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
-	reg(zerxv1connect.NewSiteSettingsServiceHandler(service.NewSiteSettingsService(paramCache), opts))
+	reg(zerxv1connect.NewSiteSettingsServiceHandler(service.NewSiteSettingsService(paramCache, mediaResolver), opts))
 	reg(zerxv1connect.NewDashboardServiceHandler(service.NewDashboardService(db), opts))
 	reg(zerxv1connect.NewJobServiceHandler(service.NewJobService(db, scheduler, registry), opts))
 
@@ -128,11 +137,11 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	root.HandleFunc("/api/export/", exportHandler(issuer, enforcer, db))
 	root.HandleFunc("/api/import/users/template", importUsersTemplateHandler(issuer, enforcer))
 	root.HandleFunc("/api/import/users", importUsersHandler(issuer, enforcer, db, policy))
-	root.HandleFunc("/api/upload", uploadHandler(issuer, store, db))
+	root.HandleFunc("/api/upload", uploadHandler(issuer, store, mediaResolver, db))
 	root.Handle("/api/", http.StripPrefix("/api", api))
 	if cfg.Storage.Driver == "local" {
 		prefix := cfg.Storage.LocalBaseURL
-		root.Handle(prefix+"/", http.StripPrefix(prefix, http.FileServer(http.Dir(cfg.Storage.LocalDir))))
+		root.Handle(prefix+"/", mediaHandler(issuer, mediaResolver, db, prefix))
 	}
 	if cfg.Server.DocsEnabled {
 		root.HandleFunc("/api/openapi.yaml", openAPIHandler())

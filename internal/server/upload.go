@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/storage"
 )
@@ -28,7 +30,7 @@ var allowedExt = map[string]bool{
 
 // uploadHandler accepts a single multipart "file" from any authenticated user,
 // stores it, records its metadata, and returns the file JSON.
-func uploadHandler(issuer *auth.Issuer, store storage.Storage, db *gorm.DB) http.HandlerFunc {
+func uploadHandler(issuer *auth.Issuer, store storage.Storage, m *media.Media, db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -65,11 +67,21 @@ func uploadHandler(issuer *auth.Issuer, store storage.Storage, db *gorm.DB) http
 			return
 		}
 
+		visibility := r.FormValue("visibility")
+		switch visibility {
+		case model.VisibilityPublic, model.VisibilityAuthenticated, model.VisibilityPrivate:
+		default:
+			visibility = model.VisibilityPrivate
+		}
+		if visibility == model.VisibilityPublic && !slices.Contains(claims.Roles, model.RoleAdmin) {
+			http.Error(w, "只有管理员可发布匿名可访问文件", http.StatusForbidden)
+			return
+		}
+
 		key := time.Now().Format("2006/01") + "/" + uuid.NewString() + ext
 		contentType := hdr.Header.Get("Content-Type")
 
-		url, err := store.Save(r.Context(), key, f, hdr.Size, contentType)
-		if err != nil {
+		if err := store.Save(r.Context(), key, f, hdr.Size, contentType); err != nil {
 			http.Error(w, "save failed", http.StatusInternalServerError)
 			return
 		}
@@ -77,9 +89,9 @@ func uploadHandler(issuer *auth.Issuer, store storage.Storage, db *gorm.DB) http
 		rec := model.File{
 			Name:        hdr.Filename,
 			Key:         key,
-			URL:         url,
 			Size:        hdr.Size,
 			ContentType: contentType,
+			Visibility:  visibility,
 			UploadedBy:  claims.UserID,
 		}
 		if err := gorm.G[model.File](db).Create(context.Background(), &rec); err != nil {
@@ -92,9 +104,10 @@ func uploadHandler(issuer *auth.Issuer, store storage.Storage, db *gorm.DB) http
 			"id":          rec.ID,
 			"name":        rec.Name,
 			"key":         rec.Key,
-			"url":         rec.URL,
+			"url":         m.ResolveFile(rec.Key, rec.Visibility),
 			"size":        rec.Size,
 			"contentType": rec.ContentType,
+			"visibility":  rec.Visibility,
 		})
 	}
 }

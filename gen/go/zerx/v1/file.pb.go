@@ -32,6 +32,7 @@ type File struct {
 	ContentType   string                 `protobuf:"bytes,6,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
 	UploadedBy    uint64                 `protobuf:"varint,7,opt,name=uploaded_by,json=uploadedBy,proto3" json:"uploaded_by,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Visibility    string                 `protobuf:"bytes,9,opt,name=visibility,proto3" json:"visibility,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,6 +119,13 @@ func (x *File) GetUploadedBy() uint64 {
 func (x *File) GetCreatedAt() string {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *File) GetVisibility() string {
+	if x != nil {
+		return x.Visibility
 	}
 	return ""
 }
@@ -310,7 +318,7 @@ var File_zerx_v1_file_proto protoreflect.FileDescriptor
 
 const file_zerx_v1_file_proto_rawDesc = "" +
 	"\n" +
-	"\x12zerx/v1/file.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xc5\x01\n" +
+	"\x12zerx/v1/file.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x14zerx/v1/common.proto\"\xe5\x01\n" +
 	"\x04File\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
@@ -321,7 +329,10 @@ const file_zerx_v1_file_proto_rawDesc = "" +
 	"\vuploaded_by\x18\a \x01(\x04R\n" +
 	"uploadedBy\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\"V\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1e\n" +
+	"\n" +
+	"visibility\x18\t \x01(\tR\n" +
+	"visibility\"V\n" +
 	"\x10ListFilesRequest\x12(\n" +
 	"\x04page\x18\x01 \x01(\v2\x14.zerx.v1.PageRequestR\x04page\x12\x18\n" +
 	"\akeyword\x18\x02 \x01(\tR\akeyword\"N\n" +

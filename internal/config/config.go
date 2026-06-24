@@ -62,16 +62,17 @@ type AuthConfig struct {
 
 // StorageConfig selects and configures object storage.
 type StorageConfig struct {
-	Driver       string `env:"STORAGE_DRIVER" envDefault:"local"`
-	LocalDir     string `env:"STORAGE_LOCAL_DIR" envDefault:"./data/uploads"`
-	LocalBaseURL string `env:"STORAGE_LOCAL_BASE_URL" envDefault:"/uploads"`
-	S3Endpoint   string `env:"STORAGE_S3_ENDPOINT"`
-	S3AccessKey  string `env:"STORAGE_S3_ACCESS_KEY"`
-	S3SecretKey  string `env:"STORAGE_S3_SECRET_KEY"`
-	S3Bucket     string `env:"STORAGE_S3_BUCKET"`
-	S3Region     string `env:"STORAGE_S3_REGION" envDefault:"us-east-1"`
-	S3Secure     bool   `env:"STORAGE_S3_SECURE" envDefault:"true"`
-	S3PublicURL  string `env:"STORAGE_S3_PUBLIC_URL"`
+	Driver       string        `env:"STORAGE_DRIVER" envDefault:"local"`
+	LocalDir     string        `env:"STORAGE_LOCAL_DIR" envDefault:"./data/uploads"`
+	LocalBaseURL string        `env:"STORAGE_LOCAL_BASE_URL" envDefault:"/uploads"`
+	S3Endpoint   string        `env:"STORAGE_S3_ENDPOINT"`
+	S3AccessKey  string        `env:"STORAGE_S3_ACCESS_KEY"`
+	S3SecretKey  string        `env:"STORAGE_S3_SECRET_KEY"`
+	S3Bucket     string        `env:"STORAGE_S3_BUCKET"`
+	S3Region     string        `env:"STORAGE_S3_REGION" envDefault:"us-east-1"`
+	S3Secure     bool          `env:"STORAGE_S3_SECURE" envDefault:"true"`
+	S3PublicURL  string        `env:"STORAGE_S3_PUBLIC_URL"`
+	SignedURLTTL time.Duration `env:"STORAGE_SIGNED_URL_TTL" envDefault:"1h"`
 }
 
 // ServerConfig holds HTTP server settings.

@@ -106,7 +106,7 @@ func newBuckets(start time.Time, days int) *buckets {
 }
 
 func (b *buckets) add(t time.Time, n int64) {
-	idx := int(t.Truncate(24 * time.Hour).Sub(b.start).Hours() / 24)
+	idx := int(t.Truncate(24*time.Hour).Sub(b.start).Hours() / 24)
 	if idx >= 0 && idx < len(b.counts) {
 		b.counts[idx] += n
 	}

@@ -17,6 +17,7 @@ description: "zerxLabKit 后端开发规约(Go + connectRPC + GORM)。当新增/
 - 结构:`type XxxService struct { db *gorm.DB }` + `var _ zerxv1connect.XxxServiceHandler = (*XxxService)(nil)` + `NewXxxService(db)`。
 - 签名:`func (s *XxxService) Method(ctx, req *connect.Request[zerxv1.XReq]) (*connect.Response[zerxv1.XResp], error)`。
 - 返回:`connect.NewResponse(&zerxv1.XResp{...})`;转换用 `convert.go` 的 `toProto<Struct>(model.X) *zerxv1.X`(命名 `toPro+原型 struct`,列表 `toProto<Struct>s`)。
+- **含媒体 URL 的转换多传 `*media.Media`**:`toProtoFile(f, m)`(`Url=m.ResolveFile(f.Key,f.Visibility)`)、`toProtoUser(u, roles, totp, m)`(`Avatar=m.ResolveAvatar(u.Avatar)`)。service 结构体持 `media *media.Media` 字段,经 `NewXxxService(..., m)` 注入(见 `server.go` 的 `mediaResolver`);blob 鉴权/签名 URL 详见 `skill://zerx-security`。
 - 错误映射:`gorm.ErrRecordNotFound → CodeNotFound`;业务冲突 → `CodeAlreadyExists`;内部 → `CodeInternal`;无权限由拦截器返 `CodePermissionDenied`(handler 不主动返)。
 
 ## GORM 坑表

@@ -95,6 +95,7 @@ function ProfileForm({ user }: { user: { nickname: string; avatar: string; phone
     try {
       const fd = new FormData();
       fd.append("file", file);
+      fd.append("visibility", "authenticated");
       const res = await authedFetch("/api/upload", { method: "POST", body: fd });
       if (!res.ok) throw new Error(await res.text());
       const json = (await res.json()) as { url: string };

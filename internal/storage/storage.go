@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -13,10 +14,18 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 )
 
-// Storage saves and deletes blobs by key, returning a publicly reachable URL.
+// Storage saves, deletes, and reads blobs by key.
 type Storage interface {
-	Save(ctx context.Context, key string, r io.Reader, size int64, contentType string) (url string, err error)
+	Save(ctx context.Context, key string, r io.Reader, size int64, contentType string) error
 	Delete(ctx context.Context, key string) error
+	// PublicURL returns a stable, cacheable URL for a publicly served blob,
+	// or "" when no public base URL is configured.
+	PublicURL(key string) string
+	// Open streams a blob for reading along with its modification time.
+	Open(ctx context.Context, key string) (io.ReadSeekCloser, time.Time, error)
+	// Presign returns a time-limited URL for a protected blob (s3 presigned GET);
+	// local returns "" with a nil error (local uses media-layer HMAC instead).
+	Presign(ctx context.Context, key string, ttl time.Duration) (string, error)
 }
 
 // New constructs a Storage from configuration; driver is "local" or "s3".

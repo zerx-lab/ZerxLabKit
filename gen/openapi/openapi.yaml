@@ -3115,6 +3115,9 @@ components:
         createdAt:
           type: string
           title: created_at
+        visibility:
+          type: string
+          title: visibility
       title: File
       additionalProperties: false
     zerx.v1.GetCaptchaRequest:

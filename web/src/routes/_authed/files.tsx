@@ -2,7 +2,7 @@ import { ConnectError } from "@connectrpc/connect";
 import { createConnectQueryKey, useMutation, useQuery } from "@connectrpc/connect-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { FileIcon, LayoutGridIcon, ListIcon, SearchIcon, Trash2Icon, UploadIcon } from "lucide-react";
+import { DownloadIcon, FileIcon, FolderUpIcon, LayoutGridIcon, ListIcon, SearchIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -28,12 +28,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import type { File as ZerxFile } from "@/gen/zerx/v1/file_pb";
 import {
   deleteFile,
   listFiles,
 } from "@/gen/zerx/v1/file-FileService_connectquery";
 import { useI18n } from "@/lib/i18n";
+import { usePermissions } from "@/lib/permissions";
 import { authedFetch } from "@/lib/transport";
 
 export const Route = createFileRoute("/_authed/files")({ component: FilesPage });
@@ -51,6 +60,22 @@ function useInvalidate() {
 
 function errMsg(err: unknown, fallback: string) {
   return err instanceof ConnectError ? err.message : fallback;
+}
+
+// downloadFile fetches the blob through authedFetch (so protected files carry
+// the Bearer token) and triggers a browser download via a temporary anchor.
+async function downloadFile(file: ZerxFile): Promise<void> {
+  const res = await authedFetch(file.url, { method: "GET" });
+  if (!res.ok) throw new Error(await res.text().catch(() => ""));
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objectUrl);
 }
 
 function formatSize(bytes: bigint): string {
@@ -83,6 +108,20 @@ function canPreview(ct: string): boolean {
 
 type View = "list" | "gallery";
 
+type Visibility = "private" | "authenticated" | "public";
+
+function VisibilityBadge({ value, t }: { value: string; t: TranslateFn }) {
+  const label =
+    value === "public"
+      ? t("filePage.visPublic")
+      : value === "authenticated"
+        ? t("filePage.visAuthenticated")
+        : t("filePage.visPrivate");
+  const variant =
+    value === "public" ? "default" : value === "authenticated" ? "secondary" : "outline";
+  return <Badge variant={variant}>{label}</Badge>;
+}
+
 function FilesPage() {
   const { t } = useI18n();
   const [page, setPage] = useState(1);
@@ -90,6 +129,7 @@ function FilesPage() {
   const [keyword, setKeyword] = useState("");
   const [view, setView] = useState<View>("list");
   const [preview, setPreview] = useState<ZerxFile | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data, isPending } = useQuery(listFiles, {
     page: { page, pageSize: PAGE_SIZE },
@@ -100,36 +140,11 @@ function FilesPage() {
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const invalidate = useInvalidate();
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const applySearch = (e: FormEvent) => {
     e.preventDefault();
     setPage(1);
     setKeyword(keywordInput.trim());
-  };
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await authedFetch("/api/upload", { method: "POST", body: fd });
-      if (res.ok) {
-        toast.success(t("filePage.uploadedToast"));
-        await invalidate();
-      } else {
-        const text = await res.text().catch(() => "");
-        toast.error(text || t("register.failed"));
-      }
-    } catch (err) {
-      toast.error(errMsg(err, t("register.failed")));
-    } finally {
-      setUploading(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
   };
 
   return (
@@ -139,17 +154,17 @@ function FilesPage() {
           <h1 className="text-2xl font-semibold tracking-tight">{t("filePage.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("filePage.subtitle")}</p>
         </div>
-        <Button disabled={uploading} onClick={() => inputRef.current?.click()}>
+        <Button onClick={() => setUploadOpen(true)}>
           <UploadIcon className="size-4" />
-          {uploading ? t("filePage.uploading") : t("filePage.upload")}
+          {t("filePage.upload")}
         </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          className="hidden"
-          onChange={(e) => void handleUpload(e)}
-        />
       </div>
+
+      <UploadDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onUploaded={() => void invalidate()}
+      />
 
       <Card className="gap-0 overflow-hidden py-0">
         <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
@@ -218,6 +233,196 @@ function FilesPage() {
 
 type TranslateFn = ReturnType<typeof useI18n>["t"];
 
+function UploadDialog({
+  open,
+  onOpenChange,
+  onUploaded,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUploaded: () => void;
+}) {
+  const { t } = useI18n();
+  const { roles } = usePermissions();
+  const isAdmin = roles.includes("admin");
+  const [files, setFiles] = useState<File[]>([]);
+  const [visibility, setVisibility] = useState<Visibility>("private");
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  const reset = () => {
+    setFiles([]);
+    setDone(0);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (folderInputRef.current) folderInputRef.current.value = "";
+  };
+
+  const addPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? Array.from(e.target.files) : [];
+    if (picked.length > 0) {
+      setFiles((prev) => [...prev, ...picked]);
+    }
+    e.target.value = "";
+  };
+
+  const removeAt = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
+
+  const handleOpenChange = (next: boolean) => {
+    if (uploading) return;
+    if (!next) reset();
+    onOpenChange(next);
+  };
+
+  const startUpload = async () => {
+    if (files.length === 0) return;
+    setUploading(true);
+    setDone(0);
+    let ok = 0;
+    for (const file of files) {
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("visibility", visibility);
+        const res = await authedFetch("/api/upload", { method: "POST", body: fd });
+        if (res.ok) ok += 1;
+      } catch {
+        // counted as failure below
+      }
+      setDone((d) => d + 1);
+    }
+    setUploading(false);
+    const total = files.length;
+    const failed = total - ok;
+    if (failed === 0) {
+      toast.success(t("filePage.uploadDoneToast", { count: ok }));
+    } else {
+      toast.error(t("filePage.uploadPartialToast", { ok, total, failed }));
+    }
+    onUploaded();
+    reset();
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("filePage.uploadTitle")}</DialogTitle>
+          <DialogDescription>{t("filePage.uploadDialogDesc")}</DialogDescription>
+        </DialogHeader>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <UploadIcon className="size-4" />
+              {t("filePage.chooseFiles")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading}
+              onClick={() => folderInputRef.current?.click()}
+            >
+              <FolderUpIcon className="size-4" />
+              {t("filePage.chooseFolder")}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={addPicked}
+            />
+            <input
+              ref={folderInputRef}
+              type="file"
+              className="hidden"
+              // @ts-expect-error non-standard directory upload attributes
+              webkitdirectory=""
+              directory=""
+              multiple
+              onChange={addPicked}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">
+              {files.length > 0
+                ? t("filePage.selectedFiles", { count: files.length })
+                : t("filePage.noFilesSelected")}
+            </span>
+            {files.length > 0 && !uploading ? (
+              <Button type="button" variant="ghost" size="sm" onClick={reset}>
+                {t("filePage.clearAll")}
+              </Button>
+            ) : null}
+          </div>
+
+          {files.length > 0 ? (
+            <ul className="max-h-48 divide-y overflow-y-auto rounded-md border text-sm">
+              {files.map((f, i) => (
+                <li key={`${f.name}-${i}`} className="flex min-w-0 items-center justify-between gap-2 px-3 py-2">
+                  <span className="min-w-0 flex-1 truncate" title={f.name}>
+                    {f.name}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {formatSize(BigInt(f.size))}
+                  </span>
+                  {!uploading ? (
+                    <button
+                      type="button"
+                      className="shrink-0 text-muted-foreground hover:text-foreground"
+                      aria-label={t("filePage.removeFile")}
+                      onClick={() => removeAt(i)}
+                    >
+                      <Trash2Icon className="size-4" />
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t("filePage.visibility")}</span>
+            <Select
+              value={visibility}
+              onValueChange={(v) => setVisibility(v as Visibility)}
+              disabled={uploading}
+            >
+              <SelectTrigger className="w-full" aria-label={t("filePage.visibility")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">{t("filePage.visPrivate")}</SelectItem>
+                <SelectItem value="authenticated">{t("filePage.visAuthenticated")}</SelectItem>
+                {isAdmin ? <SelectItem value="public">{t("filePage.visPublic")}</SelectItem> : null}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("filePage.visibilityHint")}</p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button disabled={files.length === 0 || uploading} onClick={() => void startUpload()}>
+            <UploadIcon className="size-4" />
+            {uploading
+              ? t("filePage.uploadProgress", { done, total: files.length })
+              : t("filePage.startUpload")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ActionButtons({
   file,
   t,
@@ -227,6 +432,13 @@ function ActionButtons({
   t: TranslateFn;
   onPreview: (f: ZerxFile) => void;
 }) {
+  const onDownload = async () => {
+    try {
+      await downloadFile(file);
+    } catch (err) {
+      toast.error(errMsg(err, t("filePage.downloadFailed")));
+    }
+  };
   return (
     <div className="flex justify-end gap-2">
       {canPreview(file.contentType) && (
@@ -234,6 +446,9 @@ function ActionButtons({
           {t("filePage.preview")}
         </Button>
       )}
+      <Button variant="ghost" size="sm" onClick={() => void onDownload()}>
+        {t("filePage.download")}
+      </Button>
       <Button variant="ghost" size="sm" asChild>
         <a href={file.url} target="_blank" rel="noopener noreferrer">
           {t("filePage.open")}
@@ -262,6 +477,7 @@ function ListView({
           <TableHead>{t("common.name")}</TableHead>
           <TableHead>{t("filePage.size")}</TableHead>
           <TableHead>{t("filePage.contentType")}</TableHead>
+          <TableHead>{t("filePage.visibility")}</TableHead>
           <TableHead>{t("common.created")}</TableHead>
           <TableHead className="text-right">{t("common.actions")}</TableHead>
         </TableRow>
@@ -269,13 +485,13 @@ function ListView({
       <TableBody>
         {isPending ? (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
               {t("common.loading")}
             </TableCell>
           </TableRow>
         ) : files.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+            <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
               {t("common.noData")}
             </TableCell>
           </TableRow>
@@ -285,6 +501,7 @@ function ListView({
               <TableCell className="max-w-xs truncate font-medium">{f.name}</TableCell>
               <TableCell className="text-muted-foreground">{formatSize(f.size)}</TableCell>
               <TableCell className="font-mono text-xs text-muted-foreground">{f.contentType}</TableCell>
+              <TableCell><VisibilityBadge value={f.visibility} t={t} /></TableCell>
               <TableCell className="text-muted-foreground">
                 {f.createdAt ? new Date(f.createdAt).toLocaleString() : "—"}
               </TableCell>
@@ -326,24 +543,39 @@ function GalleryView({
               type="button"
               disabled={!previewable}
               onClick={() => previewable && onPreview(f)}
-              className="flex aspect-square items-center justify-center bg-muted/40 transition-colors enabled:hover:bg-muted disabled:cursor-default"
+              className="relative flex aspect-square shrink-0 items-center justify-center overflow-hidden bg-muted/40 transition-colors enabled:hover:bg-muted disabled:cursor-default"
             >
               {isImage(f.contentType) ? (
                 <img
                   src={f.url}
                   alt={f.name}
                   loading="lazy"
-                  className="size-full object-cover"
+                  className="absolute inset-0 size-full object-cover"
                 />
               ) : (
                 <FileIcon className="size-10 text-muted-foreground" />
               )}
             </button>
-            <div className="flex items-center justify-between gap-1 border-t px-2 py-1.5">
-              <span className="truncate text-xs font-medium" title={f.name}>
+            <div className="flex flex-col gap-1 border-t px-2 py-1.5">
+              <span className="min-w-0 truncate text-xs font-medium" title={f.name}>
                 {f.name}
               </span>
-              <DeleteFileDialog file={f} compact />
+              <div className="flex items-center justify-between gap-1">
+                <VisibilityBadge value={f.visibility} t={t} />
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="size-6 p-0 text-muted-foreground hover:text-foreground"
+                    aria-label={t("filePage.download")}
+                    title={t("filePage.download")}
+                    onClick={() => void downloadFile(f).catch((err) => toast.error(errMsg(err, t("filePage.downloadFailed"))))}
+                  >
+                    <DownloadIcon className="size-3.5" />
+                  </Button>
+                  <DeleteFileDialog file={f} compact />
+                </div>
+              </div>
             </div>
           </div>
         );

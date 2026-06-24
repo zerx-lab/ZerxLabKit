@@ -14,9 +14,11 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 	"github.com/zerx-lab/zerxlabkit/internal/mailer"
+	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
+	"github.com/zerx-lab/zerxlabkit/internal/storage"
 )
 
 func newAuthService(t *testing.T, db *gorm.DB, cfg config.AuthConfig) *AuthService {
@@ -27,7 +29,9 @@ func newAuthService(t *testing.T, db *gorm.DB, cfg config.AuthConfig) *AuthServi
 	m := mailer.NewMailer(config.SMTPConfig{}, slog.Default())
 	paramCache := param.New(db)
 	_ = paramCache.Load(context.Background())
-	return NewAuthService(db, issuer, guard, captcha.New(), cfg, m, policy, paramCache)
+	store, _ := storage.New(config.StorageConfig{Driver: "local", LocalDir: t.TempDir(), LocalBaseURL: "/uploads"})
+	mr := media.New(store, config.StorageConfig{LocalBaseURL: "/uploads", SignedURLTTL: time.Hour}, []byte("test-sign-key"))
+	return NewAuthService(db, issuer, guard, captcha.New(), cfg, m, policy, paramCache, mr)
 }
 
 func seedUser(t *testing.T, db *gorm.DB, email, password, role string) {
