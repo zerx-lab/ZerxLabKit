@@ -7,7 +7,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import { LogOutIcon, PanelLeftIcon } from "lucide-react";
+import { ChevronDownIcon, LogOutIcon, PanelLeftIcon } from "lucide-react";
 import { useState } from "react";
 
 import { BrandLogo } from "@/components/brand-logo";
@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   logout,
   me,
@@ -33,6 +34,7 @@ import { getUserMenus } from "@/gen/zerx/v1/menu-MenuService_connectquery";
 import { auth, getSessionId } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { menuIcon } from "@/lib/menu-icons";
+import { useSidebarGroups } from "@/lib/use-sidebar-groups";
 import { queryClient } from "@/lib/query-client";
 import { PermissionProvider } from "@/lib/permissions";
 import { SiteProvider, useSite } from "@/lib/site";
@@ -57,12 +59,16 @@ function AuthedLayout() {
   );
 }
 
+const EMPTY_MENUS: Menu[] = [];
+
 function AuthedShell() {
   const { t } = useI18n();
   const site = useSite();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { data, isPending } = useQuery(getUserMenus);
-  const menus = data?.menus ?? [];
+  const menus = data?.menus ?? EMPTY_MENUS;
+  const { isGroupOpen, toggleGroup, activeGroupId } = useSidebarGroups(menus, location.pathname);
 
   return (
     <div className="flex h-svh w-full overflow-hidden">
@@ -93,7 +99,14 @@ function AuthedShell() {
             </div>
           ) : (
             menus.map((menu) => (
-              <SidebarNode key={String(menu.id)} menu={menu} collapsed={collapsed} />
+              <SidebarNode
+                key={String(menu.id)}
+                menu={menu}
+                collapsed={collapsed}
+                isGroupOpen={isGroupOpen}
+                onToggleGroup={toggleGroup}
+                activeGroupId={activeGroupId}
+              />
             ))
           )}
         </nav>
@@ -109,41 +122,117 @@ function AuthedShell() {
   );
 }
 
-function SidebarNode({ menu, collapsed }: { menu: Menu; collapsed: boolean }) {
+function SidebarNode({
+  menu,
+  collapsed,
+  isGroupOpen,
+  onToggleGroup,
+  activeGroupId,
+}: {
+  menu: Menu;
+  collapsed: boolean;
+  isGroupOpen: (id: string) => boolean;
+  onToggleGroup: (id: string) => void;
+  activeGroupId: string | undefined;
+}) {
   const { t } = useI18n();
   const Icon = menuIcon(menu.icon);
 
-  // Group heading (no path): render a label + its children.
+  // Group heading (no path): a collapsible section.
   if (menu.path === "") {
+    const groupId = String(menu.id);
+    const children = menu.children.map((child) => (
+      <SidebarNode
+        key={String(child.id)}
+        menu={child}
+        collapsed={collapsed}
+        isGroupOpen={isGroupOpen}
+        onToggleGroup={onToggleGroup}
+        activeGroupId={activeGroupId}
+      />
+    ));
+
+    // Icon-rail (sidebar collapsed): ignore per-group collapse, always show all
+    // children flat with a divider; no clickable chevron.
+    if (collapsed) {
+      return (
+        <>
+          <div aria-hidden="true" className="my-1 border-t border-sidebar-border" />
+          {children}
+        </>
+      );
+    }
+
+    const isOpen = isGroupOpen(groupId);
+    const isActiveGroup = activeGroupId === groupId;
+    const panelId = `sidebar-group-${groupId}`;
+
     return (
       <div className="flex flex-col gap-1">
-        {!collapsed && (
-          <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">
-            {t(menu.title)}
-          </p>
-        )}
-        {menu.children.map((child) => (
-          <SidebarNode key={String(child.id)} menu={child} collapsed={collapsed} />
-        ))}
+        <button
+          type="button"
+          onClick={() => onToggleGroup(groupId)}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          aria-label={`${t(isOpen ? "common.collapse" : "common.expand")} ${t(menu.title)}`}
+          className={cn(
+            "flex w-full items-center justify-between px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide transition-colors",
+            isActiveGroup ? "text-sidebar-foreground" : "text-sidebar-foreground/60",
+          )}
+        >
+          <span className="truncate">{t(menu.title)}</span>
+          <ChevronDownIcon
+            className={cn(
+              "size-3.5 shrink-0 transition-transform duration-200",
+              !isOpen && "-rotate-90",
+            )}
+          />
+        </button>
+        <div
+          id={panelId}
+          {...(!isOpen && { inert: true })}
+          className={cn(
+            "grid transition-[grid-template-rows] duration-200",
+            isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+        >
+          <div className="flex min-h-0 flex-col gap-1 overflow-hidden">{children}</div>
+        </div>
       </div>
     );
   }
 
-  return (
+  const link = (
     <Link
       to={menu.path}
-      title={t(menu.title)}
       className={cn(
         "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors",
         "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         "data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-primary",
-        collapsed && "justify-center px-0",
+        collapsed
+          ? "justify-center px-0"
+          : "border-l-2 border-transparent data-[status=active]:border-sidebar-primary",
       )}
     >
       <Icon className="size-4 shrink-0" />
       {!collapsed && <span className="truncate">{t(menu.title)}</span>}
     </Link>
   );
+
+  // Collapsed icon-rail: labels are hidden, so surface the title via tooltip
+  // (keyboard-focusable, unlike the native title attribute).
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right" sideOffset={4}>
+          {t(menu.title)}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return link;
 }
 
 function findMenuTitle(menus: Menu[], pathname: string): string | undefined {

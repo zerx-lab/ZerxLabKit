@@ -63,6 +63,8 @@ const en = {
     download: "Download",
     upload: "Upload",
     run: "Run",
+    expand: "Expand",
+    collapse: "Collapse",
   },
   nav: {
     dashboard: "Dashboard",
@@ -470,6 +472,8 @@ const zh: typeof en = {
     download: "下载",
     upload: "上传",
     run: "执行",
+    expand: "展开",
+    collapse: "收起",
   },
   nav: {
     dashboard: "仪表盘",
