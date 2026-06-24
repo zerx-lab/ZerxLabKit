@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  dep:
+    desc: Resolve buf dependencies into buf.lock
+    cmds:
+      - buf dep update
+
+  gen:
+    desc: Generate Go (gen/go) and TS (web/src/gen) from proto
+    cmds:
+      # Go: handlers + messages (no --include-imports; protovalidate comes from the Go module)
+      - buf generate
+      # TS: messages + connect-query hooks, including the protovalidate descriptor
+      - buf generate --template buf.gen.web.yaml --include-imports

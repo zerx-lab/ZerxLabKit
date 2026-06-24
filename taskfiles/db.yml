@@ -1,0 +1,10 @@
+version: "3"
+
+vars:
+  GORM: '{{.ROOT_DIR}}/.bin/gorm{{if eq OS "windows"}}.exe{{end}}'
+
+tasks:
+  gen:
+    desc: Generate the type-safe GORM query package (internal/query)
+    cmds:
+      - "{{.GORM}} gen -i ./internal/model -o ./internal/query"

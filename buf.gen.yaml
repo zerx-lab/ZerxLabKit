@@ -1,0 +1,13 @@
+version: v2
+clean: true
+inputs:
+  - directory: proto
+plugins:
+  # Go message types
+  - local: ["go", "run", "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11"]
+    out: gen/go
+    opt: paths=source_relative
+  # Go connectRPC handlers/clients
+  - local: ["go", "run", "connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.19.2"]
+    out: gen/go
+    opt: paths=source_relative

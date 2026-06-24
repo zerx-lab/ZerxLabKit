@@ -1,0 +1,125 @@
+# zerxLabKit — AI 开发指南
+
+> 本文件指导在本仓库之上进行的后续开发(人类与 AI 通用)。所有面向用户的叙述请用**简体中文**(与全局规则一致);代码、命令、标识符保持原样。
+
+## 1. 项目概览
+
+生产可部署、AI 友好的全栈后台管理脚手架:
+
+- **后端**:Go + [connectRPC](https://connectrpc.com)(HTTP/1.1 + h2c)、[GORM](https://gorm.io) 泛型 API + GORM CLI 代码生成、多数据源(PostgreSQL / MySQL / SQLite)。
+- **前端**:React 19 + Vite + TanStack(Router / Query / Table / Form)+ Radix(shadcn/ui)+ Tailwind v4 + Zod 4。
+- **打包**:后端用 `go:embed` 内嵌前端产物;`CGO_ENABLED=0` 全静态二进制 + distroless 镜像(无 glibc,镜像约 44 MB)。
+- **契约**:proto 声明式校验(protovalidate)、JWT 认证、最小 RBAC。
+- **质量门禁**:Go 空指针静态分析(nilaway)、govet nilness、golangci-lint;前端严格 TypeScript + ESLint。
+
+数据流:浏览器 SPA → `/api/...`(同源)→ connectRPC handler → 拦截器链(日志 → 认证 → 校验 → recover)→ service → GORM → 数据库。生产为单二进制同源部署;开发用 Vite 代理(`:5173` → `:8080`)。
+
+## 2. 目录结构
+
+```
+.
+├── Taskfile.yml + taskfiles/{backend,frontend,proto,db,deps,docker}.yml  # 一键化
+├── buf.yaml / buf.gen.yaml(Go)/ buf.gen.web.yaml(TS)/ buf.lock
+├── proto/zerx/v1/{common,auth,user}.proto      # 唯一契约来源
+├── gen/go/zerx/v1/                             # 生成(提交):*.pb.go + zerxv1connect/*.connect.go
+├── cmd/server/main.go                          # 入口:config→db→migrate→seed→serve(h2c)
+├── internal/
+│   ├── config/      # 12-factor 类型化配置(caarlos0/env + godotenv)
+│   ├── database/    # Open(多数据源)/ Migrate / SeedAdmin / gen.go(go:generate)
+│   ├── model/       # GORM 模型 + querier.go(GORM CLI 输入接口)
+│   ├── query/       # GORM CLI 生成(提交):Query[T] + 字段助手
+│   ├── auth/        # bcrypt / JWT / ctx claims / 认证拦截器 / RequireRole
+│   ├── service/     # connectRPC handler 实现 + convert.go
+│   ├── server/      # New() 装配:拦截器链 + /api 路由 + SPA + /healthz
+│   └── web/         # embed.go(go:embed all:dist)+ dist/(前端产物落点)
+└── web/
+    ├── vite.config.ts / tsconfig*.json / eslint.config.js / components.json
+    └── src/
+        ├── main.tsx / router.tsx / styles.css / routeTree.gen.ts(生成,提交)
+        ├── gen/                # 生成(提交):*_pb.ts + *-<Service>_connectquery.ts + buf/validate/validate_pb.ts
+        ├── lib/{transport,query-client,auth,utils,form}.ts
+        ├── components/ui/      # shadcn 组件(自有,可改)
+        └── routes/{__root,index,login}.tsx + _authed/{route,dashboard,users}.tsx
+```
+
+**生成代码全部提交入库**(`gen/`、`web/src/gen/`、`internal/query/`、`web/src/routeTree.gen.ts`),因此 Docker / CI / 日常构建**不重跑 codegen**,且 AI 始终能看到完整类型。
+
+## 3. 技术栈与版本
+
+精确版本以 `go.mod` 与 `web/package.json` 为准(由 lockfile 钉死)。关键主版本:
+
+| 领域 | 选型 |
+|---|---|
+| Go | 1.26;connect v1.19.x、protobuf-go v1.36.x、gorm v1.31.x、gorm/cli v0.2.x、jwt/v5、glebarez/sqlite(纯 Go)、driver/postgres(pgx,纯 Go)、driver/mysql |
+| 校验 | protovalidate(connectrpc.com/validate,**unstable,钉精确版本**) |
+| 前端 | React 19、TanStack Router/Query v5/Table **v8**/Form v1、protobuf-es v2、connect/connect-web/connect-query v2、Zod **v4**、Tailwind **v4**、Vite v8、TypeScript 6 |
+| 工具 | buf(系统级)、golangci-lint v2 + nilaway(`go.mod` tool 块,`go tool` 调用)、air + gorm cli(`go install` 到 `./.bin`) |
+
+## 4. 一键命令(Taskfile)
+
+| 命令 | 作用 |
+|---|---|
+| `task sync` | 首次设置:装工具/依赖 → 生成代码 → `go mod tidy` → 创建 `.env` |
+| `task dev` | 并行跑后端(air 热重载)+ 前端(Vite),前端 `:5173` 代理到后端 `:8080` |
+| `task gen` | 生成全部代码(proto Go/TS + GORM 查询) |
+| `task build` | 构建 SPA → 本机单二进制(内嵌 SPA),产物 `bin/zerxlabkit[.exe]` |
+| `task build:dist` | 构建 SPA → 静态 `linux/amd64` 二进制 `bin/zerxlabkit-linux-amd64` |
+| `task lint` | 后端 golangci-lint + nilaway;前端 ESLint + `tsc --noEmit` |
+| `task test` | `go test ./...`(前端暂无测试) |
+| `task run` | 运行已构建二进制(需 `JWT_SECRET`,`.env` 在 dev 即可) |
+| `task docker:build` / `docker:up` / `docker:down` | 构建镜像 / 起停 compose(app + postgres + mysql) |
+| `task deps:update` / `deps:rollback` | 升级全部依赖(先快照)/ 从快照回退 |
+
+**提交前务必**:`task lint && task test`。
+
+## 5. AI 工作流(如何扩展)
+
+### 新增一个 RPC
+1. 编辑 `proto/zerx/v1/*.proto`,加 message / rpc;**方法名避开 JS 保留字**(会被前端导出转义)。校验约束写在字段上:`[(buf.validate.field).string.email = true]`。
+2. `task gen` → 产出 Go handler 接口 + TS 类型 + connect-query hook。
+3. 在 `internal/service/` 实现 handler 方法;**写操作(Create/Update/Delete)首行加** `if err := auth.RequireRole(ctx, model.RoleAdmin); err != nil { return nil, err }`。
+4. 若新增 service:在 `internal/server/server.go` 用 `api.Handle(zerxv1connect.NewXxxServiceHandler(svc, opts))` 注册;免认证的 procedure 加入 `public` map。
+5. 前端:`import { method } from "@/gen/.../<svc>-<Service>_connectquery"`,用 `useQuery(method, input?)` / `useMutation(method)`。
+
+### 新增模型 / 自定义查询
+1. 在 `internal/model/` 写结构体;在 `internal/database/migrate.go` 的 `AutoMigrate` 加入。
+2. 数据访问优先泛型 API:`gorm.G[model.T](db).Where(...).First(ctx)` / `.Find(ctx)` / `.Create(ctx, &x)`。
+3. 需要自定义 SQL 时,在 `internal/model/querier.go` 的接口方法上写 SQL 注释(**绑定参数 `@name`、单引号字符串,且 raw SQL 不走软删,需显式 `AND deleted_at IS NULL`**),再 `task gen`(或 `task db:gen`)。
+
+### 校验与鉴权
+- 输入校验全部声明在 proto 上,由 `validate.NewInterceptor()` 在服务端自动执行 → 失败返回 `CodeInvalidArgument`;handler 内的 `req.Msg` 已被保证非空且合法。
+- 认证由 `auth.NewAuthInterceptor` 处理:解析 `Authorization: Bearer <access>` → 注入 claims;非 public procedure 无有效 token → `CodeUnauthenticated`。授权用 `auth.RequireRole`。
+
+## 6. 易错点清单
+
+### 后端
+- `Count` 必须传列名:`gorm.G[T](db).Count(ctx, "id")`。
+- 判定无记录用 `errors.Is(err, gorm.ErrRecordNotFound)`;泛型 `First` 返回 `(T, error)`,**没有 `.Error` 字段**(已移除 `FirstOrCreate`/`Save`)。
+- 读取 proto 字段用 **getter**(`req.Msg.GetEmail()`),这样 nilaway 能识别空安全;直接取字段可能被 nilaway 标记。
+- proto 方法名**避开 JS 保留字**。
+- 自定义 querier 用绑定参数 + 显式 `deleted_at IS NULL`(见上)。
+- `task lint` 会跑 **nilaway**(已 `-exclude-pkgs` 排除 `gen`、`internal/query`)。
+
+### 前端
+- react-query v5:用 `gcTime`(非 `cacheTime`)、`placeholderData`、`isPending`(非 `isLoading` 语义)。
+- Tailwind v4:动画用 `tw-animate-css`(非 `tailwindcss-animate`);**无** `tailwind.config.js` / `postcss.config.js`,主题变量在 `src/styles.css`。
+- Zod 4:用顶层格式函数 `z.email()` 等;object 级 `.refine/.check` 仅在所有基础字段通过后运行;Standard Schema **不做 transform**,`onSubmit` 拿到的是输入值。
+- connect `Interceptor` 数组**末尾先执行**(洋葱模型)。
+- `createConnectQueryKey` 用**对象参**:`createConnectQueryKey({ schema: method, cardinality: "finite", input? })`,用于 `invalidateQueries`。
+- `uint64` → **`bigint`**(如 `User.id` 是 `bigint`):显示用 `String(id)`,传参直接用 `bigint`。
+- 表单用 **`@tanstack/react-form`**(不是 shadcn 的 `form` 组件 / react-hook-form);可复用字段组件可用 `AnyFieldApi` 类型。
+- TS 已**关闭 `exactOptionalPropertyTypes`**:它与 shadcn/Radix 组件不兼容(会让每次 `shadcn add` 的组件报错)。其余严格 flag(`strict`、`noUncheckedIndexedAccess`、`noUnusedLocals/Parameters`)保留。
+
+## 7. 安全
+
+- **生产必设 `JWT_SECRET`**:缺失则启动失败(`os.Exit(1)`)。
+- **生产必设 `SEED_ADMIN_PASSWORD`**:非 dev 环境若仍为默认密码,seed 会被拒绝并打印警告、跳过(避免出厂默认管理员)。
+- h2c(明文 HTTP/2)仅供 `grpcurl` 等工具;浏览器 SPA 走 HTTP/1.1,不依赖 h2c。
+- 访问令牌 15m、刷新令牌 168h;前端 `transport.ts` 实现 401 → single-flight 刷新 → 重试一次 → 仍失败则清 token 跳登录。
+
+## 8. 版本维护
+
+- `buf.gen.yaml` 内 Go 插件的 `@version` 字符串(`protoc-gen-go`、`protoc-gen-connect-go`)需与 `go.mod` 中对应库版本**手动保持一致**;升级库后同步改这两个字符串再 `task gen`。
+- TS proto 生成走 `buf.gen.web.yaml` + `--include-imports`(为生成 `buf/validate/validate_pb.ts`);Go 生成不加该 flag(protovalidate 来自 Go module,避免重复生成 WKT)。
+- `connectrpc.com/validate` 为 unstable,升级前先读其 CHANGELOG。
+- 升级流程:`task deps:update`(自动快照)→ `task build && task lint && task test` 验证;有问题 `task deps:rollback`。

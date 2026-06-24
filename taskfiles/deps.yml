@@ -1,0 +1,36 @@
+version: "3"
+
+vars:
+  SNAP: "{{.ROOT_DIR}}/.deps-snapshot"
+  GORM: '{{.ROOT_DIR}}/.bin/gorm{{if eq OS "windows"}}.exe{{end}}'
+
+tasks:
+  snapshot:
+    desc: Snapshot dependency manifests so updates can be rolled back
+    cmds:
+      - cmd: mkdir -p {{.SNAP}}
+      - cmd: cp go.mod go.sum buf.lock {{.SNAP}}/
+      - cmd: cp web/pnpm-lock.yaml {{.SNAP}}/pnpm-lock.yaml
+
+  update:
+    desc: Upgrade all dependencies (snapshots first), then regenerate code
+    cmds:
+      - task: snapshot
+      - go get -u ./...
+      - go mod tidy
+      - pnpm -C web update --latest
+      - buf dep update
+      - buf generate
+      - buf generate --template buf.gen.web.yaml --include-imports
+      - "{{.GORM}} gen -i ./internal/model -o ./internal/query"
+      - go mod tidy
+
+  rollback:
+    desc: Restore dependencies from the last snapshot
+    cmds:
+      - cmd: cp {{.SNAP}}/go.mod go.mod
+      - cmd: cp {{.SNAP}}/go.sum go.sum
+      - cmd: cp {{.SNAP}}/buf.lock buf.lock
+      - cmd: cp {{.SNAP}}/pnpm-lock.yaml web/pnpm-lock.yaml
+      - go mod download
+      - pnpm -C web install --frozen-lockfile

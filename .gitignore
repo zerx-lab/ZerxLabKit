@@ -1,0 +1,30 @@
+# Local tool binaries (go install GOBIN target)
+/.bin/
+
+# Build outputs
+/bin/
+
+# Frontend
+web/node_modules/
+web/dist/
+
+# Embedded frontend build output (keep placeholder)
+internal/web/dist/*
+!internal/web/dist/.gitkeep
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+
+# Runtime / temp
+/tmp/
+
+# Dependency snapshots (deps:rollback)
+/.deps-snapshot/
+
+# Note: generated code IS committed (not ignored):
+#   gen/  web/src/gen/  internal/query/  web/src/routeTree.gen.ts

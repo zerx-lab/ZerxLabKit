@@ -1,0 +1,78 @@
+version: "3"
+
+vars:
+  BIN: 'bin/zerxlabkit{{if eq OS "windows"}}.exe{{end}}'
+  GOBIN: "{{.ROOT_DIR}}/.bin"
+  MODULE: github.com/zerx-lab/zerxlabkit
+
+includes:
+  backend: { taskfile: ./taskfiles/backend.yml, dir: "{{.ROOT_DIR}}" }
+  frontend: { taskfile: ./taskfiles/frontend.yml, dir: "{{.ROOT_DIR}}" }
+  proto: { taskfile: ./taskfiles/proto.yml, dir: "{{.ROOT_DIR}}" }
+  db: { taskfile: ./taskfiles/db.yml, dir: "{{.ROOT_DIR}}" }
+  deps: { taskfile: ./taskfiles/deps.yml, dir: "{{.ROOT_DIR}}" }
+  docker: { taskfile: ./taskfiles/docker.yml, dir: "{{.ROOT_DIR}}" }
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  sync:
+    desc: One-shot setup — install tools/deps, generate code, create .env
+    cmds:
+      - task: backend:tools
+      - task: frontend:install
+      - task: proto:dep
+      - task: gen
+      - go mod tidy
+      - task: env:ensure
+
+  env:ensure:
+    internal: true
+    silent: true
+    cmds:
+      - cmd: '[ -f .env ] || cp .env.example .env'
+
+  gen:
+    desc: Generate all code (proto + db query) into committed source
+    cmds:
+      - task: proto:gen
+      - task: db:gen
+
+  dev:
+    desc: Run backend (air) and frontend (vite) together
+    deps:
+      - backend:dev
+      - frontend:dev
+
+  build:
+    desc: Build the SPA, then the native server binary that embeds it
+    cmds:
+      - task: frontend:build
+      - task: backend:build
+
+  build:dist:
+    desc: Build the SPA, then a static linux/amd64 binary for deployment
+    cmds:
+      - task: frontend:build
+      - task: backend:build:linux
+
+  lint:
+    desc: Lint backend (golangci-lint + nilaway) and frontend (eslint + tsc)
+    cmds:
+      - task: backend:lint
+      - task: frontend:lint
+
+  test:
+    desc: Run backend and frontend tests
+    cmds:
+      - task: backend:test
+      - task: frontend:test
+
+  run:
+    desc: Run the built server binary (requires JWT_SECRET; .env suffices in dev)
+    cmds:
+      - "{{.BIN}}"

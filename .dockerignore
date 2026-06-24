@@ -1,0 +1,11 @@
+web/node_modules
+.git
+tmp
+.bin
+*.db
+*.db-shm
+*.db-wal
+.env
+bin
+.deps-snapshot
+internal/web/dist

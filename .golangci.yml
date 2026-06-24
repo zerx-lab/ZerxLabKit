@@ -1,0 +1,19 @@
+version: "2"
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  settings:
+    govet:
+      enable:
+        - nilness
+  exclusions:
+    # Generated code is detected by header and skipped; these are belt-and-suspenders.
+    generated: lax
+    paths:
+      - gen/
+      - internal/query/

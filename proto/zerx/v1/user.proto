@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// User is the public representation of an account (no password hash).
+message User {
+  uint64 id = 1;
+  string email = 2;
+  string name = 3;
+  string role = 4;
+  // created_at is RFC3339 formatted.
+  string created_at = 5;
+}
+
+// UserService manages user accounts. Write operations require the admin role.
+service UserService {
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+}
+
+message ListUsersRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int64 total = 2;
+}
+
+message GetUserRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message CreateUserRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string password = 3 [(buf.validate.field).string.min_len = 8];
+  string role = 4 [(buf.validate.field).string = {in: ["admin", "user"]}];
+}
+
+message UpdateUserRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2;
+  string role = 3 [(buf.validate.field).string = {in: ["admin", "user"]}];
+}
+
+message DeleteUserRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteUserResponse {}
