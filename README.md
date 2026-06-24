@@ -53,7 +53,7 @@ task dev
 
 ## 🧬 基于本模板创建新项目
 
-用内置 CLI `zerxnew` 从本模板克隆并改名,一键生成独立可运行的新项目(改 Go module 路径、二进制名、Docker 镜像/卷名、前端包名、品牌显示名、默认库名、localStorage key 前缀)。
+用内置 CLI `zerxKit` 从本模板克隆并改名,一键生成独立可运行的新项目(改 Go module 路径、二进制名、Docker 镜像/卷名、前端包名、品牌显示名、默认库名、localStorage key 前缀)。
 
 **两种用法:**
 
@@ -62,8 +62,8 @@ task dev
 task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]
 
 # 2) 全局安装(无需先 clone):
-go install github.com/zerx-lab/ZerxLabKit/cmd/zerxnew@latest
-zerxnew github.com/acme/foo ../foo [--brand Foo] [--db foo]
+go install github.com/zerx-lab/ZerxLabKit/cmd/zerxKit@latest
+zerxKit github.com/acme/foo ../foo [--brand Foo] [--db foo]
 ```
 
 - 位置参数:新 module 路径(必填)、目标目录(可选,缺省 `./<module 末段>`)。

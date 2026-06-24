@@ -1,4 +1,4 @@
-// Command zerxnew scaffolds a new project from this template repository.
+// Command zerxKit scaffolds a new project from this template repository.
 //
 // It clones the current repository's committed files into a new directory,
 // rewriting the Go module path, binary/image/volume names, the frontend
@@ -11,7 +11,7 @@
 //
 // Usage:
 //
-//	zerxnew newModule [dir] [--brand Name] [--db dbname]
+//	zerxKit newModule [dir] [--brand Name] [--db dbname]
 //
 // newModule is the new Go module path (e.g. github.com/acme/foo). dir defaults
 // to ./<base of newModule>. --brand defaults to the new short name; --db
@@ -66,7 +66,7 @@ var localStorageKeys = []string{
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "zerxnew:", err)
+		fmt.Fprintln(os.Stderr, "zerxKit:", err)
 		os.Exit(1)
 	}
 }
@@ -108,7 +108,7 @@ func run() error {
 		}
 	}
 	if len(args) < 1 {
-		return fmt.Errorf("usage: zerxnew newModule [dir] [--brand Name] [--db dbname] [--from dir]")
+		return fmt.Errorf("usage: zerxKit newModule [dir] [--brand Name] [--db dbname] [--from dir]")
 	}
 	newModule := args[0]
 	if err := module.CheckPath(newModule); err != nil {
@@ -470,7 +470,7 @@ func isBinary(data []byte) bool {
 //   - from != "": use that directory verbatim (no cache, no tag lock). This is
 //     how `task new` runs inside the repo (--from <repo root>).
 //   - binary version is "(devel)" / unknown: use the current working directory
-//     (running `go run ./cmd/zerxnew` inside a checkout).
+//     (running `go run ./cmd/zerxKit` inside a checkout).
 //   - installed binary (real tag or pseudo-version): clone/checkout the template
 //     at that version into ~/.ZerxLabKit/<version> and use it.
 func resolveTemplate(from string) (string, error) {
@@ -556,11 +556,11 @@ func ensureTemplate(version string) (string, error) {
 	// fall back to the cached copy with a warning when fetch fails (lenient).
 	branch, branchErr := defaultBranch(dir)
 	if branchErr != nil {
-		fmt.Fprintf(os.Stderr, "zerxnew: warning: cannot determine default branch (%v); using cached template\n", branchErr)
+		fmt.Fprintf(os.Stderr, "zerxKit: warning: cannot determine default branch (%v); using cached template\n", branchErr)
 		return dir, nil
 	}
 	if fetchErr := runGit(dir, "fetch", "--depth", "1", "origin", branch); fetchErr != nil {
-		fmt.Fprintf(os.Stderr, "zerxnew: warning: cannot check for template updates (%v); using cached template\n", fetchErr)
+		fmt.Fprintf(os.Stderr, "zerxKit: warning: cannot check for template updates (%v); using cached template\n", fetchErr)
 		return dir, nil
 	}
 	// Cache is a derived, read-only mirror: hard-reset, discarding any local edits.

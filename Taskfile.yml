@@ -85,4 +85,4 @@ tasks:
   new:
     desc: 'Scaffold a new project from this template (rename module/brand/db). Usage: task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]'
     cmds:
-      - go run ./cmd/zerxnew {{.CLI_ARGS}} --from {{.ROOT_DIR}}
+      - go run ./cmd/zerxKit {{.CLI_ARGS}} --from {{.ROOT_DIR}}
