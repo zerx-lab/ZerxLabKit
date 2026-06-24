@@ -53,14 +53,14 @@
 | Go | 1.26;connect v1.19.x、protobuf-go v1.36.x、gorm v1.31.x、gorm/cli v0.2.x、jwt/v5、glebarez/sqlite(纯 Go)、driver/postgres(pgx,纯 Go)、driver/mysql |
 | 校验 | protovalidate(connectrpc.com/validate,**unstable,钉精确版本**) |
 | 前端 | React 19、TanStack Router/Query v5/Table **v8**/Form v1、protobuf-es v2、connect/connect-web/connect-query v2、Zod **v4**、Tailwind **v4**、Vite v8、TypeScript 6 |
-| 工具 | buf(系统级)、golangci-lint v2 + nilaway(`go.mod` tool 块,`go tool` 调用)、air + gorm cli(`go install` 到 `./.bin`) |
+| 工具 | buf(系统级)、golangci-lint v2 + nilaway(`go.mod` tool 块,`go tool` 调用)、air + gorm cli + process-compose(`go install` 到 `./.bin`) |
 
 ## 4. 一键命令(Taskfile)
 
 | 命令 | 作用 |
 |---|---|
 | `task sync` | 首次设置:装工具/依赖 → 生成代码 → `go mod tidy` → 创建 `.env` |
-| `task dev` | 并行跑后端(air 热重载)+ 前端(Vite),前端 `:5173` 代理到后端 `:8080` |
+| `task dev` | 在 **process-compose TUI** 中并行跑后端(air 热重载)+ 前端(Vite);前端 `:5173` 代理到后端 `:8080`。TUI:↑/↓ 选择 · F5 重启 · F9 停止 · F7 启动 · F10 退出。process-compose 自身 API 用 `:8088`(避让应用的 `:8080`);退出会连带清理子进程(不会残留占用 `:8080`) |
 | `task gen` | 生成全部代码(proto Go/TS + GORM 查询) |
 | `task build` | 构建 SPA → 本机单二进制(内嵌 SPA),产物 `bin/zerxlabkit[.exe]` |
 | `task build:dist` | 构建 SPA → 静态 `linux/amd64` 二进制 `bin/zerxlabkit-linux-amd64` |

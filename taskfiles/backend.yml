@@ -8,7 +8,7 @@ vars:
 
 tasks:
   tools:
-    desc: Install local Go tools (air, gorm cli) into .bin; verify system buf
+    desc: Install local Go tools (air, gorm cli, process-compose) into .bin; verify system buf
     env:
       GOBIN: "{{.GOBIN}}"
     cmds:
@@ -16,6 +16,7 @@ tasks:
         silent: true
       - go install github.com/air-verse/air@latest
       - go install gorm.io/cli/gorm@latest
+      - go install github.com/f1bonacc1/process-compose@latest
 
   dev:
     desc: Run the server with hot reload via air

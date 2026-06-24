@@ -43,10 +43,14 @@ tasks:
       - task: db:gen
 
   dev:
-    desc: Run backend (air) and frontend (vite) together
-    deps:
-      - backend:dev
-      - frontend:dev
+    desc: Run backend (air hot-reload) + frontend (Vite) in a process-compose TUI
+    deps: [env:ensure]
+    env:
+      ZERX_AIR: '{{.ROOT_DIR}}/.bin/air{{if eq OS "windows"}}.exe{{end}}'
+    cmds:
+      # TUI: ↑/↓ select · F5 restart · F9 stop · F7 start · F10 quit.
+      # process-compose's own API runs on 8088 to avoid the app's :8080.
+      - '{{.ROOT_DIR}}/.bin/process-compose{{if eq OS "windows"}}.exe{{end}} up -p 8088'
 
   build:
     desc: Build the SPA, then the native server binary that embeds it
