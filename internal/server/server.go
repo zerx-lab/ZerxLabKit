@@ -4,14 +4,18 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"sort"
+	"strings"
 
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
 	"gorm.io/gorm"
 
 	"github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1/zerxv1connect"
+	"github.com/zerx-lab/zerxlabkit/internal/apispec"
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/captcha"
 	"github.com/zerx-lab/zerxlabkit/internal/casbin"
@@ -77,15 +81,24 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 	)
 
 	api := http.NewServeMux()
-	api.Handle(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth), opts))
-	api.Handle(zerxv1connect.NewUserServiceHandler(service.NewUserService(db), opts))
-	api.Handle(zerxv1connect.NewRoleServiceHandler(service.NewRoleService(db, enforcer), opts))
-	api.Handle(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db), opts))
-	api.Handle(zerxv1connect.NewApiServiceHandler(service.NewApiService(db, enforcer), opts))
-	api.Handle(zerxv1connect.NewDictServiceHandler(service.NewDictService(db), opts))
-	api.Handle(zerxv1connect.NewSysParamServiceHandler(service.NewSysParamService(db, paramCache), opts))
-	api.Handle(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store), opts))
-	api.Handle(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
+	var registered []string
+	reg := func(path string, h http.Handler) {
+		registered = append(registered, path)
+		api.Handle(path, h)
+	}
+	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth), opts))
+	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db), opts))
+	reg(zerxv1connect.NewRoleServiceHandler(service.NewRoleService(db, enforcer), opts))
+	reg(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db), opts))
+	reg(zerxv1connect.NewApiServiceHandler(service.NewApiService(db, enforcer), opts))
+	reg(zerxv1connect.NewDictServiceHandler(service.NewDictService(db), opts))
+	reg(zerxv1connect.NewSysParamServiceHandler(service.NewSysParamService(db, paramCache), opts))
+	reg(zerxv1connect.NewFileServiceHandler(service.NewFileService(db, store), opts))
+	reg(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
+
+	if err := assertServicesRegistered(registered); err != nil {
+		return nil, err
+	}
 
 	root := http.NewServeMux()
 	// Exact path registered before the /api/ subtree so it wins routing.
@@ -102,4 +115,30 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) (http.Handler, er
 	root.Handle("/", web.SPAHandler())
 
 	return root, nil
+}
+
+// assertServicesRegistered fails if any zerx.v1 service present in the compiled
+// protobuf descriptors is not mounted in the API mux — guarding against adding a
+// proto service but forgetting its api.Handle registration (which 404s silently).
+func assertServicesRegistered(registered []string) error {
+	mounted := make(map[string]bool, len(registered))
+	for _, p := range registered {
+		mounted[strings.Trim(p, "/")] = true // "/zerx.v1.UserService/" -> "zerx.v1.UserService"
+	}
+	seen := make(map[string]bool)
+	var missing []string
+	for _, proc := range apispec.Procedures() {
+		if seen[proc.Service] {
+			continue
+		}
+		seen[proc.Service] = true
+		if !mounted[proc.Service] {
+			missing = append(missing, proc.Service)
+		}
+	}
+	if len(missing) > 0 {
+		sort.Strings(missing)
+		return fmt.Errorf("server: unregistered connectRPC services: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }

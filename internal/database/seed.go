@@ -30,7 +30,8 @@ func crudButtons(resource, label string) []model.MenuButton {
 
 // seedMenus is the single source of truth for the navigation tree. Titles are
 // i18n keys (translated on the client); Icon values are lucide icon names. To
-// add a module: add a route file plus one entry here.
+// add a module: add a route file plus one entry here. After a restart syncMenus
+// reconciles the entry into an existing database, so no DB reset is needed.
 //
 // Group headings (Path == "") have ParentID 0; their children reference the
 // group by ParentID. Because IDs are assigned at insert time, parent links are
@@ -65,17 +66,22 @@ type seedMenuNode struct {
 	children []seedMenuNode
 }
 
-// Seed populates baseline RBAC data. It is idempotent on the Role table being
-// empty, so it runs only on a fresh database. Casbin policies are NOT seeded:
-// admin bypasses enforcement and the user role relies only on self-serve
-// procedures.
+// Seed populates baseline RBAC data on a fresh database (idempotent on the Role
+// table being empty). On an already-initialized database it incrementally
+// reconciles menus and the API catalog every startup via syncMenus/syncAPIs
+// (insert-only: never updates or deletes), so new entries take effect on
+// restart without a DB reset. Casbin policies are NOT seeded: admin bypasses
+// enforcement and the user role relies only on self-serve procedures.
 func Seed(db *gorm.DB) error {
 	count, err := gorm.G[model.Role](db).Count(context.Background(), "id")
 	if err != nil {
 		return fmt.Errorf("seed: count roles: %w", err)
 	}
 	if count > 0 {
-		// Roles exist already: only keep the API catalog fresh.
+		// Roles exist already: incrementally reconcile menus + API catalog.
+		if err := syncMenus(db); err != nil {
+			return err
+		}
 		return syncAPIs(db)
 	}
 
@@ -154,6 +160,92 @@ func Seed(db *gorm.DB) error {
 	}
 
 	return syncAPIs(db)
+}
+
+// syncMenus additively reconciles the seed navigation tree into an existing
+// database: menus are matched by Name, buttons by (menu_id, code). Missing rows
+// are inserted; existing rows are never modified or deleted (admin edits and
+// manually-created menus are preserved). This differs deliberately from syncAPIs,
+// which prunes stale rows: menus carry RoleMenu/RoleButton associations and may
+// be hand-edited by admins, so removal is left to manual operation. Newly
+// inserted rows receive the same role grants a fresh seed would create (admin:
+// every menu+button; user: menus flagged userVisible) so admin sees them
+// immediately and the DB state matches a fresh seed. Idempotent: a second run
+// inserts nothing.
+func syncMenus(db *gorm.DB) error {
+	ctx := context.Background()
+
+	existing, err := gorm.G[model.Menu](db).Find(ctx)
+	if err != nil {
+		return fmt.Errorf("sync menus: load menus: %w", err)
+	}
+	byName := make(map[string]uint64, len(existing))
+	for i := range existing {
+		byName[existing[i].Name] = existing[i].ID
+	}
+
+	existingButtons, err := gorm.G[model.MenuButton](db).Find(ctx)
+	if err != nil {
+		return fmt.Errorf("sync menus: load buttons: %w", err)
+	}
+	haveButton := make(map[string]bool, len(existingButtons))
+	for i := range existingButtons {
+		haveButton[buttonKey(existingButtons[i].MenuID, existingButtons[i].Code)] = true
+	}
+
+	var walk func(nodes []seedMenuNode, parentName string) error
+	walk = func(nodes []seedMenuNode, parentName string) error {
+		for i := range nodes {
+			seed := nodes[i].node
+			menuID, ok := byName[seed.menu.Name]
+			if !ok {
+				m := seed.menu
+				if parentName != "" {
+					m.ParentID = byName[parentName] // parent walked first; always present
+				}
+				if err := gorm.G[model.Menu](db).Create(ctx, &m); err != nil {
+					return fmt.Errorf("sync menu %q: %w", m.Name, err)
+				}
+				menuID = m.ID
+				byName[m.Name] = menuID
+
+				if err := gorm.G[model.RoleMenu](db).Create(ctx, &model.RoleMenu{RoleCode: model.RoleAdmin, MenuID: menuID}); err != nil {
+					return fmt.Errorf("sync menu grant admin %q: %w", m.Name, err)
+				}
+				if seed.userVisible {
+					if err := gorm.G[model.RoleMenu](db).Create(ctx, &model.RoleMenu{RoleCode: model.RoleUser, MenuID: menuID}); err != nil {
+						return fmt.Errorf("sync menu grant user %q: %w", m.Name, err)
+					}
+				}
+			}
+
+			for j := range seed.buttons {
+				b := seed.buttons[j]
+				if haveButton[buttonKey(menuID, b.Code)] {
+					continue
+				}
+				b.MenuID = menuID
+				if err := gorm.G[model.MenuButton](db).Create(ctx, &b); err != nil {
+					return fmt.Errorf("sync button %q: %w", b.Code, err)
+				}
+				haveButton[buttonKey(menuID, b.Code)] = true
+				if err := gorm.G[model.RoleButton](db).Create(ctx, &model.RoleButton{RoleCode: model.RoleAdmin, ButtonID: b.ID}); err != nil {
+					return fmt.Errorf("sync button grant admin %q: %w", b.Code, err)
+				}
+			}
+
+			if err := walk(nodes[i].children, seed.menu.Name); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return walk(seedMenuTree, "")
+}
+
+func buttonKey(menuID uint64, code string) string {
+	return fmt.Sprintf("%d|%s", menuID, code)
 }
 
 // syncAPIs upserts the full procedure catalog into the apis table.

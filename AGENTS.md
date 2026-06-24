@@ -91,7 +91,7 @@
 1. 编辑 `proto/zerx/v1/*.proto`,加 message / rpc;**方法名避开 JS 保留字**。校验约束写在字段上:`[(buf.validate.field).string.email = true]`。
 2. `task gen` → 产出 Go handler 接口 + TS 类型 + connect-query hook。
 3. 在 `internal/service/` 实现 handler 方法,**照抄 `user_service.go` 范式但不写 RequireRole**(授权交 Casbin)。
-4. 若新增 service:在 `internal/server/server.go` 用 `api.Handle(zerxv1connect.NewXxxServiceHandler(svc, opts))` 注册;免认证的 procedure 进 `public`,已登录即放行的进 `selfServe`。
+4. 若新增 service:在 `internal/server/server.go` 用 `reg(zerxv1connect.NewXxxServiceHandler(svc, opts))` 注册;免认证的 procedure 进 `public`,已登录即放行的进 `selfServe`。**漏注册会被 `server.New` 启动自检拦截**:`assertServicesRegistered` 断言 proto 描述符里每个 `zerx.v1.*` service 均已挂载,缺失则启动失败(否则该 service 全部接口静默 404)。
 5. 前端:`import { method } from "@/gen/.../<svc>-<Service>_connectquery"`,用 `useQuery(method, input?)` / `useMutation(method)`。
 
 ### 新增一个管理模块(完整清单)
@@ -101,7 +101,7 @@
 4. server.go 注册 handler;按需把 procedure 加入 `public`/`selfServe`。
 5. 前端页(`web/src/routes/_authed/<mod>.tsx`,复刻 `params.tsx`/`users.tsx` 范式),增删改按钮用 `<Can code>` 包裹。
 6. i18n:`web/src/lib/i18n.tsx` 的 `en` 与 `zh` **同步**加 key(`const zh: typeof en` 结构锁会让缺 key 编译失败)。
-7. 在 `internal/database/seed.go` 的 `seedMenuTree` 切片加一条菜单(+按钮);Title 存 i18n key,Icon 存 lucide 名(并在 `web/src/lib/menu-icons.ts` 的 `iconByName` 注册图标)。
+7. 在 `internal/database/seed.go` 的 `seedMenuTree` 切片加一条菜单(+按钮);Title 存 i18n key,Icon 存 lucide 名(并在 `web/src/lib/menu-icons.ts` 的 `iconByName` 注册图标)。**重启后经 `syncMenus` 增量生效,无需重置数据库。**
 8. `task frontend:build`(或 dev)让 Vite 插件重生成 `routeTree.gen.ts` 并提交。
 9. 如需授予非 admin:到「角色管理」页为角色分配菜单 / API procedure / 按钮。
 
@@ -115,7 +115,7 @@
 - 认证由 `auth.NewAuthInterceptor` 处理:解析 `Authorization: Bearer <access>` → 注入 claims;非 public procedure 无有效 token → `CodeUnauthenticated`。**授权见上方「授权铁律」——一律 Casbin,不用 RequireRole。**
 
 ### 首次运行与注册 / 种子
-- `database.Seed` 在迁移后运行,**幂等键 = Role 表为空**:首次播种 admin/user 角色、`seedMenuTree` 全部菜单+按钮、admin→全部菜单/按钮、user→仅 dashboard,以及 `apispec.Procedures()` 全量 upsert 进 API 目录。Casbin 策略不播种(admin 绕过、user 仅靠 selfServe)。
+- `database.Seed` 在迁移后运行:**角色播种幂等键 = Role 表为空**——首次播种 admin/user 角色、`seedMenuTree` 全部菜单+按钮、admin→全部菜单/按钮、user→仅 dashboard。**菜单/按钮与 API 目录每次启动增量同步(`syncMenus`/`syncAPIs`,仅增不删不改)**,新增条目重启即生效:菜单按 `Name` 匹配、按钮按 `(menuID, code)` 匹配,缺失则插入并补 admin 关联(及 userVisible→user),已有行不动。Casbin 策略不播种(admin 绕过、user 仅靠 selfServe)。
 - 无默认账号。`AuthService.Register`(public):**当库中用户数为 0 时,首个注册者角色为 `admin`**,其后为 `user`。邮箱唯一(冲突 → `CodeAlreadyExists`)。
 
 ### 主题与多语言

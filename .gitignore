@@ -28,3 +28,4 @@ internal/web/dist/*
 
 # Note: generated code IS committed (not ignored):
 #   gen/  web/src/gen/  internal/query/  web/src/routeTree.gen.ts
+web/.tanstack/tmp/
