@@ -4,7 +4,9 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
+import { I18nProvider } from "@/lib/i18n";
 import { queryClient } from "@/lib/query-client";
+import { ThemeProvider } from "@/lib/theme";
 import { transport } from "@/lib/transport";
 
 import { router } from "./router";
@@ -17,10 +19,14 @@ if (!rootEl) {
 
 createRoot(rootEl).render(
   <StrictMode>
-    <TransportProvider transport={transport}>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </TransportProvider>
+    <ThemeProvider>
+      <I18nProvider>
+        <TransportProvider transport={transport}>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </TransportProvider>
+      </I18nProvider>
+    </ThemeProvider>
   </StrictMode>,
 );

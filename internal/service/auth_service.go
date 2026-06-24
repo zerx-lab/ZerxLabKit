@@ -55,6 +55,58 @@ func (s *AuthService) Login(ctx context.Context, req *connect.Request[zerxv1.Log
 	}), nil
 }
 
+// Register creates an account. The first user to register becomes admin; all
+// subsequent self-registrations are regular users.
+func (s *AuthService) Register(ctx context.Context, req *connect.Request[zerxv1.RegisterRequest]) (*connect.Response[zerxv1.RegisterResponse], error) {
+	count, err := gorm.G[model.User](s.db).Count(ctx, "id")
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	_, err = gorm.G[model.User](s.db).Where("email = ?", req.Msg.GetEmail()).First(ctx)
+	switch {
+	case err == nil:
+		return nil, connect.NewError(connect.CodeAlreadyExists, errors.New("email already in use"))
+	case !errors.Is(err, gorm.ErrRecordNotFound):
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	hash, err := auth.Hash(req.Msg.GetPassword())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	role := model.RoleUser
+	if count == 0 {
+		role = model.RoleAdmin
+	}
+
+	u := model.User{
+		Email:        req.Msg.GetEmail(),
+		Name:         req.Msg.GetName(),
+		PasswordHash: hash,
+		Role:         role,
+	}
+	if err := gorm.G[model.User](s.db).Create(ctx, &u); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	access, err := s.issuer.IssueAccess(u.ID, u.Role)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	refresh, err := s.issuer.IssueRefresh(u.ID)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&zerxv1.RegisterResponse{
+		AccessToken:  access,
+		RefreshToken: refresh,
+		User:         toProtoUser(u),
+	}), nil
+}
+
 // Refresh exchanges a valid refresh token for a fresh access token, re-reading
 // the user so role changes propagate.
 func (s *AuthService) Refresh(ctx context.Context, req *connect.Request[zerxv1.RefreshRequest]) (*connect.Response[zerxv1.RefreshResponse], error) {

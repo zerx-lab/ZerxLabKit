@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file zerx/v1/auth.proto.
  */
 export const file_zerx_v1_auth: GenFile = /*@__PURE__*/
-  fileDesc("ChJ6ZXJ4L3YxL2F1dGgucHJvdG8SB3plcngudjEiQQoMTG9naW5SZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAIIlkKDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEhUKDXJlZnJlc2hfdG9rZW4YAiABKAkSGwoEdXNlchgDIAEoCzINLnplcngudjEuVXNlciIwCg5SZWZyZXNoUmVxdWVzdBIeCg1yZWZyZXNoX3Rva2VuGAEgASgJQge6SARyAhABIicKD1JlZnJlc2hSZXNwb25zZRIUCgxhY2Nlc3NfdG9rZW4YASABKAkiCwoJTWVSZXF1ZXN0IikKCk1lUmVzcG9uc2USGwoEdXNlchgBIAEoCzINLnplcngudjEuVXNlcjKyAQoLQXV0aFNlcnZpY2USNgoFTG9naW4SFS56ZXJ4LnYxLkxvZ2luUmVxdWVzdBoWLnplcngudjEuTG9naW5SZXNwb25zZRI8CgdSZWZyZXNoEhcuemVyeC52MS5SZWZyZXNoUmVxdWVzdBoYLnplcngudjEuUmVmcmVzaFJlc3BvbnNlEi0KAk1lEhIuemVyeC52MS5NZVJlcXVlc3QaEy56ZXJ4LnYxLk1lUmVzcG9uc2VCNlo0Z2l0aHViLmNvbS96ZXJ4LWxhYi96ZXJ4bGFia2l0L2dlbi9nby96ZXJ4L3YxO3plcnh2MWIGcHJvdG8z", [file_buf_validate_validate, file_zerx_v1_user]);
+  fileDesc("ChJ6ZXJ4L3YxL2F1dGgucHJvdG8SB3plcngudjEiQQoMTG9naW5SZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhkKCHBhc3N3b3JkGAIgASgJQge6SARyAhAIIlkKDUxvZ2luUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJEhUKDXJlZnJlc2hfdG9rZW4YAiABKAkSGwoEdXNlchgDIAEoCzINLnplcngudjEuVXNlciJbCg9SZWdpc3RlclJlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESFQoEbmFtZRgCIAEoCUIHukgEcgIQARIZCghwYXNzd29yZBgDIAEoCUIHukgEcgIQCCJcChBSZWdpc3RlclJlc3BvbnNlEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIVCg1yZWZyZXNoX3Rva2VuGAIgASgJEhsKBHVzZXIYAyABKAsyDS56ZXJ4LnYxLlVzZXIiMAoOUmVmcmVzaFJlcXVlc3QSHgoNcmVmcmVzaF90b2tlbhgBIAEoCUIHukgEcgIQASInCg9SZWZyZXNoUmVzcG9uc2USFAoMYWNjZXNzX3Rva2VuGAEgASgJIgsKCU1lUmVxdWVzdCIpCgpNZVJlc3BvbnNlEhsKBHVzZXIYASABKAsyDS56ZXJ4LnYxLlVzZXIy8wEKC0F1dGhTZXJ2aWNlEjYKBUxvZ2luEhUuemVyeC52MS5Mb2dpblJlcXVlc3QaFi56ZXJ4LnYxLkxvZ2luUmVzcG9uc2USPwoIUmVnaXN0ZXISGC56ZXJ4LnYxLlJlZ2lzdGVyUmVxdWVzdBoZLnplcngudjEuUmVnaXN0ZXJSZXNwb25zZRI8CgdSZWZyZXNoEhcuemVyeC52MS5SZWZyZXNoUmVxdWVzdBoYLnplcngudjEuUmVmcmVzaFJlc3BvbnNlEi0KAk1lEhIuemVyeC52MS5NZVJlcXVlc3QaEy56ZXJ4LnYxLk1lUmVzcG9uc2VCNlo0Z2l0aHViLmNvbS96ZXJ4LWxhYi96ZXJ4bGFia2l0L2dlbi9nby96ZXJ4L3YxO3plcnh2MWIGcHJvdG8z", [file_buf_validate_validate, file_zerx_v1_user]);
 
 /**
  * @generated from message zerx.v1.LoginRequest
@@ -65,6 +65,60 @@ export const LoginResponseSchema: GenMessage<LoginResponse> = /*@__PURE__*/
   messageDesc(file_zerx_v1_auth, 1);
 
 /**
+ * @generated from message zerx.v1.RegisterRequest
+ */
+export type RegisterRequest = Message<"zerx.v1.RegisterRequest"> & {
+  /**
+   * @generated from field: string email = 1;
+   */
+  email: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string password = 3;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message zerx.v1.RegisterRequest.
+ * Use `create(RegisterRequestSchema)` to create a new message.
+ */
+export const RegisterRequestSchema: GenMessage<RegisterRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 2);
+
+/**
+ * @generated from message zerx.v1.RegisterResponse
+ */
+export type RegisterResponse = Message<"zerx.v1.RegisterResponse"> & {
+  /**
+   * @generated from field: string access_token = 1;
+   */
+  accessToken: string;
+
+  /**
+   * @generated from field: string refresh_token = 2;
+   */
+  refreshToken: string;
+
+  /**
+   * @generated from field: zerx.v1.User user = 3;
+   */
+  user?: User | undefined;
+};
+
+/**
+ * Describes the message zerx.v1.RegisterResponse.
+ * Use `create(RegisterResponseSchema)` to create a new message.
+ */
+export const RegisterResponseSchema: GenMessage<RegisterResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_auth, 3);
+
+/**
  * @generated from message zerx.v1.RefreshRequest
  */
 export type RefreshRequest = Message<"zerx.v1.RefreshRequest"> & {
@@ -79,7 +133,7 @@ export type RefreshRequest = Message<"zerx.v1.RefreshRequest"> & {
  * Use `create(RefreshRequestSchema)` to create a new message.
  */
 export const RefreshRequestSchema: GenMessage<RefreshRequest> = /*@__PURE__*/
-  messageDesc(file_zerx_v1_auth, 2);
+  messageDesc(file_zerx_v1_auth, 4);
 
 /**
  * @generated from message zerx.v1.RefreshResponse
@@ -96,7 +150,7 @@ export type RefreshResponse = Message<"zerx.v1.RefreshResponse"> & {
  * Use `create(RefreshResponseSchema)` to create a new message.
  */
 export const RefreshResponseSchema: GenMessage<RefreshResponse> = /*@__PURE__*/
-  messageDesc(file_zerx_v1_auth, 3);
+  messageDesc(file_zerx_v1_auth, 5);
 
 /**
  * @generated from message zerx.v1.MeRequest
@@ -109,7 +163,7 @@ export type MeRequest = Message<"zerx.v1.MeRequest"> & {
  * Use `create(MeRequestSchema)` to create a new message.
  */
 export const MeRequestSchema: GenMessage<MeRequest> = /*@__PURE__*/
-  messageDesc(file_zerx_v1_auth, 4);
+  messageDesc(file_zerx_v1_auth, 6);
 
 /**
  * @generated from message zerx.v1.MeResponse
@@ -126,10 +180,10 @@ export type MeResponse = Message<"zerx.v1.MeResponse"> & {
  * Use `create(MeResponseSchema)` to create a new message.
  */
 export const MeResponseSchema: GenMessage<MeResponse> = /*@__PURE__*/
-  messageDesc(file_zerx_v1_auth, 5);
+  messageDesc(file_zerx_v1_auth, 7);
 
 /**
- * AuthService handles authentication. Login and Refresh are public.
+ * AuthService handles authentication. Login, Register and Refresh are public.
  *
  * @generated from service zerx.v1.AuthService
  */
@@ -141,6 +195,16 @@ export const AuthService: GenService<{
     methodKind: "unary";
     input: typeof LoginRequestSchema;
     output: typeof LoginResponseSchema;
+  },
+  /**
+   * Register creates an account. The very first registered user becomes admin.
+   *
+   * @generated from rpc zerx.v1.AuthService.Register
+   */
+  register: {
+    methodKind: "unary";
+    input: typeof RegisterRequestSchema;
+    output: typeof RegisterResponseSchema;
   },
   /**
    * @generated from rpc zerx.v1.AuthService.Refresh

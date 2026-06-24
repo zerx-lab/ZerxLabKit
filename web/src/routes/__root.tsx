@@ -5,6 +5,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { Toaster } from "@/components/ui/sonner";
 import type { AuthApi } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 
 export interface RouterContext {
   queryClient: QueryClient;
@@ -16,10 +17,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
+  const { theme } = useTheme();
+
   return (
     <>
       <Outlet />
-      <Toaster richColors closeButton />
+      <Toaster theme={theme} richColors closeButton />
       {import.meta.env.DEV && (
         <>
           <TanStackRouterDevtools position="bottom-right" />

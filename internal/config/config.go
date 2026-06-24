@@ -15,7 +15,6 @@ type Config struct {
 	Server ServerConfig
 	DB     DBConfig
 	JWT    JWTConfig
-	Seed   SeedConfig
 	Env    string `env:"APP_ENV" envDefault:"dev"`
 }
 
@@ -36,16 +35,6 @@ type JWTConfig struct {
 	AccessTTL  time.Duration `env:"JWT_ACCESS_TTL" envDefault:"15m"`
 	RefreshTTL time.Duration `env:"JWT_REFRESH_TTL" envDefault:"168h"`
 }
-
-// SeedConfig holds the bootstrap admin credentials.
-type SeedConfig struct {
-	AdminEmail    string `env:"SEED_ADMIN_EMAIL" envDefault:"admin@example.com"`
-	AdminPassword string `env:"SEED_ADMIN_PASSWORD" envDefault:"admin12345"`
-}
-
-// DefaultAdminPassword is the insecure default; production seeding is skipped
-// unless the operator overrides it.
-const DefaultAdminPassword = "admin12345"
 
 // Load reads configuration from the environment. Outside production it first
 // loads a local .env file if one is present (missing file is not an error).

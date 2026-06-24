@@ -30,9 +30,9 @@ func Open(cfg config.DBConfig, env string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("unsupported db driver %q (want sqlite|postgres|mysql)", cfg.Driver)
 	}
 
-	level := logger.Warn
+	level := logger.Error
 	if env == "dev" {
-		level = logger.Info
+		level = logger.Warn
 	}
 
 	db, err := gorm.Open(dialector, &gorm.Config{

@@ -7,9 +7,9 @@
 生产可部署、AI 友好的全栈后台管理脚手架:
 
 - **后端**:Go + [connectRPC](https://connectrpc.com)(HTTP/1.1 + h2c)、[GORM](https://gorm.io) 泛型 API + GORM CLI 代码生成、多数据源(PostgreSQL / MySQL / SQLite)。
-- **前端**:React 19 + Vite + TanStack(Router / Query / Table / Form)+ Radix(shadcn/ui)+ Tailwind v4 + Zod 4。
+- **前端**:React 19 + Vite + TanStack(Router / Query / Table / Form)+ Radix(shadcn/ui)+ Tailwind v4 + Zod 4;侧边栏管理布局、暗/亮主题、中英(zh/en)i18n。
 - **打包**:后端用 `go:embed` 内嵌前端产物;`CGO_ENABLED=0` 全静态二进制 + distroless 镜像(无 glibc,镜像约 44 MB)。
-- **契约**:proto 声明式校验(protovalidate)、JWT 认证、最小 RBAC。
+- **契约**:proto 声明式校验(protovalidate)、JWT 认证、最小 RBAC;无默认账号——首次注册的用户自动成为管理员。
 - **质量门禁**:Go 空指针静态分析(nilaway)、govet nilness、golangci-lint;前端严格 TypeScript + ESLint。
 
 数据流:浏览器 SPA → `/api/...`(同源)→ connectRPC handler → 拦截器链(日志 → 认证 → 校验 → recover)→ service → GORM → 数据库。生产为单二进制同源部署;开发用 Vite 代理(`:5173` → `:8080`)。
@@ -22,10 +22,10 @@
 ├── buf.yaml / buf.gen.yaml(Go)/ buf.gen.web.yaml(TS)/ buf.lock
 ├── proto/zerx/v1/{common,auth,user}.proto      # 唯一契约来源
 ├── gen/go/zerx/v1/                             # 生成(提交):*.pb.go + zerxv1connect/*.connect.go
-├── cmd/server/main.go                          # 入口:config→db→migrate→seed→serve(h2c)
+├── cmd/server/main.go                          # 入口:config→db→migrate→serve(h2c)
 ├── internal/
 │   ├── config/      # 12-factor 类型化配置(caarlos0/env + godotenv)
-│   ├── database/    # Open(多数据源)/ Migrate / SeedAdmin / gen.go(go:generate)
+│   ├── database/    # Open(多数据源)/ Migrate / gen.go(go:generate)
 │   ├── model/       # GORM 模型 + querier.go(GORM CLI 输入接口)
 │   ├── query/       # GORM CLI 生成(提交):Query[T] + 字段助手
 │   ├── auth/        # bcrypt / JWT / ctx claims / 认证拦截器 / RequireRole
@@ -37,9 +37,9 @@
     └── src/
         ├── main.tsx / router.tsx / styles.css / routeTree.gen.ts(生成,提交)
         ├── gen/                # 生成(提交):*_pb.ts + *-<Service>_connectquery.ts + buf/validate/validate_pb.ts
-        ├── lib/{transport,query-client,auth,utils,form}.ts
-        ├── components/ui/      # shadcn 组件(自有,可改)
-        └── routes/{__root,index,login}.tsx + _authed/{route,dashboard,users}.tsx
+        ├── lib/{transport,query-client,auth,utils,form,theme,i18n}.ts
+        ├── components/{ui/,theme-toggle,language-switcher}.tsx  # shadcn + 主题/语言切换
+        └── routes/{__root,index,login,register}.tsx + _authed/{route(侧边栏壳),dashboard,users}.tsx
 ```
 
 **生成代码全部提交入库**(`gen/`、`web/src/gen/`、`internal/query/`、`web/src/routeTree.gen.ts`),因此 Docker / CI / 日常构建**不重跑 codegen**,且 AI 始终能看到完整类型。
@@ -90,6 +90,15 @@
 - 输入校验全部声明在 proto 上,由 `validate.NewInterceptor()` 在服务端自动执行 → 失败返回 `CodeInvalidArgument`;handler 内的 `req.Msg` 已被保证非空且合法。
 - 认证由 `auth.NewAuthInterceptor` 处理:解析 `Authorization: Bearer <access>` → 注入 claims;非 public procedure 无有效 token → `CodeUnauthenticated`。授权用 `auth.RequireRole`。
 
+### 首次运行与注册
+- 无内置 seed / 默认账号。`AuthService.Register`(public)创建账号:**当库中用户数为 0 时,首个注册者角色为 `admin`**,其后为 `user`。前端 `/register` 承载此流程,`/login` 有入口链接。
+- 邮箱唯一(冲突 → `CodeAlreadyExists`);注册成功直接签发 access+refresh 并登录。
+
+### 主题与多语言
+- 主题:`lib/theme.tsx` 的 `ThemeProvider`/`useTheme`(light/dark,写 `localStorage` 并切换 `<html>.dark`;`index.html` 内联脚本防闪烁)。新增样式用语义 token(`bg-background`/`text-foreground`/`bg-card`/`border-border` 等),勿写死颜色。
+- 多语言:`lib/i18n.tsx` 的 `I18nProvider`/`useI18n`→`t(key, params?)`(zh/en 字典 + `{name}` 插值)。新增文案需在 `en`/`zh` 两个字典加同名 key。
+- 布局壳在 `routes/_authed/route.tsx`(侧边栏 + 顶栏:折叠 / 面包屑 / 主题 / 语言 / 用户菜单);导航项在 `navItems` 数组,加一项即出现在侧边栏(用 `data-[status=active]` 高亮)。
+
 ## 6. 易错点清单
 
 ### 后端
@@ -109,11 +118,13 @@
 - `uint64` → **`bigint`**(如 `User.id` 是 `bigint`):显示用 `String(id)`,传参直接用 `bigint`。
 - 表单用 **`@tanstack/react-form`**(不是 shadcn 的 `form` 组件 / react-hook-form);可复用字段组件可用 `AnyFieldApi` 类型。
 - TS 已**关闭 `exactOptionalPropertyTypes`**:它与 shadcn/Radix 组件不兼容(会让每次 `shadcn add` 的组件报错)。其余严格 flag(`strict`、`noUncheckedIndexedAccess`、`noUnusedLocals/Parameters`)保留。
+- 主题色一律用语义 token(定义在 `src/styles.css` 的 `:root`/`.dark`,经 `@theme inline` 映射);Toaster 主题由 `__root.tsx` 透传 `useTheme()`。
+- i18n 文案务必 en/zh 同步加 key;`t()` 缺失时回退 en 再回退 key。
 
 ## 7. 安全
 
 - **生产必设 `JWT_SECRET`**:缺失则启动失败(`os.Exit(1)`)。
-- **生产必设 `SEED_ADMIN_PASSWORD`**:非 dev 环境若仍为默认密码,seed 会被拒绝并打印警告、跳过(避免出厂默认管理员)。
+- **无默认账号**:不再 seed 管理员;首次运行在 `/register` 注册——首个用户即管理员,生产环境请尽快注册并妥善保管。
 - h2c(明文 HTTP/2)仅供 `grpcurl` 等工具;浏览器 SPA 走 HTTP/1.1,不依赖 h2c。
 - 访问令牌 15m、刷新令牌 168h;前端 `transport.ts` 实现 401 → single-flight 刷新 → 重试一次 → 仍失败则清 token 跳登录。
 

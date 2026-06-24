@@ -10,6 +10,13 @@ import { AuthService } from "./auth_pb";
 export const login = AuthService.method.login;
 
 /**
+ * Register creates an account. The very first registered user becomes admin.
+ *
+ * @generated from rpc zerx.v1.AuthService.Register
+ */
+export const register = AuthService.method.register;
+
+/**
  * @generated from rpc zerx.v1.AuthService.Refresh
  */
 export const refresh = AuthService.method.refresh;

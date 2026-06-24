@@ -35,6 +35,8 @@ const (
 const (
 	// AuthServiceLoginProcedure is the fully-qualified name of the AuthService's Login RPC.
 	AuthServiceLoginProcedure = "/zerx.v1.AuthService/Login"
+	// AuthServiceRegisterProcedure is the fully-qualified name of the AuthService's Register RPC.
+	AuthServiceRegisterProcedure = "/zerx.v1.AuthService/Register"
 	// AuthServiceRefreshProcedure is the fully-qualified name of the AuthService's Refresh RPC.
 	AuthServiceRefreshProcedure = "/zerx.v1.AuthService/Refresh"
 	// AuthServiceMeProcedure is the fully-qualified name of the AuthService's Me RPC.
@@ -44,6 +46,8 @@ const (
 // AuthServiceClient is a client for the zerx.v1.AuthService service.
 type AuthServiceClient interface {
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
+	// Register creates an account. The very first registered user becomes admin.
+	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	Refresh(context.Context, *connect.Request[v1.RefreshRequest]) (*connect.Response[v1.RefreshResponse], error)
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
 }
@@ -65,6 +69,12 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("Login")),
 			connect.WithClientOptions(opts...),
 		),
+		register: connect.NewClient[v1.RegisterRequest, v1.RegisterResponse](
+			httpClient,
+			baseURL+AuthServiceRegisterProcedure,
+			connect.WithSchema(authServiceMethods.ByName("Register")),
+			connect.WithClientOptions(opts...),
+		),
 		refresh: connect.NewClient[v1.RefreshRequest, v1.RefreshResponse](
 			httpClient,
 			baseURL+AuthServiceRefreshProcedure,
@@ -82,14 +92,20 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	login   *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	refresh *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
-	me      *connect.Client[v1.MeRequest, v1.MeResponse]
+	login    *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	register *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
+	refresh  *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
+	me       *connect.Client[v1.MeRequest, v1.MeResponse]
 }
 
 // Login calls zerx.v1.AuthService.Login.
 func (c *authServiceClient) Login(ctx context.Context, req *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error) {
 	return c.login.CallUnary(ctx, req)
+}
+
+// Register calls zerx.v1.AuthService.Register.
+func (c *authServiceClient) Register(ctx context.Context, req *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error) {
+	return c.register.CallUnary(ctx, req)
 }
 
 // Refresh calls zerx.v1.AuthService.Refresh.
@@ -105,6 +121,8 @@ func (c *authServiceClient) Me(ctx context.Context, req *connect.Request[v1.MeRe
 // AuthServiceHandler is an implementation of the zerx.v1.AuthService service.
 type AuthServiceHandler interface {
 	Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error)
+	// Register creates an account. The very first registered user becomes admin.
+	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	Refresh(context.Context, *connect.Request[v1.RefreshRequest]) (*connect.Response[v1.RefreshResponse], error)
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
 }
@@ -120,6 +138,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		AuthServiceLoginProcedure,
 		svc.Login,
 		connect.WithSchema(authServiceMethods.ByName("Login")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRegisterHandler := connect.NewUnaryHandler(
+		AuthServiceRegisterProcedure,
+		svc.Register,
+		connect.WithSchema(authServiceMethods.ByName("Register")),
 		connect.WithHandlerOptions(opts...),
 	)
 	authServiceRefreshHandler := connect.NewUnaryHandler(
@@ -138,6 +162,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		switch r.URL.Path {
 		case AuthServiceLoginProcedure:
 			authServiceLoginHandler.ServeHTTP(w, r)
+		case AuthServiceRegisterProcedure:
+			authServiceRegisterHandler.ServeHTTP(w, r)
 		case AuthServiceRefreshProcedure:
 			authServiceRefreshHandler.ServeHTTP(w, r)
 		case AuthServiceMeProcedure:
@@ -153,6 +179,10 @@ type UnimplementedAuthServiceHandler struct{}
 
 func (UnimplementedAuthServiceHandler) Login(context.Context, *connect.Request[v1.LoginRequest]) (*connect.Response[v1.LoginResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.Login is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.Register is not implemented"))
 }
 
 func (UnimplementedAuthServiceHandler) Refresh(context.Context, *connect.Request[v1.RefreshRequest]) (*connect.Response[v1.RefreshResponse], error) {

@@ -7,9 +7,11 @@ import "zerx/v1/user.proto";
 
 option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
 
-// AuthService handles authentication. Login and Refresh are public.
+// AuthService handles authentication. Login, Register and Refresh are public.
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
+  // Register creates an account. The very first registered user becomes admin.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Refresh(RefreshRequest) returns (RefreshResponse);
   rpc Me(MeRequest) returns (MeResponse);
 }
@@ -20,6 +22,18 @@ message LoginRequest {
 }
 
 message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  User user = 3;
+}
+
+message RegisterRequest {
+  string email = 1 [(buf.validate.field).string.email = true];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string password = 3 [(buf.validate.field).string.min_len = 8];
+}
+
+message RegisterResponse {
   string access_token = 1;
   string refresh_token = 2;
   User user = 3;

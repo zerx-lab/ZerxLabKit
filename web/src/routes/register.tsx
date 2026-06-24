@@ -17,38 +17,36 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/gen/zerx/v1/auth-AuthService_connectquery";
+import { register } from "@/gen/zerx/v1/auth-AuthService_connectquery";
 import { auth } from "@/lib/auth";
 import { firstErrorMessage } from "@/lib/form";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
-    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
-  component: LoginPage,
+export const Route = createFileRoute("/register")({
+  component: RegisterPage,
 });
 
-function LoginPage() {
+function RegisterPage() {
   const { t } = useI18n();
   const router = useRouter();
-  const search = Route.useSearch();
-  const loginMutation = useMutation(login);
+  const registerMutation = useMutation(register);
 
   const schema = z.object({
     email: z.email(t("validation.email")),
+    name: z.string().min(1, t("validation.nameRequired")),
     password: z.string().min(8, t("validation.passwordMin")),
   });
 
   const form = useForm({
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", name: "", password: "" },
     validators: { onChange: schema },
     onSubmit: async ({ value }) => {
       try {
-        const res = await loginMutation.mutateAsync(value);
+        const res = await registerMutation.mutateAsync(value);
         auth.setTokens(res.accessToken, res.refreshToken);
-        router.history.push(search.redirect ?? "/dashboard");
+        router.history.push("/dashboard");
       } catch (err) {
-        toast.error(err instanceof ConnectError ? err.message : t("login.failed"));
+        toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
       }
     },
   });
@@ -66,8 +64,8 @@ function LoginPage() {
             <div className="size-8 rounded-md bg-primary" />
             <span className="text-lg font-semibold">{t("app.name")}</span>
           </div>
-          <CardTitle className="text-xl">{t("login.title")}</CardTitle>
-          <CardDescription>{t("login.subtitle")}</CardDescription>
+          <CardTitle className="text-xl">{t("register.title")}</CardTitle>
+          <CardDescription>{t("register.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -77,6 +75,25 @@ function LoginPage() {
               void form.handleSubmit();
             }}
           >
+            <form.Field name="name">
+              {(field) => {
+                const error = firstErrorMessage(field.state.meta.errors);
+                return (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor={field.name}>{t("common.name")}</Label>
+                    <Input
+                      id={field.name}
+                      autoComplete="name"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                    {error && <p className="text-destructive text-sm">{error}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
+
             <form.Field name="email">
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
@@ -86,7 +103,7 @@ function LoginPage() {
                     <Input
                       id={field.name}
                       type="email"
-                      autoComplete="username"
+                      autoComplete="email"
                       placeholder="you@example.com"
                       value={field.state.value}
                       onBlur={field.handleBlur}
@@ -107,7 +124,7 @@ function LoginPage() {
                     <Input
                       id={field.name}
                       type="password"
-                      autoComplete="current-password"
+                      autoComplete="new-password"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -118,15 +135,15 @@ function LoginPage() {
               }}
             </form.Field>
 
-            <Button type="submit" className="mt-1 w-full" disabled={loginMutation.isPending}>
-              {loginMutation.isPending ? t("login.submitting") : t("common.signIn")}
+            <Button type="submit" className="mt-1 w-full" disabled={registerMutation.isPending}>
+              {registerMutation.isPending ? t("register.submitting") : t("common.register")}
             </Button>
           </form>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            {t("login.noAccount")}{" "}
-            <Link to="/register" className="font-medium text-primary hover:underline">
-              {t("login.registerLink")}
+            {t("register.haveAccount")}{" "}
+            <Link to="/login" className="font-medium text-primary hover:underline">
+              {t("register.loginLink")}
             </Link>
           </p>
         </CardContent>

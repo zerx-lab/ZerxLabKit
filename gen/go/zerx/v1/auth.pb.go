@@ -134,6 +134,126 @@ func (x *LoginResponse) GetUser() *User {
 	return nil
 }
 
+type RegisterRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterRequest) Reset() {
+	*x = RegisterRequest{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterRequest) ProtoMessage() {}
+
+func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RegisterRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RegisterResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	User          *User                  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterResponse) Reset() {
+	*x = RegisterResponse{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterResponse) ProtoMessage() {}
+
+func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
+func (*RegisterResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RegisterResponse) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *RegisterResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *RegisterResponse) GetUser() *User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 type RefreshRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
@@ -143,7 +263,7 @@ type RefreshRequest struct {
 
 func (x *RefreshRequest) Reset() {
 	*x = RefreshRequest{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[2]
+	mi := &file_zerx_v1_auth_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -155,7 +275,7 @@ func (x *RefreshRequest) String() string {
 func (*RefreshRequest) ProtoMessage() {}
 
 func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[2]
+	mi := &file_zerx_v1_auth_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +288,7 @@ func (x *RefreshRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshRequest.ProtoReflect.Descriptor instead.
 func (*RefreshRequest) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{2}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RefreshRequest) GetRefreshToken() string {
@@ -187,7 +307,7 @@ type RefreshResponse struct {
 
 func (x *RefreshResponse) Reset() {
 	*x = RefreshResponse{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[3]
+	mi := &file_zerx_v1_auth_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -199,7 +319,7 @@ func (x *RefreshResponse) String() string {
 func (*RefreshResponse) ProtoMessage() {}
 
 func (x *RefreshResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[3]
+	mi := &file_zerx_v1_auth_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -212,7 +332,7 @@ func (x *RefreshResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshResponse.ProtoReflect.Descriptor instead.
 func (*RefreshResponse) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{3}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RefreshResponse) GetAccessToken() string {
@@ -230,7 +350,7 @@ type MeRequest struct {
 
 func (x *MeRequest) Reset() {
 	*x = MeRequest{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[4]
+	mi := &file_zerx_v1_auth_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +362,7 @@ func (x *MeRequest) String() string {
 func (*MeRequest) ProtoMessage() {}
 
 func (x *MeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[4]
+	mi := &file_zerx_v1_auth_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +375,7 @@ func (x *MeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
 func (*MeRequest) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{4}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{6}
 }
 
 type MeResponse struct {
@@ -267,7 +387,7 @@ type MeResponse struct {
 
 func (x *MeResponse) Reset() {
 	*x = MeResponse{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[5]
+	mi := &file_zerx_v1_auth_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -279,7 +399,7 @@ func (x *MeResponse) String() string {
 func (*MeResponse) ProtoMessage() {}
 
 func (x *MeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[5]
+	mi := &file_zerx_v1_auth_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -292,7 +412,7 @@ func (x *MeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeResponse.ProtoReflect.Descriptor instead.
 func (*MeResponse) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{5}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *MeResponse) GetUser() *User {
@@ -313,6 +433,14 @@ const file_zerx_v1_auth_proto_rawDesc = "" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12!\n" +
+	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\"r\n" +
+	"\x0fRegisterRequest\x12\x1d\n" +
+	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12\x1b\n" +
+	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12#\n" +
+	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"}\n" +
+	"\x10RegisterResponse\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12!\n" +
 	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\">\n" +
 	"\x0eRefreshRequest\x12,\n" +
 	"\rrefresh_token\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\frefreshToken\"4\n" +
@@ -321,9 +449,10 @@ const file_zerx_v1_auth_proto_rawDesc = "" +
 	"\tMeRequest\"/\n" +
 	"\n" +
 	"MeResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.zerx.v1.UserR\x04user2\xb2\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\r.zerx.v1.UserR\x04user2\xf3\x01\n" +
 	"\vAuthService\x126\n" +
-	"\x05Login\x12\x15.zerx.v1.LoginRequest\x1a\x16.zerx.v1.LoginResponse\x12<\n" +
+	"\x05Login\x12\x15.zerx.v1.LoginRequest\x1a\x16.zerx.v1.LoginResponse\x12?\n" +
+	"\bRegister\x12\x18.zerx.v1.RegisterRequest\x1a\x19.zerx.v1.RegisterResponse\x12<\n" +
 	"\aRefresh\x12\x17.zerx.v1.RefreshRequest\x1a\x18.zerx.v1.RefreshResponse\x12-\n" +
 	"\x02Me\x12\x12.zerx.v1.MeRequest\x1a\x13.zerx.v1.MeResponseB6Z4github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1b\x06proto3"
 
@@ -339,30 +468,35 @@ func file_zerx_v1_auth_proto_rawDescGZIP() []byte {
 	return file_zerx_v1_auth_proto_rawDescData
 }
 
-var file_zerx_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_zerx_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_zerx_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),    // 0: zerx.v1.LoginRequest
-	(*LoginResponse)(nil),   // 1: zerx.v1.LoginResponse
-	(*RefreshRequest)(nil),  // 2: zerx.v1.RefreshRequest
-	(*RefreshResponse)(nil), // 3: zerx.v1.RefreshResponse
-	(*MeRequest)(nil),       // 4: zerx.v1.MeRequest
-	(*MeResponse)(nil),      // 5: zerx.v1.MeResponse
-	(*User)(nil),            // 6: zerx.v1.User
+	(*LoginRequest)(nil),     // 0: zerx.v1.LoginRequest
+	(*LoginResponse)(nil),    // 1: zerx.v1.LoginResponse
+	(*RegisterRequest)(nil),  // 2: zerx.v1.RegisterRequest
+	(*RegisterResponse)(nil), // 3: zerx.v1.RegisterResponse
+	(*RefreshRequest)(nil),   // 4: zerx.v1.RefreshRequest
+	(*RefreshResponse)(nil),  // 5: zerx.v1.RefreshResponse
+	(*MeRequest)(nil),        // 6: zerx.v1.MeRequest
+	(*MeResponse)(nil),       // 7: zerx.v1.MeResponse
+	(*User)(nil),             // 8: zerx.v1.User
 }
 var file_zerx_v1_auth_proto_depIdxs = []int32{
-	6, // 0: zerx.v1.LoginResponse.user:type_name -> zerx.v1.User
-	6, // 1: zerx.v1.MeResponse.user:type_name -> zerx.v1.User
-	0, // 2: zerx.v1.AuthService.Login:input_type -> zerx.v1.LoginRequest
-	2, // 3: zerx.v1.AuthService.Refresh:input_type -> zerx.v1.RefreshRequest
-	4, // 4: zerx.v1.AuthService.Me:input_type -> zerx.v1.MeRequest
-	1, // 5: zerx.v1.AuthService.Login:output_type -> zerx.v1.LoginResponse
-	3, // 6: zerx.v1.AuthService.Refresh:output_type -> zerx.v1.RefreshResponse
-	5, // 7: zerx.v1.AuthService.Me:output_type -> zerx.v1.MeResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	8, // 0: zerx.v1.LoginResponse.user:type_name -> zerx.v1.User
+	8, // 1: zerx.v1.RegisterResponse.user:type_name -> zerx.v1.User
+	8, // 2: zerx.v1.MeResponse.user:type_name -> zerx.v1.User
+	0, // 3: zerx.v1.AuthService.Login:input_type -> zerx.v1.LoginRequest
+	2, // 4: zerx.v1.AuthService.Register:input_type -> zerx.v1.RegisterRequest
+	4, // 5: zerx.v1.AuthService.Refresh:input_type -> zerx.v1.RefreshRequest
+	6, // 6: zerx.v1.AuthService.Me:input_type -> zerx.v1.MeRequest
+	1, // 7: zerx.v1.AuthService.Login:output_type -> zerx.v1.LoginResponse
+	3, // 8: zerx.v1.AuthService.Register:output_type -> zerx.v1.RegisterResponse
+	5, // 9: zerx.v1.AuthService.Refresh:output_type -> zerx.v1.RefreshResponse
+	7, // 10: zerx.v1.AuthService.Me:output_type -> zerx.v1.MeResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_zerx_v1_auth_proto_init() }
@@ -377,7 +511,7 @@ func file_zerx_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_zerx_v1_auth_proto_rawDesc), len(file_zerx_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

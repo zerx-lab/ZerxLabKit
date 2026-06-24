@@ -9,7 +9,8 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { type FormEvent, useState } from "react";
+import { PlusIcon } from "lucide-react";
+import { type FormEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -43,21 +44,10 @@ import {
   updateUser,
 } from "@/gen/zerx/v1/user-UserService_connectquery";
 import { firstErrorMessage } from "@/lib/form";
+import { useI18n, type TranslateFn } from "@/lib/i18n";
 
 const PAGE_SIZE = 10;
 const roleEnum = z.enum(["admin", "user"]);
-
-const createUserSchema = z.object({
-  email: z.email("Enter a valid email"),
-  name: z.string().min(1, "Name is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  role: roleEnum,
-});
-
-const updateUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  role: roleEnum,
-});
 
 export const Route = createFileRoute("/_authed/users")({ component: UsersPage });
 
@@ -98,19 +88,20 @@ function TextField({
 }
 
 function RoleField({ field }: { field: AnyFieldApi }) {
+  const { t } = useI18n();
   const error = firstErrorMessage(field.state.meta.errors);
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={field.name}>Role</Label>
+      <Label htmlFor={field.name}>{t("common.role")}</Label>
       <select
         id={field.name}
-        className="border-input h-9 rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+        className="border-input h-9 rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         value={field.state.value}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
       >
-        <option value="user">user</option>
-        <option value="admin">admin</option>
+        <option value="user">{t("roles.user")}</option>
+        <option value="admin">{t("roles.admin")}</option>
       </select>
       {error && <p className="text-destructive text-sm">{error}</p>}
     </div>
@@ -119,33 +110,8 @@ function RoleField({ field }: { field: AnyFieldApi }) {
 
 const columnHelper = createColumnHelper<User>();
 
-const columns = [
-  columnHelper.accessor("id", {
-    header: "ID",
-    cell: (info) => String(info.getValue()),
-  }),
-  columnHelper.accessor("email", { header: "Email" }),
-  columnHelper.accessor("name", { header: "Name" }),
-  columnHelper.accessor("role", {
-    header: "Role",
-    cell: (info) => (
-      <Badge variant={info.getValue() === "admin" ? "default" : "secondary"}>
-        {info.getValue()}
-      </Badge>
-    ),
-  }),
-  columnHelper.accessor("createdAt", {
-    header: "Created",
-    cell: (info) => new Date(info.getValue()).toLocaleString(),
-  }),
-  columnHelper.display({
-    id: "actions",
-    header: () => <span className="sr-only">Actions</span>,
-    cell: (info) => <UserRowActions user={info.row.original} />,
-  }),
-];
-
 function UsersPage() {
+  const { t } = useI18n();
   const [page, setPage] = useState(1);
   const [keywordInput, setKeywordInput] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -159,11 +125,36 @@ function UsersPage() {
   const total = data ? Number(data.total) : 0;
   const pageCount = keyword ? 1 : Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const table = useReactTable({
-    data: users,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor("id", {
+        header: t("common.id"),
+        cell: (info) => String(info.getValue()),
+      }),
+      columnHelper.accessor("email", { header: t("common.email") }),
+      columnHelper.accessor("name", { header: t("common.name") }),
+      columnHelper.accessor("role", {
+        header: t("common.role"),
+        cell: (info) => (
+          <Badge variant={info.getValue() === "admin" ? "default" : "secondary"}>
+            {t(`roles.${info.getValue()}`)}
+          </Badge>
+        ),
+      }),
+      columnHelper.accessor("createdAt", {
+        header: t("common.created"),
+        cell: (info) => new Date(info.getValue()).toLocaleString(),
+      }),
+      columnHelper.display({
+        id: "actions",
+        header: () => <span className="sr-only">{t("common.actions")}</span>,
+        cell: (info) => <UserRowActions user={info.row.original} />,
+      }),
+    ],
+    [t],
+  );
+
+  const table = useReactTable({ data: users, columns, getCoreRowModel: getCoreRowModel() });
 
   const applySearch = (e: FormEvent) => {
     e.preventDefault();
@@ -174,33 +165,20 @@ function UsersPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Users</h1>
+        <h1 className="text-2xl font-semibold">{t("users.title")}</h1>
         <CreateUserDialog />
       </div>
 
       <form className="flex gap-2" onSubmit={applySearch}>
         <Input
-          placeholder="Search by name…"
+          placeholder={t("users.searchPlaceholder")}
           value={keywordInput}
           onChange={(e) => setKeywordInput(e.target.value)}
           className="max-w-xs"
         />
         <Button type="submit" variant="secondary">
-          Search
+          {t("common.search")}
         </Button>
-        {keyword && (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setKeyword("");
-              setKeywordInput("");
-              setPage(1);
-            }}
-          >
-            Clear
-          </Button>
-        )}
       </form>
 
       <Card>
@@ -223,13 +201,13 @@ function UsersPage() {
               {isPending ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-muted-foreground text-center">
-                    Loading…
+                    {t("common.loading")}
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="text-muted-foreground text-center">
-                    No users found.
+                    {t("users.noUsers")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -249,7 +227,7 @@ function UsersPage() {
       </Card>
 
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">{total} total</p>
+        <p className="text-muted-foreground text-sm">{t("users.total", { count: total })}</p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -257,18 +235,16 @@ function UsersPage() {
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
+            {t("users.previous")}
           </Button>
-          <span className="text-sm">
-            Page {page} of {pageCount}
-          </span>
+          <span className="text-sm">{t("users.pageOf", { page, pages: pageCount })}</span>
           <Button
             variant="outline"
             size="sm"
             disabled={page >= pageCount}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {t("users.next")}
           </Button>
         </div>
       </div>
@@ -276,7 +252,17 @@ function UsersPage() {
   );
 }
 
+function createUserSchema(t: TranslateFn) {
+  return z.object({
+    email: z.email(t("validation.email")),
+    name: z.string().min(1, t("validation.nameRequired")),
+    password: z.string().min(8, t("validation.passwordMin")),
+    role: roleEnum,
+  });
+}
+
 function CreateUserDialog() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const invalidate = useInvalidateUsers();
   const mutation = useMutation(createUser);
@@ -288,16 +274,16 @@ function CreateUserDialog() {
       password: "",
       role: "user" as "admin" | "user",
     },
-    validators: { onChange: createUserSchema },
+    validators: { onChange: createUserSchema(t) },
     onSubmit: async ({ value }) => {
       try {
         await mutation.mutateAsync(value);
-        toast.success("User created");
+        toast.success(t("users.createdToast"));
         await invalidate();
         form.reset();
         setOpen(false);
       } catch (err) {
-        toast.error(err instanceof ConnectError ? err.message : "Failed to create user");
+        toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
       }
     },
   });
@@ -305,12 +291,15 @@ function CreateUserDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add user</Button>
+        <Button>
+          <PlusIcon className="size-4" />
+          {t("users.add")}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add user</DialogTitle>
-          <DialogDescription>Create a new account.</DialogDescription>
+          <DialogTitle>{t("users.addTitle")}</DialogTitle>
+          <DialogDescription>{t("users.addDesc")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -320,18 +309,25 @@ function CreateUserDialog() {
           }}
         >
           <form.Field name="email">
-            {(field) => <TextField field={field} label="Email" type="email" />}
+            {(field) => <TextField field={field} label={t("common.email")} type="email" />}
           </form.Field>
-          <form.Field name="name">{(field) => <TextField field={field} label="Name" />}</form.Field>
+          <form.Field name="name">
+            {(field) => <TextField field={field} label={t("common.name")} />}
+          </form.Field>
           <form.Field name="password">
             {(field) => (
-              <TextField field={field} label="Password" type="password" autoComplete="new-password" />
+              <TextField
+                field={field}
+                label={t("common.password")}
+                type="password"
+                autoComplete="new-password"
+              />
             )}
           </form.Field>
           <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
           <DialogFooter>
             <Button type="submit" disabled={mutation.isPending}>
-              Create
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </form>
@@ -350,6 +346,7 @@ function UserRowActions({ user }: { user: User }) {
 }
 
 function EditUserDialog({ user }: { user: User }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const invalidate = useInvalidateUsers();
   const mutation = useMutation(updateUser);
@@ -359,15 +356,20 @@ function EditUserDialog({ user }: { user: User }) {
       name: user.name,
       role: user.role === "admin" ? "admin" : "user",
     },
-    validators: { onChange: updateUserSchema },
+    validators: {
+      onChange: z.object({
+        name: z.string().min(1, t("validation.nameRequired")),
+        role: roleEnum,
+      }),
+    },
     onSubmit: async ({ value }) => {
       try {
         await mutation.mutateAsync({ id: user.id, name: value.name, role: value.role });
-        toast.success("User updated");
+        toast.success(t("users.updatedToast"));
         await invalidate();
         setOpen(false);
       } catch (err) {
-        toast.error(err instanceof ConnectError ? err.message : "Failed to update user");
+        toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
       }
     },
   });
@@ -376,12 +378,12 @@ function EditUserDialog({ user }: { user: User }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          Edit
+          {t("common.edit")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit user</DialogTitle>
+          <DialogTitle>{t("users.editTitle")}</DialogTitle>
           <DialogDescription>{user.email}</DialogDescription>
         </DialogHeader>
         <form
@@ -391,11 +393,13 @@ function EditUserDialog({ user }: { user: User }) {
             void form.handleSubmit();
           }}
         >
-          <form.Field name="name">{(field) => <TextField field={field} label="Name" />}</form.Field>
+          <form.Field name="name">
+            {(field) => <TextField field={field} label={t("common.name")} />}
+          </form.Field>
           <form.Field name="role">{(field) => <RoleField field={field} />}</form.Field>
           <DialogFooter>
             <Button type="submit" disabled={mutation.isPending}>
-              Save
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </form>
@@ -405,6 +409,7 @@ function EditUserDialog({ user }: { user: User }) {
 }
 
 function DeleteUserDialog({ user }: { user: User }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const invalidate = useInvalidateUsers();
   const mutation = useMutation(deleteUser);
@@ -412,11 +417,11 @@ function DeleteUserDialog({ user }: { user: User }) {
   const handleDelete = async () => {
     try {
       await mutation.mutateAsync({ id: user.id });
-      toast.success("User deleted");
+      toast.success(t("users.deletedToast"));
       await invalidate();
       setOpen(false);
     } catch (err) {
-      toast.error(err instanceof ConnectError ? err.message : "Failed to delete user");
+      toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
     }
   };
 
@@ -424,22 +429,20 @@ function DeleteUserDialog({ user }: { user: User }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="destructive" size="sm">
-          Delete
+          {t("common.delete")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete user</DialogTitle>
-          <DialogDescription>
-            Permanently remove {user.email}? This action cannot be undone.
-          </DialogDescription>
+          <DialogTitle>{t("users.deleteTitle")}</DialogTitle>
+          <DialogDescription>{t("users.deleteDesc", { email: user.email })}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button variant="destructive" disabled={mutation.isPending} onClick={() => void handleDelete()}>
-            Delete
+            {t("common.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

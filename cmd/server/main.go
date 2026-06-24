@@ -49,9 +49,6 @@ func run() error {
 	if err := database.Migrate(db); err != nil {
 		return fmt.Errorf("migrate: %w", err)
 	}
-	if err := database.SeedAdmin(context.Background(), db, cfg, logger); err != nil {
-		return fmt.Errorf("seed admin: %w", err)
-	}
 
 	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)

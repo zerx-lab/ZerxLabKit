@@ -24,10 +24,11 @@ import (
 func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger) http.Handler {
 	issuer := auth.NewIssuer(cfg.JWT)
 
-	// Only Login and Refresh may be called without authentication.
+	// Login, Register and Refresh may be called without authentication.
 	public := map[string]bool{
-		zerxv1connect.AuthServiceLoginProcedure:   true,
-		zerxv1connect.AuthServiceRefreshProcedure: true,
+		zerxv1connect.AuthServiceLoginProcedure:    true,
+		zerxv1connect.AuthServiceRegisterProcedure: true,
+		zerxv1connect.AuthServiceRefreshProcedure:  true,
 	}
 
 	// Interceptor chain (outermost first): logging -> auth -> validate.
