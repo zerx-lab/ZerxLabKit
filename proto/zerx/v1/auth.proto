@@ -7,24 +7,36 @@ import "zerx/v1/user.proto";
 
 option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
 
-// AuthService handles authentication. Login, Register and Refresh are public.
+// AuthService handles authentication and session management. Login, Register,
+// Refresh and GetCaptcha are public; the session and self-serve RPCs require a
+// valid access token.
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);
   // Register creates an account. The very first registered user becomes admin.
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc Refresh(RefreshRequest) returns (RefreshResponse);
+  // Logout revokes every session of the current user (logout everywhere).
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
   rpc Me(MeRequest) returns (MeResponse);
+  rpc GetCaptcha(GetCaptchaRequest) returns (GetCaptchaResponse);
+  // ListSessions returns the caller's sessions; admins may pass a user_id.
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  // RevokeSession deletes one session (own session, or any when admin).
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
 }
 
 message LoginRequest {
   string email = 1 [(buf.validate.field).string.email = true];
   string password = 2 [(buf.validate.field).string.min_len = 8];
+  string captcha_id = 3;
+  string captcha_code = 4;
 }
 
 message LoginResponse {
   string access_token = 1;
   string refresh_token = 2;
   User user = 3;
+  string session_id = 4;
 }
 
 message RegisterRequest {
@@ -37,6 +49,7 @@ message RegisterResponse {
   string access_token = 1;
   string refresh_token = 2;
   User user = 3;
+  string session_id = 4;
 }
 
 message RefreshRequest {
@@ -47,8 +60,44 @@ message RefreshResponse {
   string access_token = 1;
 }
 
+message LogoutRequest {}
+
+message LogoutResponse {}
+
 message MeRequest {}
 
 message MeResponse {
   User user = 1;
 }
+
+message GetCaptchaRequest {}
+
+message GetCaptchaResponse {
+  string captcha_id = 1;
+  // image_base64 is a base64-encoded PNG data URL.
+  string image_base64 = 2;
+}
+
+message Session {
+  string id = 1;
+  uint64 user_id = 2;
+  string ip = 3;
+  string user_agent = 4;
+  string created_at = 5;
+  string last_seen_at = 6;
+}
+
+// ListSessionsRequest: user_id 0 means "the caller". Non-zero requires admin.
+message ListSessionsRequest {
+  uint64 user_id = 1;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message RevokeSessionResponse {}

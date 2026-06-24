@@ -12,7 +12,7 @@ tasks:
       - docker run --rm -p 8080:8080 -e JWT_SECRET={{.JWT_SECRET | default "dev-insecure-change-me"}} zerxlabkit:{{.TAG | default "latest"}}
 
   up:
-    desc: Start the full stack (app + postgres + mysql) via docker compose
+    desc: Start the full stack (app + postgres) via docker compose
     cmds:
       - docker compose up -d --build
 

@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// MenuService manages the navigation tree and button permissions. GetUserMenus
+// and GetUserButtons are self-serve; the rest are Casbin-gated.
+service MenuService {
+  rpc ListMenus(ListMenusRequest) returns (ListMenusResponse);
+  rpc CreateMenu(CreateMenuRequest) returns (Menu);
+  rpc UpdateMenu(UpdateMenuRequest) returns (Menu);
+  rpc DeleteMenu(DeleteMenuRequest) returns (DeleteMenuResponse);
+  rpc CreateMenuButton(CreateMenuButtonRequest) returns (MenuButton);
+  rpc DeleteMenuButton(DeleteMenuButtonRequest) returns (DeleteMenuButtonResponse);
+  rpc GetUserMenus(GetUserMenusRequest) returns (GetUserMenusResponse);
+  rpc GetUserButtons(GetUserButtonsRequest) returns (GetUserButtonsResponse);
+}
+
+message Menu {
+  uint64 id = 1;
+  uint64 parent_id = 2;
+  string path = 3;
+  string name = 4;
+  string component = 5;
+  string title = 6;
+  string icon = 7;
+  int32 sort = 8;
+  bool hidden = 9;
+  repeated MenuButton buttons = 10;
+  repeated Menu children = 11;
+  string created_at = 12;
+}
+
+message MenuButton {
+  uint64 id = 1;
+  uint64 menu_id = 2;
+  string code = 3;
+  string name = 4;
+}
+
+message ListMenusRequest {}
+
+message ListMenusResponse {
+  repeated Menu menus = 1;
+}
+
+message CreateMenuRequest {
+  uint64 parent_id = 1;
+  string path = 2;
+  string name = 3 [(buf.validate.field).string.min_len = 1];
+  string component = 4;
+  string title = 5 [(buf.validate.field).string.min_len = 1];
+  string icon = 6;
+  int32 sort = 7;
+  bool hidden = 8;
+}
+
+message UpdateMenuRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  uint64 parent_id = 2;
+  string path = 3;
+  string name = 4 [(buf.validate.field).string.min_len = 1];
+  string component = 5;
+  string title = 6 [(buf.validate.field).string.min_len = 1];
+  string icon = 7;
+  int32 sort = 8;
+  bool hidden = 9;
+}
+
+message DeleteMenuRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteMenuResponse {}
+
+message CreateMenuButtonRequest {
+  uint64 menu_id = 1 [(buf.validate.field).uint64.gt = 0];
+  string code = 2 [(buf.validate.field).string.min_len = 1];
+  string name = 3 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteMenuButtonRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteMenuButtonResponse {}
+
+message GetUserMenusRequest {}
+
+message GetUserMenusResponse {
+  repeated Menu menus = 1;
+}
+
+message GetUserButtonsRequest {}
+
+message GetUserButtonsResponse {
+  repeated string codes = 1;
+}

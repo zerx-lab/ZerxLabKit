@@ -26,6 +26,8 @@ type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	CaptchaId     string                 `protobuf:"bytes,3,opt,name=captcha_id,json=captchaId,proto3" json:"captcha_id,omitempty"`
+	CaptchaCode   string                 `protobuf:"bytes,4,opt,name=captcha_code,json=captchaCode,proto3" json:"captcha_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -74,11 +76,26 @@ func (x *LoginRequest) GetPassword() string {
 	return ""
 }
 
+func (x *LoginRequest) GetCaptchaId() string {
+	if x != nil {
+		return x.CaptchaId
+	}
+	return ""
+}
+
+func (x *LoginRequest) GetCaptchaCode() string {
+	if x != nil {
+		return x.CaptchaCode
+	}
+	return ""
+}
+
 type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	User          *User                  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	SessionId     string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -132,6 +149,13 @@ func (x *LoginResponse) GetUser() *User {
 		return x.User
 	}
 	return nil
+}
+
+func (x *LoginResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
 }
 
 type RegisterRequest struct {
@@ -199,6 +223,7 @@ type RegisterResponse struct {
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RefreshToken  string                 `protobuf:"bytes,2,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	User          *User                  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	SessionId     string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,6 +277,13 @@ func (x *RegisterResponse) GetUser() *User {
 		return x.User
 	}
 	return nil
+}
+
+func (x *RegisterResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
 }
 
 type RefreshRequest struct {
@@ -342,6 +374,78 @@ func (x *RefreshResponse) GetAccessToken() string {
 	return ""
 }
 
+type LogoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutRequest) ProtoMessage() {}
+
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{6}
+}
+
+type LogoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutResponse) Reset() {
+	*x = LogoutResponse{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutResponse) ProtoMessage() {}
+
+func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
+func (*LogoutResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{7}
+}
+
 type MeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -350,7 +454,7 @@ type MeRequest struct {
 
 func (x *MeRequest) Reset() {
 	*x = MeRequest{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[6]
+	mi := &file_zerx_v1_auth_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -362,7 +466,7 @@ func (x *MeRequest) String() string {
 func (*MeRequest) ProtoMessage() {}
 
 func (x *MeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[6]
+	mi := &file_zerx_v1_auth_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,7 +479,7 @@ func (x *MeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
 func (*MeRequest) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{6}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
 type MeResponse struct {
@@ -387,7 +491,7 @@ type MeResponse struct {
 
 func (x *MeResponse) Reset() {
 	*x = MeResponse{}
-	mi := &file_zerx_v1_auth_proto_msgTypes[7]
+	mi := &file_zerx_v1_auth_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -399,7 +503,7 @@ func (x *MeResponse) String() string {
 func (*MeResponse) ProtoMessage() {}
 
 func (x *MeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_zerx_v1_auth_proto_msgTypes[7]
+	mi := &file_zerx_v1_auth_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -412,7 +516,7 @@ func (x *MeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeResponse.ProtoReflect.Descriptor instead.
 func (*MeResponse) Descriptor() ([]byte, []int) {
-	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MeResponse) GetUser() *User {
@@ -422,39 +526,417 @@ func (x *MeResponse) GetUser() *User {
 	return nil
 }
 
+type GetCaptchaRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCaptchaRequest) Reset() {
+	*x = GetCaptchaRequest{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCaptchaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCaptchaRequest) ProtoMessage() {}
+
+func (x *GetCaptchaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCaptchaRequest.ProtoReflect.Descriptor instead.
+func (*GetCaptchaRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
+type GetCaptchaResponse struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	CaptchaId string                 `protobuf:"bytes,1,opt,name=captcha_id,json=captchaId,proto3" json:"captcha_id,omitempty"`
+	// image_base64 is a base64-encoded PNG data URL.
+	ImageBase64   string `protobuf:"bytes,2,opt,name=image_base64,json=imageBase64,proto3" json:"image_base64,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCaptchaResponse) Reset() {
+	*x = GetCaptchaResponse{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCaptchaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCaptchaResponse) ProtoMessage() {}
+
+func (x *GetCaptchaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCaptchaResponse.ProtoReflect.Descriptor instead.
+func (*GetCaptchaResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetCaptchaResponse) GetCaptchaId() string {
+	if x != nil {
+		return x.CaptchaId
+	}
+	return ""
+}
+
+func (x *GetCaptchaResponse) GetImageBase64() string {
+	if x != nil {
+		return x.ImageBase64
+	}
+	return ""
+}
+
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Ip            string                 `protobuf:"bytes,3,opt,name=ip,proto3" json:"ip,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,4,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastSeenAt    string                 `protobuf:"bytes,6,opt,name=last_seen_at,json=lastSeenAt,proto3" json:"last_seen_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Session) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Session) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *Session) GetIp() string {
+	if x != nil {
+		return x.Ip
+	}
+	return ""
+}
+
+func (x *Session) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *Session) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *Session) GetLastSeenAt() string {
+	if x != nil {
+		return x.LastSeenAt
+	}
+	return ""
+}
+
+// ListSessionsRequest: user_id 0 means "the caller". Non-zero requires admin.
+type ListSessionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSessionsRequest) Reset() {
+	*x = ListSessionsRequest{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSessionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSessionsRequest) ProtoMessage() {}
+
+func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
+func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListSessionsRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ListSessionsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Sessions      []*Session             `protobuf:"bytes,1,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSessionsResponse) Reset() {
+	*x = ListSessionsResponse{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSessionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSessionsResponse) ProtoMessage() {}
+
+func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
+func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListSessionsResponse) GetSessions() []*Session {
+	if x != nil {
+		return x.Sessions
+	}
+	return nil
+}
+
+type RevokeSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeSessionRequest) Reset() {
+	*x = RevokeSessionRequest{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeSessionRequest) ProtoMessage() {}
+
+func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
+func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RevokeSessionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type RevokeSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeSessionResponse) Reset() {
+	*x = RevokeSessionResponse{}
+	mi := &file_zerx_v1_auth_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeSessionResponse) ProtoMessage() {}
+
+func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_zerx_v1_auth_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
+func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
+	return file_zerx_v1_auth_proto_rawDescGZIP(), []int{16}
+}
+
 var File_zerx_v1_auth_proto protoreflect.FileDescriptor
 
 const file_zerx_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12zerx/v1/auth.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x12zerx/v1/user.proto\"R\n" +
+	"\x12zerx/v1/auth.proto\x12\azerx.v1\x1a\x1bbuf/validate/validate.proto\x1a\x12zerx/v1/user.proto\"\x94\x01\n" +
 	"\fLoginRequest\x12\x1d\n" +
 	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12#\n" +
-	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"z\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x12\x1d\n" +
+	"\n" +
+	"captcha_id\x18\x03 \x01(\tR\tcaptchaId\x12!\n" +
+	"\fcaptcha_code\x18\x04 \x01(\tR\vcaptchaCode\"\x99\x01\n" +
 	"\rLoginResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12!\n" +
-	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\"r\n" +
+	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x04 \x01(\tR\tsessionId\"r\n" +
 	"\x0fRegisterRequest\x12\x1d\n" +
 	"\x05email\x18\x01 \x01(\tB\a\xbaH\x04r\x02`\x01R\x05email\x12\x1b\n" +
 	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x12#\n" +
-	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"}\n" +
+	"\bpassword\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"\x9c\x01\n" +
 	"\x10RegisterResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12!\n" +
-	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\">\n" +
+	"\x04user\x18\x03 \x01(\v2\r.zerx.v1.UserR\x04user\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x04 \x01(\tR\tsessionId\">\n" +
 	"\x0eRefreshRequest\x12,\n" +
 	"\rrefresh_token\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\frefreshToken\"4\n" +
 	"\x0fRefreshResponse\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\v\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"\x0f\n" +
+	"\rLogoutRequest\"\x10\n" +
+	"\x0eLogoutResponse\"\v\n" +
 	"\tMeRequest\"/\n" +
 	"\n" +
 	"MeResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.zerx.v1.UserR\x04user2\xf3\x01\n" +
+	"\x04user\x18\x01 \x01(\v2\r.zerx.v1.UserR\x04user\"\x13\n" +
+	"\x11GetCaptchaRequest\"V\n" +
+	"\x12GetCaptchaResponse\x12\x1d\n" +
+	"\n" +
+	"captcha_id\x18\x01 \x01(\tR\tcaptchaId\x12!\n" +
+	"\fimage_base64\x18\x02 \x01(\tR\vimageBase64\"\xa2\x01\n" +
+	"\aSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x0e\n" +
+	"\x02ip\x18\x03 \x01(\tR\x02ip\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x04 \x01(\tR\tuserAgent\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12 \n" +
+	"\flast_seen_at\x18\x06 \x01(\tR\n" +
+	"lastSeenAt\".\n" +
+	"\x13ListSessionsRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x04R\x06userId\"D\n" +
+	"\x14ListSessionsResponse\x12,\n" +
+	"\bsessions\x18\x01 \x03(\v2\x10.zerx.v1.SessionR\bsessions\"/\n" +
+	"\x14RevokeSessionRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"\x17\n" +
+	"\x15RevokeSessionResponse2\x92\x04\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.zerx.v1.LoginRequest\x1a\x16.zerx.v1.LoginResponse\x12?\n" +
 	"\bRegister\x12\x18.zerx.v1.RegisterRequest\x1a\x19.zerx.v1.RegisterResponse\x12<\n" +
-	"\aRefresh\x12\x17.zerx.v1.RefreshRequest\x1a\x18.zerx.v1.RefreshResponse\x12-\n" +
-	"\x02Me\x12\x12.zerx.v1.MeRequest\x1a\x13.zerx.v1.MeResponseB6Z4github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1b\x06proto3"
+	"\aRefresh\x12\x17.zerx.v1.RefreshRequest\x1a\x18.zerx.v1.RefreshResponse\x129\n" +
+	"\x06Logout\x12\x16.zerx.v1.LogoutRequest\x1a\x17.zerx.v1.LogoutResponse\x12-\n" +
+	"\x02Me\x12\x12.zerx.v1.MeRequest\x1a\x13.zerx.v1.MeResponse\x12E\n" +
+	"\n" +
+	"GetCaptcha\x12\x1a.zerx.v1.GetCaptchaRequest\x1a\x1b.zerx.v1.GetCaptchaResponse\x12K\n" +
+	"\fListSessions\x12\x1c.zerx.v1.ListSessionsRequest\x1a\x1d.zerx.v1.ListSessionsResponse\x12N\n" +
+	"\rRevokeSession\x12\x1d.zerx.v1.RevokeSessionRequest\x1a\x1e.zerx.v1.RevokeSessionResponseB6Z4github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1b\x06proto3"
 
 var (
 	file_zerx_v1_auth_proto_rawDescOnce sync.Once
@@ -468,35 +950,53 @@ func file_zerx_v1_auth_proto_rawDescGZIP() []byte {
 	return file_zerx_v1_auth_proto_rawDescData
 }
 
-var file_zerx_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_zerx_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_zerx_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),     // 0: zerx.v1.LoginRequest
-	(*LoginResponse)(nil),    // 1: zerx.v1.LoginResponse
-	(*RegisterRequest)(nil),  // 2: zerx.v1.RegisterRequest
-	(*RegisterResponse)(nil), // 3: zerx.v1.RegisterResponse
-	(*RefreshRequest)(nil),   // 4: zerx.v1.RefreshRequest
-	(*RefreshResponse)(nil),  // 5: zerx.v1.RefreshResponse
-	(*MeRequest)(nil),        // 6: zerx.v1.MeRequest
-	(*MeResponse)(nil),       // 7: zerx.v1.MeResponse
-	(*User)(nil),             // 8: zerx.v1.User
+	(*LoginRequest)(nil),          // 0: zerx.v1.LoginRequest
+	(*LoginResponse)(nil),         // 1: zerx.v1.LoginResponse
+	(*RegisterRequest)(nil),       // 2: zerx.v1.RegisterRequest
+	(*RegisterResponse)(nil),      // 3: zerx.v1.RegisterResponse
+	(*RefreshRequest)(nil),        // 4: zerx.v1.RefreshRequest
+	(*RefreshResponse)(nil),       // 5: zerx.v1.RefreshResponse
+	(*LogoutRequest)(nil),         // 6: zerx.v1.LogoutRequest
+	(*LogoutResponse)(nil),        // 7: zerx.v1.LogoutResponse
+	(*MeRequest)(nil),             // 8: zerx.v1.MeRequest
+	(*MeResponse)(nil),            // 9: zerx.v1.MeResponse
+	(*GetCaptchaRequest)(nil),     // 10: zerx.v1.GetCaptchaRequest
+	(*GetCaptchaResponse)(nil),    // 11: zerx.v1.GetCaptchaResponse
+	(*Session)(nil),               // 12: zerx.v1.Session
+	(*ListSessionsRequest)(nil),   // 13: zerx.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),  // 14: zerx.v1.ListSessionsResponse
+	(*RevokeSessionRequest)(nil),  // 15: zerx.v1.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil), // 16: zerx.v1.RevokeSessionResponse
+	(*User)(nil),                  // 17: zerx.v1.User
 }
 var file_zerx_v1_auth_proto_depIdxs = []int32{
-	8, // 0: zerx.v1.LoginResponse.user:type_name -> zerx.v1.User
-	8, // 1: zerx.v1.RegisterResponse.user:type_name -> zerx.v1.User
-	8, // 2: zerx.v1.MeResponse.user:type_name -> zerx.v1.User
-	0, // 3: zerx.v1.AuthService.Login:input_type -> zerx.v1.LoginRequest
-	2, // 4: zerx.v1.AuthService.Register:input_type -> zerx.v1.RegisterRequest
-	4, // 5: zerx.v1.AuthService.Refresh:input_type -> zerx.v1.RefreshRequest
-	6, // 6: zerx.v1.AuthService.Me:input_type -> zerx.v1.MeRequest
-	1, // 7: zerx.v1.AuthService.Login:output_type -> zerx.v1.LoginResponse
-	3, // 8: zerx.v1.AuthService.Register:output_type -> zerx.v1.RegisterResponse
-	5, // 9: zerx.v1.AuthService.Refresh:output_type -> zerx.v1.RefreshResponse
-	7, // 10: zerx.v1.AuthService.Me:output_type -> zerx.v1.MeResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	17, // 0: zerx.v1.LoginResponse.user:type_name -> zerx.v1.User
+	17, // 1: zerx.v1.RegisterResponse.user:type_name -> zerx.v1.User
+	17, // 2: zerx.v1.MeResponse.user:type_name -> zerx.v1.User
+	12, // 3: zerx.v1.ListSessionsResponse.sessions:type_name -> zerx.v1.Session
+	0,  // 4: zerx.v1.AuthService.Login:input_type -> zerx.v1.LoginRequest
+	2,  // 5: zerx.v1.AuthService.Register:input_type -> zerx.v1.RegisterRequest
+	4,  // 6: zerx.v1.AuthService.Refresh:input_type -> zerx.v1.RefreshRequest
+	6,  // 7: zerx.v1.AuthService.Logout:input_type -> zerx.v1.LogoutRequest
+	8,  // 8: zerx.v1.AuthService.Me:input_type -> zerx.v1.MeRequest
+	10, // 9: zerx.v1.AuthService.GetCaptcha:input_type -> zerx.v1.GetCaptchaRequest
+	13, // 10: zerx.v1.AuthService.ListSessions:input_type -> zerx.v1.ListSessionsRequest
+	15, // 11: zerx.v1.AuthService.RevokeSession:input_type -> zerx.v1.RevokeSessionRequest
+	1,  // 12: zerx.v1.AuthService.Login:output_type -> zerx.v1.LoginResponse
+	3,  // 13: zerx.v1.AuthService.Register:output_type -> zerx.v1.RegisterResponse
+	5,  // 14: zerx.v1.AuthService.Refresh:output_type -> zerx.v1.RefreshResponse
+	7,  // 15: zerx.v1.AuthService.Logout:output_type -> zerx.v1.LogoutResponse
+	9,  // 16: zerx.v1.AuthService.Me:output_type -> zerx.v1.MeResponse
+	11, // 17: zerx.v1.AuthService.GetCaptcha:output_type -> zerx.v1.GetCaptchaResponse
+	14, // 18: zerx.v1.AuthService.ListSessions:output_type -> zerx.v1.ListSessionsResponse
+	16, // 19: zerx.v1.AuthService.RevokeSession:output_type -> zerx.v1.RevokeSessionResponse
+	12, // [12:20] is the sub-list for method output_type
+	4,  // [4:12] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_zerx_v1_auth_proto_init() }
@@ -511,7 +1011,7 @@ func file_zerx_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_zerx_v1_auth_proto_rawDesc), len(file_zerx_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

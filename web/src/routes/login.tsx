@@ -1,7 +1,9 @@
 import { ConnectError } from "@connectrpc/connect";
-import { useMutation } from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { RefreshCwIcon } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,9 +19,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/gen/zerx/v1/auth-AuthService_connectquery";
+import { getCaptcha, login } from "@/gen/zerx/v1/auth-AuthService_connectquery";
 import { auth } from "@/lib/auth";
 import { firstErrorMessage } from "@/lib/form";
+import { queryClient } from "@/lib/query-client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/login")({
@@ -33,21 +36,32 @@ function LoginPage() {
   const router = useRouter();
   const search = Route.useSearch();
   const loginMutation = useMutation(login);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [captchaCode, setCaptchaCode] = useState("");
 
-  const schema = z.object({
-    email: z.email(t("validation.email")),
-    password: z.string().min(8, t("validation.passwordMin")),
-  });
+  const captchaQuery = useQuery(getCaptcha, undefined, { enabled: showCaptcha });
+  const captchaImage = captchaQuery.data?.imageBase64 ?? "";
+  const captchaIdFromQuery = captchaQuery.data?.captchaId ?? "";
+
+  const emailSchema = z.email(t("validation.email"));
+  const passwordSchema = z.string().min(8, t("validation.passwordMin"));
 
   const form = useForm({
     defaultValues: { email: "", password: "" },
-    validators: { onChange: schema },
     onSubmit: async ({ value }) => {
       try {
-        const res = await loginMutation.mutateAsync(value);
-        auth.setTokens(res.accessToken, res.refreshToken);
+        const res = await loginMutation.mutateAsync({
+          ...value,
+          captchaId: captchaIdFromQuery,
+          captchaCode,
+        });
+        auth.setTokens(res.accessToken, res.refreshToken, res.sessionId);
+        queryClient.clear();
         router.history.push(search.redirect ?? "/dashboard");
       } catch (err) {
+        setShowCaptcha(true);
+        setCaptchaCode("");
+        void captchaQuery.refetch();
         toast.error(err instanceof ConnectError ? err.message : t("login.failed"));
       }
     },
@@ -77,7 +91,7 @@ function LoginPage() {
               void form.handleSubmit();
             }}
           >
-            <form.Field name="email">
+            <form.Field name="email" validators={{ onChange: emailSchema }}>
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
                 return (
@@ -98,7 +112,7 @@ function LoginPage() {
               }}
             </form.Field>
 
-            <form.Field name="password">
+            <form.Field name="password" validators={{ onChange: passwordSchema }}>
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
                 return (
@@ -117,6 +131,38 @@ function LoginPage() {
                 );
               }}
             </form.Field>
+
+            {showCaptcha && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="captcha">{t("login.captchaLabel")}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="captcha"
+                    autoComplete="off"
+                    placeholder={t("login.captchaPlaceholder")}
+                    value={captchaCode}
+                    onChange={(e) => setCaptchaCode(e.target.value)}
+                  />
+                  {captchaImage ? (
+                    <img
+                      src={captchaImage}
+                      alt="captcha"
+                      className="h-9 cursor-pointer rounded border"
+                      onClick={() => void captchaQuery.refetch()}
+                    />
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("login.captchaRefresh")}
+                    onClick={() => void captchaQuery.refetch()}
+                  >
+                    <RefreshCwIcon className="size-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <Button type="submit" className="mt-1 w-full" disabled={loginMutation.isPending}>
               {loginMutation.isPending ? t("login.submitting") : t("common.signIn")}

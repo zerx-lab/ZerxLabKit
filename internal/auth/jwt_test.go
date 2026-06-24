@@ -37,7 +37,7 @@ func TestAccessTokenRoundTrip(t *testing.T) {
 func TestRefreshTokenCannotBeUsedAsAccess(t *testing.T) {
 	issuer := newIssuer("test-secret", 15*time.Minute, time.Hour)
 
-	refresh, err := issuer.IssueRefresh(7)
+	refresh, err := issuer.IssueRefresh(7, "sess-1")
 	if err != nil {
 		t.Fatalf("IssueRefresh: %v", err)
 	}
@@ -52,6 +52,9 @@ func TestRefreshTokenCannotBeUsedAsAccess(t *testing.T) {
 	}
 	if claims.UserID != 7 {
 		t.Errorf("UserID = %d, want 7", claims.UserID)
+	}
+	if claims.ID != "sess-1" {
+		t.Errorf("ID = %q, want sess-1", claims.ID)
 	}
 }
 

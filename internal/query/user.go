@@ -11,8 +11,12 @@ var User = struct {
 	ID           field.Number[uint64]
 	Email        field.String
 	Name         field.String
+	Nickname     field.String
+	Avatar       field.String
+	Phone        field.String
 	PasswordHash field.String
 	Role         field.String
+	Status       field.Bool
 	CreatedAt    field.Time
 	UpdatedAt    field.Time
 	DeletedAt    field.Field[gorm.DeletedAt]
@@ -20,8 +24,12 @@ var User = struct {
 	ID:           field.Number[uint64]{}.WithColumn("id"),
 	Email:        field.String{}.WithColumn("email"),
 	Name:         field.String{}.WithColumn("name"),
+	Nickname:     field.String{}.WithColumn("nickname"),
+	Avatar:       field.String{}.WithColumn("avatar"),
+	Phone:        field.String{}.WithColumn("phone"),
 	PasswordHash: field.String{}.WithColumn("password_hash"),
 	Role:         field.String{}.WithColumn("role"),
+	Status:       field.Bool{}.WithColumn("status"),
 	CreatedAt:    field.Time{}.WithColumn("created_at"),
 	UpdatedAt:    field.Time{}.WithColumn("updated_at"),
 	DeletedAt:    field.Field[gorm.DeletedAt]{}.WithColumn("deleted_at"),

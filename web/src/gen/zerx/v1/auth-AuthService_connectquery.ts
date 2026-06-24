@@ -22,6 +22,32 @@ export const register = AuthService.method.register;
 export const refresh = AuthService.method.refresh;
 
 /**
+ * Logout revokes every session of the current user (logout everywhere).
+ *
+ * @generated from rpc zerx.v1.AuthService.Logout
+ */
+export const logout = AuthService.method.logout;
+
+/**
  * @generated from rpc zerx.v1.AuthService.Me
  */
 export const me = AuthService.method.me;
+
+/**
+ * @generated from rpc zerx.v1.AuthService.GetCaptcha
+ */
+export const getCaptcha = AuthService.method.getCaptcha;
+
+/**
+ * ListSessions returns the caller's sessions; admins may pass a user_id.
+ *
+ * @generated from rpc zerx.v1.AuthService.ListSessions
+ */
+export const listSessions = AuthService.method.listSessions;
+
+/**
+ * RevokeSession deletes one session (own session, or any when admin).
+ *
+ * @generated from rpc zerx.v1.AuthService.RevokeSession
+ */
+export const revokeSession = AuthService.method.revokeSession;

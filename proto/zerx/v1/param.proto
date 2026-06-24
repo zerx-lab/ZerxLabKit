@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// SysParamService manages runtime system parameters.
+service SysParamService {
+  rpc ListParams(ListParamsRequest) returns (ListParamsResponse);
+  rpc CreateParam(CreateParamRequest) returns (SysParam);
+  rpc UpdateParam(UpdateParamRequest) returns (SysParam);
+  rpc DeleteParam(DeleteParamRequest) returns (DeleteParamResponse);
+  rpc GetParam(GetParamRequest) returns (SysParam);
+}
+
+message SysParam {
+  uint64 id = 1;
+  string key = 2;
+  string name = 3;
+  string value = 4;
+  string description = 5;
+  string created_at = 6;
+}
+
+message ListParamsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListParamsResponse {
+  repeated SysParam params = 1;
+  int64 total = 2;
+}
+
+message CreateParamRequest {
+  string key = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string value = 3;
+  string description = 4;
+}
+
+message UpdateParamRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2;
+  string value = 3;
+  string description = 4;
+}
+
+message DeleteParamRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteParamResponse {}
+
+message GetParamRequest {
+  string key = 1 [(buf.validate.field).string.min_len = 1];
+}

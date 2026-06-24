@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// RoleService manages RBAC roles and their permission assignments. Authorization
+// is enforced by the Casbin interceptor (admin bypasses).
+service RoleService {
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc CreateRole(CreateRoleRequest) returns (Role);
+  rpc UpdateRole(UpdateRoleRequest) returns (Role);
+  rpc DeleteRole(DeleteRoleRequest) returns (DeleteRoleResponse);
+  rpc GetRolePermissions(GetRolePermissionsRequest) returns (GetRolePermissionsResponse);
+  rpc SetRolePermissions(SetRolePermissionsRequest) returns (SetRolePermissionsResponse);
+}
+
+message Role {
+  uint64 id = 1;
+  string code = 2;
+  string name = 3;
+  string description = 4;
+  bool builtin = 5;
+  int32 sort = 6;
+  string created_at = 7;
+}
+
+message ListRolesRequest {}
+
+message ListRolesResponse {
+  repeated Role roles = 1;
+}
+
+message CreateRoleRequest {
+  string code = 1 [(buf.validate.field).string = {
+    min_len: 1
+    pattern: "^[a-z][a-z0-9_]*$"
+  }];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string description = 3;
+  int32 sort = 4;
+}
+
+message UpdateRoleRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string description = 3;
+  int32 sort = 4;
+}
+
+message DeleteRoleRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteRoleResponse {}
+
+message GetRolePermissionsRequest {
+  string role_code = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetRolePermissionsResponse {
+  repeated uint64 menu_ids = 1;
+  repeated string procedures = 2;
+  repeated uint64 button_ids = 3;
+}
+
+message SetRolePermissionsRequest {
+  string role_code = 1 [(buf.validate.field).string.min_len = 1];
+  repeated uint64 menu_ids = 2;
+  repeated string procedures = 3;
+  repeated uint64 button_ids = 4;
+}
+
+message SetRolePermissionsResponse {}

@@ -21,7 +21,7 @@ tasks:
     silent: true
 
   sync:
-    desc: One-shot setup — install tools/deps, generate code, create .env
+    desc: One-shot setup — install tools/deps, generate code, create .env, start dev DB
     cmds:
       - task: backend:tools
       - task: frontend:install
@@ -29,6 +29,7 @@ tasks:
       - task: gen
       - go mod tidy
       - task: env:ensure
+      - task: db:up
 
   env:ensure:
     internal: true
@@ -44,7 +45,7 @@ tasks:
 
   dev:
     desc: Run backend (air hot-reload) + frontend (Vite) in a process-compose TUI
-    deps: [env:ensure]
+    deps: [env:ensure, db:up]
     env:
       ZERX_AIR: '{{.ROOT_DIR}}/.bin/air{{if eq OS "windows"}}.exe{{end}}'
     cmds:

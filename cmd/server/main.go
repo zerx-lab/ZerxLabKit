@@ -50,13 +50,22 @@ func run() error {
 		return fmt.Errorf("migrate: %w", err)
 	}
 
+	if err := database.Seed(db); err != nil {
+		return fmt.Errorf("seed: %w", err)
+	}
+
+	handler, err := server.New(cfg, db, logger)
+	if err != nil {
+		return fmt.Errorf("build server: %w", err)
+	}
+
 	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)
 	protocols.SetUnencryptedHTTP2(true) // h2c, for grpc tooling; SPA uses HTTP/1.1
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Addr,
-		Handler:           server.New(cfg, db, logger),
+		Handler:           handler,
 		Protocols:         protocols,
 		ReadHeaderTimeout: 10 * time.Second,
 	}

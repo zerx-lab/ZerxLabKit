@@ -12,10 +12,34 @@ import (
 
 // Config is the root application configuration.
 type Config struct {
-	Server ServerConfig
-	DB     DBConfig
-	JWT    JWTConfig
-	Env    string `env:"APP_ENV" envDefault:"dev"`
+	Server  ServerConfig
+	DB      DBConfig
+	JWT     JWTConfig
+	Auth    AuthConfig
+	Storage StorageConfig
+	Env     string `env:"APP_ENV" envDefault:"dev"`
+}
+
+// AuthConfig holds authentication hardening settings.
+type AuthConfig struct {
+	SingleSession    bool          `env:"AUTH_SINGLE_SESSION" envDefault:"false"`
+	CaptchaThreshold int           `env:"AUTH_CAPTCHA_THRESHOLD" envDefault:"2"`
+	LockThreshold    int           `env:"AUTH_LOCK_THRESHOLD" envDefault:"5"`
+	LockFor          time.Duration `env:"AUTH_LOCK_FOR" envDefault:"15m"`
+}
+
+// StorageConfig selects and configures object storage.
+type StorageConfig struct {
+	Driver       string `env:"STORAGE_DRIVER" envDefault:"local"`
+	LocalDir     string `env:"STORAGE_LOCAL_DIR" envDefault:"./data/uploads"`
+	LocalBaseURL string `env:"STORAGE_LOCAL_BASE_URL" envDefault:"/uploads"`
+	S3Endpoint   string `env:"STORAGE_S3_ENDPOINT"`
+	S3AccessKey  string `env:"STORAGE_S3_ACCESS_KEY"`
+	S3SecretKey  string `env:"STORAGE_S3_SECRET_KEY"`
+	S3Bucket     string `env:"STORAGE_S3_BUCKET"`
+	S3Region     string `env:"STORAGE_S3_REGION" envDefault:"us-east-1"`
+	S3Secure     bool   `env:"STORAGE_S3_SECURE" envDefault:"true"`
+	S3PublicURL  string `env:"STORAGE_S3_PUBLIC_URL"`
 }
 
 // ServerConfig holds HTTP server settings.

@@ -84,3 +84,37 @@ export const transport = createConnectTransport({
   baseUrl,
   interceptors: [authInterceptor],
 });
+
+// authedFetch is a fetch wrapper that injects the access token and shares the
+// same single-flight 401 refresh logic as the connect transport. Used for the
+// multipart upload endpoint which is not a connectRPC method.
+export async function authedFetch(input: string, init?: RequestInit): Promise<Response> {
+  const withAuth = (): RequestInit => {
+    const headers = new Headers(init?.headers);
+    const token = getAccessToken();
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return { ...init, headers };
+  };
+
+  let res = await fetch(input, withAuth());
+  if (res.status !== 401) {
+    return res;
+  }
+
+  refreshPromise ??= refreshTokens().finally(() => {
+    refreshPromise = null;
+  });
+  const refreshed = await refreshPromise;
+  if (!refreshed) {
+    failAuth();
+    return res;
+  }
+
+  res = await fetch(input, withAuth());
+  if (res.status === 401) {
+    failAuth();
+  }
+  return res;
+}

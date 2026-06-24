@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// LogService exposes operation, error (operation rows with non-ok status), and
+// login logs.
+service LogService {
+  rpc ListOperationLogs(ListOperationLogsRequest) returns (ListOperationLogsResponse);
+  rpc ListErrorLogs(ListErrorLogsRequest) returns (ListErrorLogsResponse);
+  rpc ListLoginLogs(ListLoginLogsRequest) returns (ListLoginLogsResponse);
+  rpc CleanLogs(CleanLogsRequest) returns (CleanLogsResponse);
+}
+
+enum LogType {
+  LOG_TYPE_UNSPECIFIED = 0;
+  LOG_TYPE_OPERATION = 1;
+  LOG_TYPE_LOGIN = 2;
+}
+
+message OperationLog {
+  uint64 id = 1;
+  uint64 user_id = 2;
+  string user_email = 3;
+  string procedure = 4;
+  string method = 5;
+  string ip = 6;
+  string user_agent = 7;
+  int64 latency_ms = 8;
+  string status = 9;
+  string error = 10;
+  string stack = 11;
+  string created_at = 12;
+}
+
+message LoginLog {
+  uint64 id = 1;
+  uint64 user_id = 2;
+  string email = 3;
+  string ip = 4;
+  string user_agent = 5;
+  bool success = 6;
+  string error = 7;
+  string created_at = 8;
+}
+
+message ListOperationLogsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListOperationLogsResponse {
+  repeated OperationLog logs = 1;
+  int64 total = 2;
+}
+
+message ListErrorLogsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListErrorLogsResponse {
+  repeated OperationLog logs = 1;
+  int64 total = 2;
+}
+
+message ListLoginLogsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListLoginLogsResponse {
+  repeated LoginLog logs = 1;
+  int64 total = 2;
+}
+
+message CleanLogsRequest {
+  LogType type = 1;
+  int32 days = 2;
+}
+
+message CleanLogsResponse {
+  int64 removed = 1;
+}

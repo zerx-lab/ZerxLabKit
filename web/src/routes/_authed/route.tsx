@@ -1,4 +1,4 @@
-import { useQuery } from "@connectrpc/connect-query";
+import { useMutation, useQuery } from "@connectrpc/connect-query";
 import {
   createFileRoute,
   Link,
@@ -7,12 +7,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router";
-import {
-  LayoutDashboardIcon,
-  LogOutIcon,
-  PanelLeftIcon,
-  UsersIcon,
-} from "lucide-react";
+import { LogOutIcon, PanelLeftIcon } from "lucide-react";
 import { useState } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -26,9 +21,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { me } from "@/gen/zerx/v1/auth-AuthService_connectquery";
-import { auth } from "@/lib/auth";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  logout,
+  me,
+  revokeSession,
+} from "@/gen/zerx/v1/auth-AuthService_connectquery";
+import type { Menu } from "@/gen/zerx/v1/menu_pb";
+import { getUserMenus } from "@/gen/zerx/v1/menu-MenuService_connectquery";
+import { auth, getSessionId } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { menuIcon } from "@/lib/menu-icons";
+import { queryClient } from "@/lib/query-client";
+import { PermissionProvider } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed")({
@@ -40,14 +45,19 @@ export const Route = createFileRoute("/_authed")({
   component: AuthedLayout,
 });
 
-const navItems = [
-  { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboardIcon },
-  { to: "/users", labelKey: "nav.users", icon: UsersIcon },
-] as const;
-
 function AuthedLayout() {
+  return (
+    <PermissionProvider>
+      <AuthedShell />
+    </PermissionProvider>
+  );
+}
+
+function AuthedShell() {
   const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
+  const { data, isPending } = useQuery(getUserMenus);
+  const menus = data?.menus ?? [];
 
   return (
     <div className="flex h-svh w-full overflow-hidden">
@@ -65,33 +75,23 @@ function AuthedLayout() {
             </span>
           )}
         </div>
-        {!collapsed && (
-          <p className="px-4 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">
-            {t("nav.management")}
-          </p>
-        )}
-        <nav className="flex flex-1 flex-col gap-1 p-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              title={t(item.labelKey)}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors",
-                "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                "data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-primary",
-                collapsed && "justify-center px-0",
-              )}
-            >
-              <item.icon className="size-4 shrink-0" />
-              {!collapsed && <span className="truncate">{t(item.labelKey)}</span>}
-            </Link>
-          ))}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
+          {isPending ? (
+            <div className="flex flex-col gap-2 p-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            menus.map((menu) => (
+              <SidebarNode key={String(menu.id)} menu={menu} collapsed={collapsed} />
+            ))
+          )}
         </nav>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col bg-background">
-        <Header collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
+        <Header collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} menus={menus} />
         <main className="flex-1 overflow-auto p-6">
           <Outlet />
         </main>
@@ -100,19 +100,99 @@ function AuthedLayout() {
   );
 }
 
-function Header({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+function SidebarNode({ menu, collapsed }: { menu: Menu; collapsed: boolean }) {
+  const { t } = useI18n();
+  const Icon = menuIcon(menu.icon);
+
+  // Group heading (no path): render a label + its children.
+  if (menu.path === "") {
+    return (
+      <div className="flex flex-col gap-1">
+        {!collapsed && (
+          <p className="px-3 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">
+            {t(menu.title)}
+          </p>
+        )}
+        {menu.children.map((child) => (
+          <SidebarNode key={String(child.id)} menu={child} collapsed={collapsed} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      to={menu.path}
+      title={t(menu.title)}
+      className={cn(
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors",
+        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        "data-[status=active]:bg-sidebar-accent data-[status=active]:text-sidebar-primary",
+        collapsed && "justify-center px-0",
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      {!collapsed && <span className="truncate">{t(menu.title)}</span>}
+    </Link>
+  );
+}
+
+function findMenuTitle(menus: Menu[], pathname: string): string | undefined {
+  for (const m of menus) {
+    if (m.path !== "" && pathname.startsWith(m.path)) {
+      return m.title;
+    }
+    const child = findMenuTitle(m.children, pathname);
+    if (child) {
+      return child;
+    }
+  }
+  return undefined;
+}
+
+function Header({
+  collapsed,
+  onToggle,
+  menus,
+}: {
+  collapsed: boolean;
+  onToggle: () => void;
+  menus: Menu[];
+}) {
   const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
   const { data } = useQuery(me);
   const user = data?.user;
+  const revokeMutation = useMutation(revokeSession);
+  const logoutMutation = useMutation(logout);
 
-  const active = navItems.find((item) => location.pathname.startsWith(item.to));
-  const title = active ? t(active.labelKey) : t("app.name");
+  const titleKey = findMenuTitle(menus, location.pathname);
+  const title = titleKey ? t(titleKey) : t("app.name");
   const initial = (user?.name || user?.email || "?").charAt(0).toUpperCase();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const sid = getSessionId();
+    if (sid) {
+      try {
+        await revokeMutation.mutateAsync({ id: sid });
+      } catch {
+        // ignore: log out locally regardless.
+      }
+    }
     auth.clearTokens();
+    queryClient.clear();
+    void navigate({ to: "/login" });
+  };
+
+  const handleLogoutAll = async () => {
+    try {
+      await logoutMutation.mutateAsync({});
+    } catch {
+      // ignore
+    }
+    auth.clearTokens();
+    queryClient.clear();
     void navigate({ to: "/login" });
   };
 
@@ -150,9 +230,13 @@ function Header({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => v
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={() => void handleLogout()}>
               <LogOutIcon className="size-4" />
               {t("common.signOut")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => void handleLogoutAll()}>
+              <LogOutIcon className="size-4" />
+              {t("common.signOutAll")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -89,12 +89,8 @@ func (s *UserService) GetUser(ctx context.Context, req *connect.Request[zerxv1.G
 	return connect.NewResponse(toProtoUser(u)), nil
 }
 
-// CreateUser creates a user. Admin only.
+// CreateUser creates a user. Authorization is enforced by the Casbin interceptor.
 func (s *UserService) CreateUser(ctx context.Context, req *connect.Request[zerxv1.CreateUserRequest]) (*connect.Response[zerxv1.User], error) {
-	if err := auth.RequireRole(ctx, model.RoleAdmin); err != nil {
-		return nil, err
-	}
-
 	_, err := gorm.G[model.User](s.db).Where("email = ?", req.Msg.GetEmail()).First(ctx)
 	switch {
 	case err == nil:
@@ -111,8 +107,11 @@ func (s *UserService) CreateUser(ctx context.Context, req *connect.Request[zerxv
 	u := model.User{
 		Email:        req.Msg.GetEmail(),
 		Name:         req.Msg.GetName(),
+		Nickname:     req.Msg.GetNickname(),
+		Phone:        req.Msg.GetPhone(),
 		PasswordHash: hash,
 		Role:         req.Msg.GetRole(),
+		Status:       true,
 	}
 	if err := gorm.G[model.User](s.db).Create(ctx, &u); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -121,12 +120,9 @@ func (s *UserService) CreateUser(ctx context.Context, req *connect.Request[zerxv
 	return connect.NewResponse(toProtoUser(u)), nil
 }
 
-// UpdateUser updates a user's name and role. Admin only.
+// UpdateUser updates a user's profile, role, and status. Authorization is
+// enforced by the Casbin interceptor.
 func (s *UserService) UpdateUser(ctx context.Context, req *connect.Request[zerxv1.UpdateUserRequest]) (*connect.Response[zerxv1.User], error) {
-	if err := auth.RequireRole(ctx, model.RoleAdmin); err != nil {
-		return nil, err
-	}
-
 	id := req.Msg.GetId()
 	if _, err := gorm.G[model.User](s.db).Where("id = ?", id).First(ctx); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -135,11 +131,16 @@ func (s *UserService) UpdateUser(ctx context.Context, req *connect.Request[zerxv
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	// Updates skips zero-value fields: an empty name leaves the name unchanged.
-	if _, err := gorm.G[model.User](s.db).Where("id = ?", id).Updates(ctx, model.User{
-		Name: req.Msg.GetName(),
-		Role: req.Msg.GetRole(),
-	}); err != nil {
+	// Select the columns explicitly so the boolean status (which may be false)
+	// is persisted; other empty strings simply overwrite with the new value.
+	updates := map[string]any{
+		"name":     req.Msg.GetName(),
+		"role":     req.Msg.GetRole(),
+		"nickname": req.Msg.GetNickname(),
+		"phone":    req.Msg.GetPhone(),
+		"status":   req.Msg.GetStatus(),
+	}
+	if err := s.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", id).Updates(updates).Error; err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
@@ -151,12 +152,9 @@ func (s *UserService) UpdateUser(ctx context.Context, req *connect.Request[zerxv
 	return connect.NewResponse(toProtoUser(u)), nil
 }
 
-// DeleteUser soft-deletes a user. Admin only.
+// DeleteUser soft-deletes a user. Authorization is enforced by the Casbin
+// interceptor.
 func (s *UserService) DeleteUser(ctx context.Context, req *connect.Request[zerxv1.DeleteUserRequest]) (*connect.Response[zerxv1.DeleteUserResponse], error) {
-	if err := auth.RequireRole(ctx, model.RoleAdmin); err != nil {
-		return nil, err
-	}
-
 	rows, err := gorm.G[model.User](s.db).Where("id = ?", req.Msg.GetId()).Delete(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
@@ -166,6 +164,34 @@ func (s *UserService) DeleteUser(ctx context.Context, req *connect.Request[zerxv
 	}
 
 	return connect.NewResponse(&zerxv1.DeleteUserResponse{}), nil
+}
+
+// ResetPassword sets a user's password and revokes all their sessions so the
+// change takes effect immediately. Authorization is enforced by the Casbin
+// interceptor.
+func (s *UserService) ResetPassword(ctx context.Context, req *connect.Request[zerxv1.ResetPasswordRequest]) (*connect.Response[zerxv1.ResetPasswordResponse], error) {
+	id := req.Msg.GetId()
+	if _, err := gorm.G[model.User](s.db).Where("id = ?", id).First(ctx); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, connect.NewError(connect.CodeNotFound, errors.New("user not found"))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	hash, err := auth.Hash(req.Msg.GetPassword())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	if err := s.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", id).Update("password_hash", hash).Error; err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	// Revoke the user's sessions so existing refresh tokens stop working.
+	if err := s.db.WithContext(ctx).Where("user_id = ?", id).Delete(&model.UserSession{}).Error; err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return connect.NewResponse(&zerxv1.ResetPasswordResponse{}), nil
 }
 
 func toProtoUsers(users []model.User) []*zerxv1.User {

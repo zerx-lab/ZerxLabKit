@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// FileService lists and deletes uploaded files. Uploading itself is a plain
+// multipart HTTP endpoint at /api/upload (not a connectRPC method).
+service FileService {
+  rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+  rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+}
+
+message File {
+  uint64 id = 1;
+  string name = 2;
+  string key = 3;
+  string url = 4;
+  int64 size = 5;
+  string content_type = 6;
+  uint64 uploaded_by = 7;
+  string created_at = 8;
+}
+
+message ListFilesRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListFilesResponse {
+  repeated File files = 1;
+  int64 total = 2;
+}
+
+message DeleteFileRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteFileResponse {}

@@ -14,7 +14,17 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
+import { Route as AuthedSessionsRouteImport } from './routes/_authed/sessions'
+import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
+import { Route as AuthedParamsRouteImport } from './routes/_authed/params'
+import { Route as AuthedOperationLogsRouteImport } from './routes/_authed/operation-logs'
+import { Route as AuthedMenusRouteImport } from './routes/_authed/menus'
+import { Route as AuthedLoginLogsRouteImport } from './routes/_authed/login-logs'
+import { Route as AuthedFilesRouteImport } from './routes/_authed/files'
+import { Route as AuthedErrorLogsRouteImport } from './routes/_authed/error-logs'
+import { Route as AuthedDictsRouteImport } from './routes/_authed/dicts'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedApisRouteImport } from './routes/_authed/apis'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -40,9 +50,59 @@ const AuthedUsersRoute = AuthedUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedSessionsRoute = AuthedSessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedRolesRoute = AuthedRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedParamsRoute = AuthedParamsRouteImport.update({
+  id: '/params',
+  path: '/params',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedOperationLogsRoute = AuthedOperationLogsRouteImport.update({
+  id: '/operation-logs',
+  path: '/operation-logs',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedMenusRoute = AuthedMenusRouteImport.update({
+  id: '/menus',
+  path: '/menus',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedLoginLogsRoute = AuthedLoginLogsRouteImport.update({
+  id: '/login-logs',
+  path: '/login-logs',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedFilesRoute = AuthedFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedErrorLogsRoute = AuthedErrorLogsRouteImport.update({
+  id: '/error-logs',
+  path: '/error-logs',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedDictsRoute = AuthedDictsRouteImport.update({
+  id: '/dicts',
+  path: '/dicts',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedApisRoute = AuthedApisRouteImport.update({
+  id: '/apis',
+  path: '/apis',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 
@@ -50,14 +110,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/apis': typeof AuthedApisRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/dicts': typeof AuthedDictsRoute
+  '/error-logs': typeof AuthedErrorLogsRoute
+  '/files': typeof AuthedFilesRoute
+  '/login-logs': typeof AuthedLoginLogsRoute
+  '/menus': typeof AuthedMenusRoute
+  '/operation-logs': typeof AuthedOperationLogsRoute
+  '/params': typeof AuthedParamsRoute
+  '/roles': typeof AuthedRolesRoute
+  '/sessions': typeof AuthedSessionsRoute
   '/users': typeof AuthedUsersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/apis': typeof AuthedApisRoute
   '/dashboard': typeof AuthedDashboardRoute
+  '/dicts': typeof AuthedDictsRoute
+  '/error-logs': typeof AuthedErrorLogsRoute
+  '/files': typeof AuthedFilesRoute
+  '/login-logs': typeof AuthedLoginLogsRoute
+  '/menus': typeof AuthedMenusRoute
+  '/operation-logs': typeof AuthedOperationLogsRoute
+  '/params': typeof AuthedParamsRoute
+  '/roles': typeof AuthedRolesRoute
+  '/sessions': typeof AuthedSessionsRoute
   '/users': typeof AuthedUsersRoute
 }
 export interface FileRoutesById {
@@ -66,21 +146,71 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
+  '/_authed/apis': typeof AuthedApisRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/dicts': typeof AuthedDictsRoute
+  '/_authed/error-logs': typeof AuthedErrorLogsRoute
+  '/_authed/files': typeof AuthedFilesRoute
+  '/_authed/login-logs': typeof AuthedLoginLogsRoute
+  '/_authed/menus': typeof AuthedMenusRoute
+  '/_authed/operation-logs': typeof AuthedOperationLogsRoute
+  '/_authed/params': typeof AuthedParamsRoute
+  '/_authed/roles': typeof AuthedRolesRoute
+  '/_authed/sessions': typeof AuthedSessionsRoute
   '/_authed/users': typeof AuthedUsersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/register' | '/dashboard' | '/users'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/apis'
+    | '/dashboard'
+    | '/dicts'
+    | '/error-logs'
+    | '/files'
+    | '/login-logs'
+    | '/menus'
+    | '/operation-logs'
+    | '/params'
+    | '/roles'
+    | '/sessions'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/dashboard' | '/users'
+  to:
+    | '/'
+    | '/login'
+    | '/register'
+    | '/apis'
+    | '/dashboard'
+    | '/dicts'
+    | '/error-logs'
+    | '/files'
+    | '/login-logs'
+    | '/menus'
+    | '/operation-logs'
+    | '/params'
+    | '/roles'
+    | '/sessions'
+    | '/users'
   id:
     | '__root__'
     | '/'
     | '/_authed'
     | '/login'
     | '/register'
+    | '/_authed/apis'
     | '/_authed/dashboard'
+    | '/_authed/dicts'
+    | '/_authed/error-logs'
+    | '/_authed/files'
+    | '/_authed/login-logs'
+    | '/_authed/menus'
+    | '/_authed/operation-logs'
+    | '/_authed/params'
+    | '/_authed/roles'
+    | '/_authed/sessions'
     | '/_authed/users'
   fileRoutesById: FileRoutesById
 }
@@ -128,6 +258,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedUsersRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/sessions': {
+      id: '/_authed/sessions'
+      path: '/sessions'
+      fullPath: '/sessions'
+      preLoaderRoute: typeof AuthedSessionsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/roles': {
+      id: '/_authed/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthedRolesRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/params': {
+      id: '/_authed/params'
+      path: '/params'
+      fullPath: '/params'
+      preLoaderRoute: typeof AuthedParamsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/operation-logs': {
+      id: '/_authed/operation-logs'
+      path: '/operation-logs'
+      fullPath: '/operation-logs'
+      preLoaderRoute: typeof AuthedOperationLogsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/menus': {
+      id: '/_authed/menus'
+      path: '/menus'
+      fullPath: '/menus'
+      preLoaderRoute: typeof AuthedMenusRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/login-logs': {
+      id: '/_authed/login-logs'
+      path: '/login-logs'
+      fullPath: '/login-logs'
+      preLoaderRoute: typeof AuthedLoginLogsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/files': {
+      id: '/_authed/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof AuthedFilesRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/error-logs': {
+      id: '/_authed/error-logs'
+      path: '/error-logs'
+      fullPath: '/error-logs'
+      preLoaderRoute: typeof AuthedErrorLogsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/dicts': {
+      id: '/_authed/dicts'
+      path: '/dicts'
+      fullPath: '/dicts'
+      preLoaderRoute: typeof AuthedDictsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
       path: '/dashboard'
@@ -135,16 +328,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/apis': {
+      id: '/_authed/apis'
+      path: '/apis'
+      fullPath: '/apis'
+      preLoaderRoute: typeof AuthedApisRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
+  AuthedApisRoute: typeof AuthedApisRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedDictsRoute: typeof AuthedDictsRoute
+  AuthedErrorLogsRoute: typeof AuthedErrorLogsRoute
+  AuthedFilesRoute: typeof AuthedFilesRoute
+  AuthedLoginLogsRoute: typeof AuthedLoginLogsRoute
+  AuthedMenusRoute: typeof AuthedMenusRoute
+  AuthedOperationLogsRoute: typeof AuthedOperationLogsRoute
+  AuthedParamsRoute: typeof AuthedParamsRoute
+  AuthedRolesRoute: typeof AuthedRolesRoute
+  AuthedSessionsRoute: typeof AuthedSessionsRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedApisRoute: AuthedApisRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedDictsRoute: AuthedDictsRoute,
+  AuthedErrorLogsRoute: AuthedErrorLogsRoute,
+  AuthedFilesRoute: AuthedFilesRoute,
+  AuthedLoginLogsRoute: AuthedLoginLogsRoute,
+  AuthedMenusRoute: AuthedMenusRoute,
+  AuthedOperationLogsRoute: AuthedOperationLogsRoute,
+  AuthedParamsRoute: AuthedParamsRoute,
+  AuthedRolesRoute: AuthedRolesRoute,
+  AuthedSessionsRoute: AuthedSessionsRoute,
   AuthedUsersRoute: AuthedUsersRoute,
 }
 

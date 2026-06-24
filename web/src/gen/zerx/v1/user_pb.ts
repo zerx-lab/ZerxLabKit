@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file zerx/v1/user.proto.
  */
 export const file_zerx_v1_user: GenFile = /*@__PURE__*/
-  fileDesc("ChJ6ZXJ4L3YxL3VzZXIucHJvdG8SB3plcngudjEiUQoEVXNlchIKCgJpZBgBIAEoBBINCgVlbWFpbBgCIAEoCRIMCgRuYW1lGAMgASgJEgwKBHJvbGUYBCABKAkSEgoKY3JlYXRlZF9hdBgFIAEoCSJHChBMaXN0VXNlcnNSZXF1ZXN0EiIKBHBhZ2UYASABKAsyFC56ZXJ4LnYxLlBhZ2VSZXF1ZXN0Eg8KB2tleXdvcmQYAiABKAkiQAoRTGlzdFVzZXJzUmVzcG9uc2USHAoFdXNlcnMYASADKAsyDS56ZXJ4LnYxLlVzZXISDQoFdG90YWwYAiABKAMiJQoOR2V0VXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAAifwoRQ3JlYXRlVXNlclJlcXVlc3QSFgoFZW1haWwYASABKAlCB7pIBHICYAESFQoEbmFtZRgCIAEoCUIHukgEcgIQARIZCghwYXNzd29yZBgDIAEoCUIHukgEcgIQCBIgCgRyb2xlGAQgASgJQhK6SA9yDVIFYWRtaW5SBHVzZXIiWAoRVXBkYXRlVXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAASDAoEbmFtZRgCIAEoCRIgCgRyb2xlGAMgASgJQhK6SA9yDVIFYWRtaW5SBHVzZXIiKAoRRGVsZXRlVXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAAiFAoSRGVsZXRlVXNlclJlc3BvbnNlMr0CCgtVc2VyU2VydmljZRJCCglMaXN0VXNlcnMSGS56ZXJ4LnYxLkxpc3RVc2Vyc1JlcXVlc3QaGi56ZXJ4LnYxLkxpc3RVc2Vyc1Jlc3BvbnNlEjEKB0dldFVzZXISFy56ZXJ4LnYxLkdldFVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEjcKCkNyZWF0ZVVzZXISGi56ZXJ4LnYxLkNyZWF0ZVVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEjcKClVwZGF0ZVVzZXISGi56ZXJ4LnYxLlVwZGF0ZVVzZXJSZXF1ZXN0Gg0uemVyeC52MS5Vc2VyEkUKCkRlbGV0ZVVzZXISGi56ZXJ4LnYxLkRlbGV0ZVVzZXJSZXF1ZXN0GhsuemVyeC52MS5EZWxldGVVc2VyUmVzcG9uc2VCNlo0Z2l0aHViLmNvbS96ZXJ4LWxhYi96ZXJ4bGFia2l0L2dlbi9nby96ZXJ4L3YxO3plcnh2MWIGcHJvdG8z", [file_buf_validate_validate, file_zerx_v1_common]);
+  fileDesc("ChJ6ZXJ4L3YxL3VzZXIucHJvdG8SB3plcngudjEikgEKBFVzZXISCgoCaWQYASABKAQSDQoFZW1haWwYAiABKAkSDAoEbmFtZRgDIAEoCRIMCgRyb2xlGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAkSEAoIbmlja25hbWUYBiABKAkSDgoGYXZhdGFyGAcgASgJEg0KBXBob25lGAggASgJEg4KBnN0YXR1cxgJIAEoCCJHChBMaXN0VXNlcnNSZXF1ZXN0EiIKBHBhZ2UYASABKAsyFC56ZXJ4LnYxLlBhZ2VSZXF1ZXN0Eg8KB2tleXdvcmQYAiABKAkiQAoRTGlzdFVzZXJzUmVzcG9uc2USHAoFdXNlcnMYASADKAsyDS56ZXJ4LnYxLlVzZXISDQoFdG90YWwYAiABKAMiJQoOR2V0VXNlclJlcXVlc3QSEwoCaWQYASABKARCB7pIBDICIAAiqAEKEUNyZWF0ZVVzZXJSZXF1ZXN0EhYKBWVtYWlsGAEgASgJQge6SARyAmABEhUKBG5hbWUYAiABKAlCB7pIBHICEAESGQoIcGFzc3dvcmQYAyABKAlCB7pIBHICEAgSKAoEcm9sZRgEIAEoCUIaukgXchUQATIRXlthLXpdW2EtejAtOV9dKiQSEAoIbmlja25hbWUYBSABKAkSDQoFcGhvbmUYBiABKAkikQEKEVVwZGF0ZVVzZXJSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAEgwKBG5hbWUYAiABKAkSKAoEcm9sZRgDIAEoCUIaukgXchUQATIRXlthLXpdW2EtejAtOV9dKiQSEAoIbmlja25hbWUYBCABKAkSDQoFcGhvbmUYBSABKAkSDgoGc3RhdHVzGAYgASgIIigKEURlbGV0ZVVzZXJSZXF1ZXN0EhMKAmlkGAEgASgEQge6SAQyAiAAIhQKEkRlbGV0ZVVzZXJSZXNwb25zZSJGChRSZXNldFBhc3N3b3JkUmVxdWVzdBITCgJpZBgBIAEoBEIHukgEMgIgABIZCghwYXNzd29yZBgCIAEoCUIHukgEcgIQCCIXChVSZXNldFBhc3N3b3JkUmVzcG9uc2UyjQMKC1VzZXJTZXJ2aWNlEkIKCUxpc3RVc2VycxIZLnplcngudjEuTGlzdFVzZXJzUmVxdWVzdBoaLnplcngudjEuTGlzdFVzZXJzUmVzcG9uc2USMQoHR2V0VXNlchIXLnplcngudjEuR2V0VXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISNwoKQ3JlYXRlVXNlchIaLnplcngudjEuQ3JlYXRlVXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISNwoKVXBkYXRlVXNlchIaLnplcngudjEuVXBkYXRlVXNlclJlcXVlc3QaDS56ZXJ4LnYxLlVzZXISRQoKRGVsZXRlVXNlchIaLnplcngudjEuRGVsZXRlVXNlclJlcXVlc3QaGy56ZXJ4LnYxLkRlbGV0ZVVzZXJSZXNwb25zZRJOCg1SZXNldFBhc3N3b3JkEh0uemVyeC52MS5SZXNldFBhc3N3b3JkUmVxdWVzdBoeLnplcngudjEuUmVzZXRQYXNzd29yZFJlc3BvbnNlQjZaNGdpdGh1Yi5jb20vemVyeC1sYWIvemVyeGxhYmtpdC9nZW4vZ28vemVyeC92MTt6ZXJ4djFiBnByb3RvMw", [file_buf_validate_validate, file_zerx_v1_common]);
 
 /**
  * User is the public representation of an account (no password hash).
@@ -47,6 +47,26 @@ export type User = Message<"zerx.v1.User"> & {
    * @generated from field: string created_at = 5;
    */
   createdAt: string;
+
+  /**
+   * @generated from field: string nickname = 6;
+   */
+  nickname: string;
+
+  /**
+   * @generated from field: string avatar = 7;
+   */
+  avatar: string;
+
+  /**
+   * @generated from field: string phone = 8;
+   */
+  phone: string;
+
+  /**
+   * @generated from field: bool status = 9;
+   */
+  status: boolean;
 };
 
 /**
@@ -140,6 +160,16 @@ export type CreateUserRequest = Message<"zerx.v1.CreateUserRequest"> & {
    * @generated from field: string role = 4;
    */
   role: string;
+
+  /**
+   * @generated from field: string nickname = 5;
+   */
+  nickname: string;
+
+  /**
+   * @generated from field: string phone = 6;
+   */
+  phone: string;
 };
 
 /**
@@ -167,6 +197,21 @@ export type UpdateUserRequest = Message<"zerx.v1.UpdateUserRequest"> & {
    * @generated from field: string role = 3;
    */
   role: string;
+
+  /**
+   * @generated from field: string nickname = 4;
+   */
+  nickname: string;
+
+  /**
+   * @generated from field: string phone = 5;
+   */
+  phone: string;
+
+  /**
+   * @generated from field: bool status = 6;
+   */
+  status: boolean;
 };
 
 /**
@@ -207,7 +252,43 @@ export const DeleteUserResponseSchema: GenMessage<DeleteUserResponse> = /*@__PUR
   messageDesc(file_zerx_v1_user, 7);
 
 /**
- * UserService manages user accounts. Write operations require the admin role.
+ * @generated from message zerx.v1.ResetPasswordRequest
+ */
+export type ResetPasswordRequest = Message<"zerx.v1.ResetPasswordRequest"> & {
+  /**
+   * @generated from field: uint64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: string password = 2;
+   */
+  password: string;
+};
+
+/**
+ * Describes the message zerx.v1.ResetPasswordRequest.
+ * Use `create(ResetPasswordRequestSchema)` to create a new message.
+ */
+export const ResetPasswordRequestSchema: GenMessage<ResetPasswordRequest> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_user, 8);
+
+/**
+ * @generated from message zerx.v1.ResetPasswordResponse
+ */
+export type ResetPasswordResponse = Message<"zerx.v1.ResetPasswordResponse"> & {
+};
+
+/**
+ * Describes the message zerx.v1.ResetPasswordResponse.
+ * Use `create(ResetPasswordResponseSchema)` to create a new message.
+ */
+export const ResetPasswordResponseSchema: GenMessage<ResetPasswordResponse> = /*@__PURE__*/
+  messageDesc(file_zerx_v1_user, 9);
+
+/**
+ * UserService manages user accounts. Authorization is enforced by the Casbin
+ * interceptor (admin bypasses); handlers carry no role checks.
  *
  * @generated from service zerx.v1.UserService
  */
@@ -251,6 +332,16 @@ export const UserService: GenService<{
     methodKind: "unary";
     input: typeof DeleteUserRequestSchema;
     output: typeof DeleteUserResponseSchema;
+  },
+  /**
+   * ResetPassword sets a user's password to a new value (admin/RBAC-gated).
+   *
+   * @generated from rpc zerx.v1.UserService.ResetPassword
+   */
+  resetPassword: {
+    methodKind: "unary";
+    input: typeof ResetPasswordRequestSchema;
+    output: typeof ResetPasswordResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_zerx_v1_user, 0);

@@ -33,6 +33,7 @@ WORKDIR /home/nonroot
 COPY --from=backend /server /server
 EXPOSE 8080
 USER 65532:65532
-ENV DB_DRIVER=sqlite
-# JWT_SECRET must be provided at runtime.
+# DB_DRIVER/DB_DSN and JWT_SECRET are provided at runtime (docker compose
+# defaults the app to PostgreSQL). With no DB_DRIVER set, it falls back to
+# file-based SQLite, which is ephemeral unless a volume is mounted.
 ENTRYPOINT ["/server"]

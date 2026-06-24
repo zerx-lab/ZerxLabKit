@@ -50,15 +50,26 @@ func (i *Issuer) IssueAccess(userID uint64, role string) (string, error) {
 	return i.issue(userID, role, TokenTypeAccess, i.accessTTL)
 }
 
-// IssueRefresh mints a long-lived refresh token (no role).
-func (i *Issuer) IssueRefresh(userID uint64) (string, error) {
-	return i.issue(userID, "", TokenTypeRefresh, i.refreshTTL)
+// IssueRefresh mints a long-lived refresh token (no role) carrying the session
+// ID in the standard jti claim.
+func (i *Issuer) IssueRefresh(userID uint64, sessionID string) (string, error) {
+	return i.issueWithID(userID, "", TokenTypeRefresh, i.refreshTTL, sessionID)
+}
+
+// RefreshTTL returns the configured refresh token lifetime.
+func (i *Issuer) RefreshTTL() time.Duration {
+	return i.refreshTTL
 }
 
 func (i *Issuer) issue(userID uint64, role, tokenType string, ttl time.Duration) (string, error) {
+	return i.issueWithID(userID, role, tokenType, ttl, "")
+}
+
+func (i *Issuer) issueWithID(userID uint64, role, tokenType string, ttl time.Duration, id string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        id,
 			Subject:   strconv.FormatUint(userID, 10),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),

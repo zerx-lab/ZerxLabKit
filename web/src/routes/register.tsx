@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { register } from "@/gen/zerx/v1/auth-AuthService_connectquery";
 import { auth } from "@/lib/auth";
 import { firstErrorMessage } from "@/lib/form";
+import { queryClient } from "@/lib/query-client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/register")({
@@ -31,19 +32,17 @@ function RegisterPage() {
   const router = useRouter();
   const registerMutation = useMutation(register);
 
-  const schema = z.object({
-    email: z.email(t("validation.email")),
-    name: z.string().min(1, t("validation.nameRequired")),
-    password: z.string().min(8, t("validation.passwordMin")),
-  });
+  const nameSchema = z.string().min(1, t("validation.nameRequired"));
+  const emailSchema = z.email(t("validation.email"));
+  const passwordSchema = z.string().min(8, t("validation.passwordMin"));
 
   const form = useForm({
     defaultValues: { email: "", name: "", password: "" },
-    validators: { onChange: schema },
     onSubmit: async ({ value }) => {
       try {
         const res = await registerMutation.mutateAsync(value);
-        auth.setTokens(res.accessToken, res.refreshToken);
+        auth.setTokens(res.accessToken, res.refreshToken, res.sessionId);
+        queryClient.clear();
         router.history.push("/dashboard");
       } catch (err) {
         toast.error(err instanceof ConnectError ? err.message : t("register.failed"));
@@ -75,7 +74,7 @@ function RegisterPage() {
               void form.handleSubmit();
             }}
           >
-            <form.Field name="name">
+            <form.Field name="name" validators={{ onChange: nameSchema }}>
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
                 return (
@@ -94,7 +93,7 @@ function RegisterPage() {
               }}
             </form.Field>
 
-            <form.Field name="email">
+            <form.Field name="email" validators={{ onChange: emailSchema }}>
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
                 return (
@@ -115,7 +114,7 @@ function RegisterPage() {
               }}
             </form.Field>
 
-            <form.Field name="password">
+            <form.Field name="password" validators={{ onChange: passwordSchema }}>
               {(field) => {
                 const error = firstErrorMessage(field.state.meta.errors);
                 return (

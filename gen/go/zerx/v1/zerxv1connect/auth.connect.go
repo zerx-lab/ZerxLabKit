@@ -39,8 +39,18 @@ const (
 	AuthServiceRegisterProcedure = "/zerx.v1.AuthService/Register"
 	// AuthServiceRefreshProcedure is the fully-qualified name of the AuthService's Refresh RPC.
 	AuthServiceRefreshProcedure = "/zerx.v1.AuthService/Refresh"
+	// AuthServiceLogoutProcedure is the fully-qualified name of the AuthService's Logout RPC.
+	AuthServiceLogoutProcedure = "/zerx.v1.AuthService/Logout"
 	// AuthServiceMeProcedure is the fully-qualified name of the AuthService's Me RPC.
 	AuthServiceMeProcedure = "/zerx.v1.AuthService/Me"
+	// AuthServiceGetCaptchaProcedure is the fully-qualified name of the AuthService's GetCaptcha RPC.
+	AuthServiceGetCaptchaProcedure = "/zerx.v1.AuthService/GetCaptcha"
+	// AuthServiceListSessionsProcedure is the fully-qualified name of the AuthService's ListSessions
+	// RPC.
+	AuthServiceListSessionsProcedure = "/zerx.v1.AuthService/ListSessions"
+	// AuthServiceRevokeSessionProcedure is the fully-qualified name of the AuthService's RevokeSession
+	// RPC.
+	AuthServiceRevokeSessionProcedure = "/zerx.v1.AuthService/RevokeSession"
 )
 
 // AuthServiceClient is a client for the zerx.v1.AuthService service.
@@ -49,7 +59,14 @@ type AuthServiceClient interface {
 	// Register creates an account. The very first registered user becomes admin.
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	Refresh(context.Context, *connect.Request[v1.RefreshRequest]) (*connect.Response[v1.RefreshResponse], error)
+	// Logout revokes every session of the current user (logout everywhere).
+	Logout(context.Context, *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error)
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
+	GetCaptcha(context.Context, *connect.Request[v1.GetCaptchaRequest]) (*connect.Response[v1.GetCaptchaResponse], error)
+	// ListSessions returns the caller's sessions; admins may pass a user_id.
+	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
+	// RevokeSession deletes one session (own session, or any when admin).
+	RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the zerx.v1.AuthService service. By default, it uses
@@ -81,10 +98,34 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("Refresh")),
 			connect.WithClientOptions(opts...),
 		),
+		logout: connect.NewClient[v1.LogoutRequest, v1.LogoutResponse](
+			httpClient,
+			baseURL+AuthServiceLogoutProcedure,
+			connect.WithSchema(authServiceMethods.ByName("Logout")),
+			connect.WithClientOptions(opts...),
+		),
 		me: connect.NewClient[v1.MeRequest, v1.MeResponse](
 			httpClient,
 			baseURL+AuthServiceMeProcedure,
 			connect.WithSchema(authServiceMethods.ByName("Me")),
+			connect.WithClientOptions(opts...),
+		),
+		getCaptcha: connect.NewClient[v1.GetCaptchaRequest, v1.GetCaptchaResponse](
+			httpClient,
+			baseURL+AuthServiceGetCaptchaProcedure,
+			connect.WithSchema(authServiceMethods.ByName("GetCaptcha")),
+			connect.WithClientOptions(opts...),
+		),
+		listSessions: connect.NewClient[v1.ListSessionsRequest, v1.ListSessionsResponse](
+			httpClient,
+			baseURL+AuthServiceListSessionsProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ListSessions")),
+			connect.WithClientOptions(opts...),
+		),
+		revokeSession: connect.NewClient[v1.RevokeSessionRequest, v1.RevokeSessionResponse](
+			httpClient,
+			baseURL+AuthServiceRevokeSessionProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RevokeSession")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -92,10 +133,14 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	login    *connect.Client[v1.LoginRequest, v1.LoginResponse]
-	register *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
-	refresh  *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
-	me       *connect.Client[v1.MeRequest, v1.MeResponse]
+	login         *connect.Client[v1.LoginRequest, v1.LoginResponse]
+	register      *connect.Client[v1.RegisterRequest, v1.RegisterResponse]
+	refresh       *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
+	logout        *connect.Client[v1.LogoutRequest, v1.LogoutResponse]
+	me            *connect.Client[v1.MeRequest, v1.MeResponse]
+	getCaptcha    *connect.Client[v1.GetCaptchaRequest, v1.GetCaptchaResponse]
+	listSessions  *connect.Client[v1.ListSessionsRequest, v1.ListSessionsResponse]
+	revokeSession *connect.Client[v1.RevokeSessionRequest, v1.RevokeSessionResponse]
 }
 
 // Login calls zerx.v1.AuthService.Login.
@@ -113,9 +158,29 @@ func (c *authServiceClient) Refresh(ctx context.Context, req *connect.Request[v1
 	return c.refresh.CallUnary(ctx, req)
 }
 
+// Logout calls zerx.v1.AuthService.Logout.
+func (c *authServiceClient) Logout(ctx context.Context, req *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error) {
+	return c.logout.CallUnary(ctx, req)
+}
+
 // Me calls zerx.v1.AuthService.Me.
 func (c *authServiceClient) Me(ctx context.Context, req *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error) {
 	return c.me.CallUnary(ctx, req)
+}
+
+// GetCaptcha calls zerx.v1.AuthService.GetCaptcha.
+func (c *authServiceClient) GetCaptcha(ctx context.Context, req *connect.Request[v1.GetCaptchaRequest]) (*connect.Response[v1.GetCaptchaResponse], error) {
+	return c.getCaptcha.CallUnary(ctx, req)
+}
+
+// ListSessions calls zerx.v1.AuthService.ListSessions.
+func (c *authServiceClient) ListSessions(ctx context.Context, req *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error) {
+	return c.listSessions.CallUnary(ctx, req)
+}
+
+// RevokeSession calls zerx.v1.AuthService.RevokeSession.
+func (c *authServiceClient) RevokeSession(ctx context.Context, req *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error) {
+	return c.revokeSession.CallUnary(ctx, req)
 }
 
 // AuthServiceHandler is an implementation of the zerx.v1.AuthService service.
@@ -124,7 +189,14 @@ type AuthServiceHandler interface {
 	// Register creates an account. The very first registered user becomes admin.
 	Register(context.Context, *connect.Request[v1.RegisterRequest]) (*connect.Response[v1.RegisterResponse], error)
 	Refresh(context.Context, *connect.Request[v1.RefreshRequest]) (*connect.Response[v1.RefreshResponse], error)
+	// Logout revokes every session of the current user (logout everywhere).
+	Logout(context.Context, *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error)
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
+	GetCaptcha(context.Context, *connect.Request[v1.GetCaptchaRequest]) (*connect.Response[v1.GetCaptchaResponse], error)
+	// ListSessions returns the caller's sessions; admins may pass a user_id.
+	ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error)
+	// RevokeSession deletes one session (own session, or any when admin).
+	RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -152,10 +224,34 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("Refresh")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceLogoutHandler := connect.NewUnaryHandler(
+		AuthServiceLogoutProcedure,
+		svc.Logout,
+		connect.WithSchema(authServiceMethods.ByName("Logout")),
+		connect.WithHandlerOptions(opts...),
+	)
 	authServiceMeHandler := connect.NewUnaryHandler(
 		AuthServiceMeProcedure,
 		svc.Me,
 		connect.WithSchema(authServiceMethods.ByName("Me")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceGetCaptchaHandler := connect.NewUnaryHandler(
+		AuthServiceGetCaptchaProcedure,
+		svc.GetCaptcha,
+		connect.WithSchema(authServiceMethods.ByName("GetCaptcha")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceListSessionsHandler := connect.NewUnaryHandler(
+		AuthServiceListSessionsProcedure,
+		svc.ListSessions,
+		connect.WithSchema(authServiceMethods.ByName("ListSessions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRevokeSessionHandler := connect.NewUnaryHandler(
+		AuthServiceRevokeSessionProcedure,
+		svc.RevokeSession,
+		connect.WithSchema(authServiceMethods.ByName("RevokeSession")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/zerx.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -166,8 +262,16 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceRegisterHandler.ServeHTTP(w, r)
 		case AuthServiceRefreshProcedure:
 			authServiceRefreshHandler.ServeHTTP(w, r)
+		case AuthServiceLogoutProcedure:
+			authServiceLogoutHandler.ServeHTTP(w, r)
 		case AuthServiceMeProcedure:
 			authServiceMeHandler.ServeHTTP(w, r)
+		case AuthServiceGetCaptchaProcedure:
+			authServiceGetCaptchaHandler.ServeHTTP(w, r)
+		case AuthServiceListSessionsProcedure:
+			authServiceListSessionsHandler.ServeHTTP(w, r)
+		case AuthServiceRevokeSessionProcedure:
+			authServiceRevokeSessionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -189,6 +293,22 @@ func (UnimplementedAuthServiceHandler) Refresh(context.Context, *connect.Request
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.Refresh is not implemented"))
 }
 
+func (UnimplementedAuthServiceHandler) Logout(context.Context, *connect.Request[v1.LogoutRequest]) (*connect.Response[v1.LogoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.Logout is not implemented"))
+}
+
 func (UnimplementedAuthServiceHandler) Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.Me is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetCaptcha(context.Context, *connect.Request[v1.GetCaptchaRequest]) (*connect.Response[v1.GetCaptchaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.GetCaptcha is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ListSessions(context.Context, *connect.Request[v1.ListSessionsRequest]) (*connect.Response[v1.ListSessionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.ListSessions is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RevokeSession(context.Context, *connect.Request[v1.RevokeSessionRequest]) (*connect.Response[v1.RevokeSessionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.AuthService.RevokeSession is not implemented"))
 }

@@ -43,6 +43,9 @@ const (
 	UserServiceUpdateUserProcedure = "/zerx.v1.UserService/UpdateUser"
 	// UserServiceDeleteUserProcedure is the fully-qualified name of the UserService's DeleteUser RPC.
 	UserServiceDeleteUserProcedure = "/zerx.v1.UserService/DeleteUser"
+	// UserServiceResetPasswordProcedure is the fully-qualified name of the UserService's ResetPassword
+	// RPC.
+	UserServiceResetPasswordProcedure = "/zerx.v1.UserService/ResetPassword"
 )
 
 // UserServiceClient is a client for the zerx.v1.UserService service.
@@ -52,6 +55,8 @@ type UserServiceClient interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.User], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
+	// ResetPassword sets a user's password to a new value (admin/RBAC-gated).
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
 }
 
 // NewUserServiceClient constructs a client for the zerx.v1.UserService service. By default, it uses
@@ -95,16 +100,23 @@ func NewUserServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
 			connect.WithClientOptions(opts...),
 		),
+		resetPassword: connect.NewClient[v1.ResetPasswordRequest, v1.ResetPasswordResponse](
+			httpClient,
+			baseURL+UserServiceResetPasswordProcedure,
+			connect.WithSchema(userServiceMethods.ByName("ResetPassword")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // userServiceClient implements UserServiceClient.
 type userServiceClient struct {
-	listUsers  *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
-	getUser    *connect.Client[v1.GetUserRequest, v1.User]
-	createUser *connect.Client[v1.CreateUserRequest, v1.User]
-	updateUser *connect.Client[v1.UpdateUserRequest, v1.User]
-	deleteUser *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	listUsers     *connect.Client[v1.ListUsersRequest, v1.ListUsersResponse]
+	getUser       *connect.Client[v1.GetUserRequest, v1.User]
+	createUser    *connect.Client[v1.CreateUserRequest, v1.User]
+	updateUser    *connect.Client[v1.UpdateUserRequest, v1.User]
+	deleteUser    *connect.Client[v1.DeleteUserRequest, v1.DeleteUserResponse]
+	resetPassword *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
 }
 
 // ListUsers calls zerx.v1.UserService.ListUsers.
@@ -132,6 +144,11 @@ func (c *userServiceClient) DeleteUser(ctx context.Context, req *connect.Request
 	return c.deleteUser.CallUnary(ctx, req)
 }
 
+// ResetPassword calls zerx.v1.UserService.ResetPassword.
+func (c *userServiceClient) ResetPassword(ctx context.Context, req *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error) {
+	return c.resetPassword.CallUnary(ctx, req)
+}
+
 // UserServiceHandler is an implementation of the zerx.v1.UserService service.
 type UserServiceHandler interface {
 	ListUsers(context.Context, *connect.Request[v1.ListUsersRequest]) (*connect.Response[v1.ListUsersResponse], error)
@@ -139,6 +156,8 @@ type UserServiceHandler interface {
 	CreateUser(context.Context, *connect.Request[v1.CreateUserRequest]) (*connect.Response[v1.User], error)
 	UpdateUser(context.Context, *connect.Request[v1.UpdateUserRequest]) (*connect.Response[v1.User], error)
 	DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error)
+	// ResetPassword sets a user's password to a new value (admin/RBAC-gated).
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
 }
 
 // NewUserServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -178,6 +197,12 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(userServiceMethods.ByName("DeleteUser")),
 		connect.WithHandlerOptions(opts...),
 	)
+	userServiceResetPasswordHandler := connect.NewUnaryHandler(
+		UserServiceResetPasswordProcedure,
+		svc.ResetPassword,
+		connect.WithSchema(userServiceMethods.ByName("ResetPassword")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/zerx.v1.UserService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserServiceListUsersProcedure:
@@ -190,6 +215,8 @@ func NewUserServiceHandler(svc UserServiceHandler, opts ...connect.HandlerOption
 			userServiceUpdateUserHandler.ServeHTTP(w, r)
 		case UserServiceDeleteUserProcedure:
 			userServiceDeleteUserHandler.ServeHTTP(w, r)
+		case UserServiceResetPasswordProcedure:
+			userServiceResetPasswordHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -217,4 +244,8 @@ func (UnimplementedUserServiceHandler) UpdateUser(context.Context, *connect.Requ
 
 func (UnimplementedUserServiceHandler) DeleteUser(context.Context, *connect.Request[v1.DeleteUserRequest]) (*connect.Response[v1.DeleteUserResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.UserService.DeleteUser is not implemented"))
+}
+
+func (UnimplementedUserServiceHandler) ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("zerx.v1.UserService.ResetPassword is not implemented"))
 }

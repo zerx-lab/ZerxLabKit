@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// ApiService manages the catalog of connectRPC procedures used for RBAC.
+service ApiService {
+  rpc ListApis(ListApisRequest) returns (ListApisResponse);
+  rpc SyncApis(SyncApisRequest) returns (SyncApisResponse);
+  rpc UpdateApi(UpdateApiRequest) returns (Api);
+  rpc DeleteApi(DeleteApiRequest) returns (DeleteApiResponse);
+}
+
+message Api {
+  uint64 id = 1;
+  string procedure = 2;
+  string service = 3;
+  string method = 4;
+  string description = 5;
+  string group = 6;
+  string created_at = 7;
+}
+
+message ListApisRequest {}
+
+message ListApisResponse {
+  repeated Api apis = 1;
+}
+
+message SyncApisRequest {}
+
+message SyncApisResponse {
+  int32 added = 1;
+  int32 removed = 2;
+}
+
+message UpdateApiRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string description = 2;
+  string group = 3;
+}
+
+message DeleteApiRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteApiResponse {}

@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// DictService manages lookup dictionaries. GetDictByType is self-serve.
+service DictService {
+  rpc ListDicts(ListDictsRequest) returns (ListDictsResponse);
+  rpc CreateDict(CreateDictRequest) returns (Dict);
+  rpc UpdateDict(UpdateDictRequest) returns (Dict);
+  rpc DeleteDict(DeleteDictRequest) returns (DeleteDictResponse);
+  rpc ListDictItems(ListDictItemsRequest) returns (ListDictItemsResponse);
+  rpc CreateDictItem(CreateDictItemRequest) returns (DictItem);
+  rpc UpdateDictItem(UpdateDictItemRequest) returns (DictItem);
+  rpc DeleteDictItem(DeleteDictItemRequest) returns (DeleteDictItemResponse);
+  rpc GetDictByType(GetDictByTypeRequest) returns (GetDictByTypeResponse);
+}
+
+message Dict {
+  uint64 id = 1;
+  string type = 2;
+  string name = 3;
+  string description = 4;
+  bool status = 5;
+  string created_at = 6;
+}
+
+message DictItem {
+  uint64 id = 1;
+  uint64 dict_id = 2;
+  string label = 3;
+  string value = 4;
+  int32 sort = 5;
+  bool status = 6;
+}
+
+message ListDictsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListDictsResponse {
+  repeated Dict dicts = 1;
+  int64 total = 2;
+}
+
+message CreateDictRequest {
+  string type = 1 [(buf.validate.field).string.min_len = 1];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  string description = 3;
+  bool status = 4;
+}
+
+message UpdateDictRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2;
+  string description = 3;
+  bool status = 4;
+}
+
+message DeleteDictRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteDictResponse {}
+
+message ListDictItemsRequest {
+  uint64 dict_id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message ListDictItemsResponse {
+  repeated DictItem items = 1;
+}
+
+message CreateDictItemRequest {
+  uint64 dict_id = 1 [(buf.validate.field).uint64.gt = 0];
+  string label = 2 [(buf.validate.field).string.min_len = 1];
+  string value = 3 [(buf.validate.field).string.min_len = 1];
+  int32 sort = 4;
+  bool status = 5;
+}
+
+message UpdateDictItemRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string label = 2;
+  string value = 3;
+  int32 sort = 4;
+  bool status = 5;
+}
+
+message DeleteDictItemRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteDictItemResponse {}
+
+message GetDictByTypeRequest {
+  string type = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetDictByTypeResponse {
+  repeated DictItem items = 1;
+}

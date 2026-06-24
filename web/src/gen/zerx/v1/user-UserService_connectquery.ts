@@ -28,3 +28,10 @@ export const updateUser = UserService.method.updateUser;
  * @generated from rpc zerx.v1.UserService.DeleteUser
  */
 export const deleteUser = UserService.method.deleteUser;
+
+/**
+ * ResetPassword sets a user's password to a new value (admin/RBAC-gated).
+ *
+ * @generated from rpc zerx.v1.UserService.ResetPassword
+ */
+export const resetPassword = UserService.method.resetPassword;
