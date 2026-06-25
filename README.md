@@ -63,7 +63,7 @@ task dev:web       # 前端 Vite(:5173 代理到 :8080)
 task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]
 
 # 2) 全局安装(无需先 clone):
-go install github.com/zerx-lab/ZerxLabKit/cmd/zerxKit@latest
+go install github.com/zerx-lab/zerxlabkit/cmd/zerxKit@latest
 zerxKit new github.com/acme/foo ../foo [--brand Foo] [--db foo]
 ```
 
