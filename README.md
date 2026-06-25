@@ -1,6 +1,6 @@
 <div align="center">
 
-# zerxLabKit
+# ZerxLabKit
 
 **生产可部署、AI 友好的全栈后台管理脚手架**
 
@@ -64,8 +64,10 @@ task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]
 
 # 2) 全局安装(无需先 clone):
 go install github.com/zerx-lab/ZerxLabKit/cmd/zerxKit@latest
-zerxKit github.com/acme/foo ../foo [--brand Foo] [--db foo]
+zerxKit new github.com/acme/foo ../foo [--brand Foo] [--db foo]
 ```
+
+> 提示:`zerxKit help` 查看命令列表、`zerxKit --version` 查看版本、`zerxKit help new` 查看 `new` 用法。
 
 - 位置参数:新 module 路径(必填)、目标目录(可选,缺省 `./<module 末段>`)。
 - `--brand` 缺省=module 末段;`--db` 缺省=经 sanitize 的 module 末段;`--from <dir>` 显式指定模板根(跳过缓存)。

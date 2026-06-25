@@ -33,24 +33,14 @@ type pluginData struct {
 	HasFields bool
 }
 
-func runPlugin(args []string) error {
-	if len(args) < 1 {
-		return fmt.Errorf("usage: zerxKit plugin <name> [field:type,...]  |  zerxKit plugin pack <name>")
-	}
-	if args[0] == "pack" {
-		if len(args) < 2 {
-			return fmt.Errorf("usage: zerxKit plugin pack <name>")
-		}
-		return packPlugin(args[1])
-	}
-	name := args[0]
+func scaffoldPlugin(name, spec string) error {
 	if !nameRe.MatchString(name) {
 		return fmt.Errorf("invalid plugin name %q: must match %s", name, nameRe.String())
 	}
 
 	var fields []field
-	if len(args) > 1 {
-		fs, err := parseFields(args[1])
+	if spec != "" {
+		fs, err := parseFields(spec)
 		if err != nil {
 			return err
 		}

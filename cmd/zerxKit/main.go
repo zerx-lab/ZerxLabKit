@@ -11,10 +11,10 @@
 //
 // Usage:
 //
-//	zerxKit newModule [dir] [--brand Name] [--db dbname]
+//	zerxKit new <module> [dir] [--brand Name] [--db dbname]
 //
-// newModule is the new Go module path (e.g. github.com/acme/foo). dir defaults
-// to ./<base of newModule>. --brand defaults to the new short name; --db
+// <module> is the new Go module path (e.g. github.com/acme/foo). dir defaults
+// to ./<base of module>. --brand defaults to the new short name; --db
 // defaults to the sanitized new short name.
 //
 // Only `go build` is required to compile the generated project; codegen tools
@@ -22,13 +22,13 @@
 //
 // zerxKit also scaffolds and packages plugins via the `plugin` subcommand:
 //
-//	zerxKit plugin <name> [field:type,...]   scaffold a plugin (proto + impl +
-//	                                         frontend page + teardown SQL +
-//	                                         the anchored lines in all.go)
-//	zerxKit plugin pack <name>               pack an installed plugin into
-//	                                         <name>.zip for distribution
+//	zerxKit plugin new <name> [field:type,...]   scaffold a plugin (proto + impl +
+//	                                             frontend page + teardown SQL +
+//	                                             the anchored lines in all.go)
+//	zerxKit plugin pack <name>                   pack an installed plugin into
+//	                                             <name>.zip for distribution
 //
-// A bare invocation (no `plugin` subcommand) still performs project scaffolding.
+// A bare invocation prints help and the command list.
 package main
 
 import (
@@ -74,60 +74,7 @@ var localStorageKeys = []string{
 	"zerx.sessionId",
 }
 
-func main() {
-	if len(os.Args) > 1 && os.Args[1] == "plugin" {
-		if err := runPlugin(os.Args[2:]); err != nil {
-			fmt.Fprintln(os.Stderr, "zerxKit plugin:", err)
-			os.Exit(1)
-		}
-		return
-	}
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "zerxKit:", err)
-		os.Exit(1)
-	}
-}
-
-func run() error {
-	var (
-		brand string
-		db    string
-		from  string
-		args  []string
-	)
-	// Minimal flag parsing: positional args interleaved with --brand/--db/--from.
-	for i := 1; i < len(os.Args); i++ {
-		a := os.Args[i]
-		switch {
-		case a == "--brand" || a == "--db" || a == "--from":
-			if i+1 >= len(os.Args) {
-				return fmt.Errorf("%s requires a value", a)
-			}
-			i++
-			switch a {
-			case "--brand":
-				brand = os.Args[i]
-			case "--db":
-				db = os.Args[i]
-			default:
-				from = os.Args[i]
-			}
-		case strings.HasPrefix(a, "--brand="):
-			brand = strings.TrimPrefix(a, "--brand=")
-		case strings.HasPrefix(a, "--db="):
-			db = strings.TrimPrefix(a, "--db=")
-		case strings.HasPrefix(a, "--from="):
-			from = strings.TrimPrefix(a, "--from=")
-		case strings.HasPrefix(a, "-"):
-			return fmt.Errorf("unknown flag %q", a)
-		default:
-			args = append(args, a)
-		}
-	}
-	if len(args) < 1 {
-		return fmt.Errorf("usage: zerxKit newModule [dir] [--brand Name] [--db dbname] [--from dir]")
-	}
-	newModule := args[0]
+func runNew(newModule, destDir, brand, db, from string) error {
 	if err := module.CheckPath(newModule); err != nil {
 		return fmt.Errorf("invalid module path %q: %w", newModule, err)
 	}
@@ -159,11 +106,7 @@ func run() error {
 		db = newShort
 	}
 
-	dest := args[1:]
-	var destDir string
-	if len(dest) >= 1 && dest[0] != "" {
-		destDir = dest[0]
-	} else {
+	if destDir == "" {
 		destDir = "./" + path.Base(newModule)
 	}
 	destAbs, err := filepath.Abs(destDir)
