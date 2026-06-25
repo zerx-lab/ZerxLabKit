@@ -46,7 +46,7 @@ func TestMediaHandlerAuthorization(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, nil); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 

@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// PluginService exposes the compiled-in plugin registry and runtime enable/
+// disable state. Compile-time plugins cannot be installed/uninstalled at
+// runtime (that needs a rebuild); enable/disable is a runtime gate that hides a
+// plugin's menus, denies its procedures, and skips its jobs. Admin-only.
+service PluginService {
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
+  rpc SetPluginEnabled(SetPluginEnabledRequest) returns (PluginInfo);
+  // ListPublicPages is anonymous (public): it returns the public-facing pages of
+  // enabled plugins so the unauthenticated /pub/$ route can resolve them.
+  rpc ListPublicPages(ListPublicPagesRequest) returns (ListPublicPagesResponse);
+  // InstallPlugin unpacks an uploaded plugin source package into the repo and
+  // wires it into all.go. Compile-time model: it does NOT run the new code in
+  // the current process; a rebuild/restart (auto via air in dev) applies it.
+  // Admin-only and gated by PLUGIN_UPLOAD_ENABLED (off in prod by default).
+  rpc InstallPlugin(InstallPluginRequest) returns (InstallPluginResponse);
+  // UninstallPlugin removes a plugin's source + all.go lines (and optionally its
+  // data) so a rebuild/restart drops it. Admin-only, same gate.
+  rpc UninstallPlugin(UninstallPluginRequest) returns (UninstallPluginResponse);
+}
+
+message PluginInfo {
+  string name = 1;
+  bool enabled = 2;
+  repeated string services = 3;
+  repeated string tables = 4;
+  int32 migration_count = 5;
+  int32 menu_count = 6;
+  repeated string job_handlers = 7;
+  repeated PluginMenu menus = 8;        // namespaced menu paths + titles (detail)
+  repeated PluginPublicPage public_pages = 9;
+  // pending_removal: this plugin is still compiled into the running binary but its
+  // source was uninstalled on disk — it disappears after the next rebuild/restart.
+  // The UI disables its controls and shows a "pending restart" badge.
+  bool pending_removal = 10;
+}
+
+// PluginMenu is a flattened menu entry a plugin contributes (for the admin
+// detail view). Path is empty for a group heading.
+message PluginMenu {
+  string name = 1;
+  string path = 2;
+  string title = 3;
+}
+
+// PluginPublicPage is an anonymous-accessible front-end page a plugin serves at
+// /pub/<path>, rendered by the component glob id.
+message PluginPublicPage {
+  string path = 1;      // namespaced "/pub/<plugin>" or "/pub/<plugin>/..."
+  string component = 2; // glob id, e.g. "shop/Landing"
+  string title = 3;
+}
+
+message ListPluginsRequest {}
+
+message ListPluginsResponse {
+  repeated PluginInfo plugins = 1;
+  // upload_allowed mirrors the server gate (admin + non-prod by default); the UI
+  // hides Upload/Uninstall when false so controls don't appear then 403.
+  bool upload_allowed = 2;
+}
+
+message SetPluginEnabledRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  bool enabled = 2;
+}
+
+message ListPublicPagesRequest {}
+
+message ListPublicPagesResponse {
+  repeated PluginPublicPage pages = 1;
+}
+
+message InstallPluginRequest {
+  bytes package = 1 [(buf.validate.field).bytes.min_len = 1, (buf.validate.field).bytes.max_len = 26214400]; // zip archive bytes (<=25MB)
+}
+
+message InstallPluginResponse {
+  string name = 1;
+  // pending_restart is always true on success: the new code takes effect only
+  // after a rebuild/restart (air auto-restarts in dev).
+  bool pending_restart = 2;
+  string message = 3;
+}
+
+message UninstallPluginRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  bool purge_data = 2; // also run teardown (drop tables, delete menus/apis/...)
+}
+
+message UninstallPluginResponse {
+  bool pending_restart = 2;
+  string message = 3;
+}

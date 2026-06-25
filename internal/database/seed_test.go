@@ -16,10 +16,10 @@ func newSeededDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
-	if err := Migrate(db); err != nil {
+	if err := Migrate(db, nil); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
-	if err := Seed(db); err != nil {
+	if err := Seed(db, nil); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 	return db
@@ -45,7 +45,7 @@ func TestSyncMenusReinsertsMissingAndIsIdempotent(t *testing.T) {
 		t.Fatal("files menu not deleted")
 	}
 
-	if err := syncMenus(db); err != nil {
+	if err := syncMenus(db, seedMenuTree); err != nil {
 		t.Fatalf("syncMenus: %v", err)
 	}
 
@@ -69,7 +69,7 @@ func TestSyncMenusReinsertsMissingAndIsIdempotent(t *testing.T) {
 	}
 
 	// Idempotent: a second run inserts nothing.
-	if err := syncMenus(db); err != nil {
+	if err := syncMenus(db, seedMenuTree); err != nil {
 		t.Fatalf("syncMenus second run: %v", err)
 	}
 	if got := countMenusByName(t, db, "files"); got != 1 {
@@ -84,7 +84,7 @@ func TestSyncMenusReinsertsMissingButton(t *testing.T) {
 		t.Fatalf("delete button: %v", err)
 	}
 
-	if err := syncMenus(db); err != nil {
+	if err := syncMenus(db, seedMenuTree); err != nil {
 		t.Fatalf("syncMenus: %v", err)
 	}
 
@@ -101,6 +101,90 @@ func TestSyncMenusReinsertsMissingButton(t *testing.T) {
 	}
 }
 
+func TestSyncMenusPrunesOrphanPluginMenus(t *testing.T) {
+	db := newSeededDB(t)
+
+	// A plugin menu left over from an uninstalled plugin (not in the seed tree),
+	// with a button + role grants, plus an admin-created non-plugin menu.
+	orphan := model.Menu{Name: "plg_gone_page", Path: "/p/gone", Component: "gone/X"}
+	if err := db.Create(&orphan).Error; err != nil {
+		t.Fatalf("create orphan: %v", err)
+	}
+	btn := model.MenuButton{MenuID: orphan.ID, Code: "plg_gone:do", Name: "x"}
+	if err := db.Create(&btn).Error; err != nil {
+		t.Fatalf("create orphan button: %v", err)
+	}
+	if err := db.Create(&model.RoleMenu{RoleCode: model.RoleAdmin, MenuID: orphan.ID}).Error; err != nil {
+		t.Fatalf("grant: %v", err)
+	}
+	if err := db.Create(&model.RoleButton{RoleCode: model.RoleAdmin, ButtonID: btn.ID}).Error; err != nil {
+		t.Fatalf("grant btn: %v", err)
+	}
+	adminMade := model.Menu{Name: "custom-report", Path: "/custom", Component: "Custom"}
+	if err := db.Create(&adminMade).Error; err != nil {
+		t.Fatalf("create admin menu: %v", err)
+	}
+
+	if err := syncMenus(db, seedMenuTree); err != nil {
+		t.Fatalf("syncMenus: %v", err)
+	}
+
+	// Orphan plugin menu + its associations are gone.
+	if countMenusByName(t, db, "plg_gone_page") != 0 {
+		t.Fatal("orphan plugin menu not pruned")
+	}
+	var nBtn, nRM, nRB int64
+	db.Model(&model.MenuButton{}).Where("menu_id = ?", orphan.ID).Count(&nBtn)
+	db.Model(&model.RoleMenu{}).Where("menu_id = ?", orphan.ID).Count(&nRM)
+	db.Model(&model.RoleButton{}).Where("button_id = ?", btn.ID).Count(&nRB)
+	if nBtn != 0 || nRM != 0 || nRB != 0 {
+		t.Fatalf("orphan associations not pruned: btn=%d rm=%d rb=%d", nBtn, nRM, nRB)
+	}
+	// Admin-created non-plugin menu and core menus survive.
+	if countMenusByName(t, db, "custom-report") != 1 {
+		t.Fatal("admin-created menu must not be pruned")
+	}
+	if countMenusByName(t, db, "users") != 1 {
+		t.Fatal("core menu must not be pruned")
+	}
+}
+
+func TestSyncMenusReconcilesPluginMenuLayout(t *testing.T) {
+	db := newSeededDB(t)
+
+	// Simulate a stale flat plugin menu from a previous version.
+	stale := model.Menu{Name: "plg_demo_page", Path: "/p/demo", Component: "demo/Old", Title: "plg.demo.x", Sort: 9}
+	if err := db.Create(&stale).Error; err != nil {
+		t.Fatalf("create stale plugin menu: %v", err)
+	}
+
+	// New version moves it under a group with a new path/component.
+	tree := append([]seedMenuNode{}, seedMenuTree...)
+	tree = append(tree, seedMenuNode{
+		node: seedMenu{menu: model.Menu{Name: "plg_demo", Path: "", Title: "plg.demo.group", Sort: 60}},
+		children: []seedMenuNode{
+			{node: seedMenu{menu: model.Menu{Name: "plg_demo_page", Path: "/p/demo/page", Component: "demo/Page", Title: "plg.demo.page", Sort: 1}}},
+		},
+	})
+
+	if err := syncMenus(db, tree); err != nil {
+		t.Fatalf("syncMenus: %v", err)
+	}
+
+	var group model.Menu
+	if err := db.Where("name = ?", "plg_demo").First(&group).Error; err != nil {
+		t.Fatalf("group menu missing: %v", err)
+	}
+	var page model.Menu
+	if err := db.Where("name = ?", "plg_demo_page").First(&page).Error; err != nil {
+		t.Fatalf("page menu missing: %v", err)
+	}
+	// The stale plugin menu must be reconciled to the new layout.
+	if page.Path != "/p/demo/page" || page.Component != "demo/Page" || page.ParentID != group.ID {
+		t.Fatalf("plugin menu not reconciled: path=%q component=%q parent=%d (want /p/demo/page, demo/Page, %d)", page.Path, page.Component, page.ParentID, group.ID)
+	}
+}
+
 func TestSyncMenusPreservesExistingEdits(t *testing.T) {
 	db := newSeededDB(t)
 
@@ -108,7 +192,7 @@ func TestSyncMenusPreservesExistingEdits(t *testing.T) {
 		t.Fatalf("edit menu: %v", err)
 	}
 
-	if err := syncMenus(db); err != nil {
+	if err := syncMenus(db, seedMenuTree); err != nil {
 		t.Fatalf("syncMenus: %v", err)
 	}
 

@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"testing"
 	"time"
@@ -21,7 +22,7 @@ func newJobDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, nil); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 	return db
@@ -96,6 +97,80 @@ func TestRunNowOkHandler(t *testing.T) {
 	}
 	if exec.Error != "" {
 		t.Errorf("JobExecution.Error = %q, want empty", exec.Error)
+	}
+}
+
+// TestRunNowPanicHandler verifies a panicking handler is recovered: the
+// execution is recorded as error (not crashing the goroutine/process).
+func TestRunNowPanicHandler(t *testing.T) {
+	db := newJobDB(t)
+
+	registry := Registry{
+		"test_panic": {
+			Description: "panics",
+			Handler: func(context.Context) error {
+				panic("boom")
+			},
+		},
+	}
+
+	sched, err := New(db, registry, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatalf("New scheduler: %v", err)
+	}
+
+	jobID := insertJob(t, db, "myjob_panic", "test_panic")
+	if err := sched.RunNow(jobID, "myjob_panic", "test_panic"); err != nil {
+		t.Fatalf("RunNow: %v", err)
+	}
+
+	exec := pollExecution(t, db, jobID)
+	if exec.Status != "error" {
+		t.Errorf("JobExecution.Status = %q, want error", exec.Status)
+	}
+	if exec.Error == "" {
+		t.Error("JobExecution.Error empty, want panic message")
+	}
+}
+
+// TestRunNowSkippedWhenHandlerDisabled verifies that a handler gated off by
+// SetHandlerEnabled does not execute and records no JobExecution.
+func TestRunNowSkippedWhenHandlerDisabled(t *testing.T) {
+	db := newJobDB(t)
+
+	called := make(chan struct{}, 1)
+	registry := Registry{
+		"plg_x_job": {
+			Description: "plugin job",
+			Handler: func(context.Context) error {
+				called <- struct{}{}
+				return nil
+			},
+		},
+	}
+	sched, err := New(db, registry, slog.New(slog.NewTextHandler(io.Discard, nil)))
+	if err != nil {
+		t.Fatalf("New scheduler: %v", err)
+	}
+	// Gate the handler off.
+	sched.SetHandlerEnabled(func(h string) bool { return h != "plg_x_job" })
+
+	jobID := insertJob(t, db, "myjob_x", "plg_x_job")
+	if err := sched.RunNow(jobID, "myjob_x", "plg_x_job"); err != nil {
+		t.Fatalf("RunNow: %v", err)
+	}
+
+	select {
+	case <-called:
+		t.Fatal("disabled handler should not have run")
+	case <-time.After(500 * time.Millisecond):
+	}
+	var n int64
+	if err := db.Model(&model.JobExecution{}).Where("job_id = ?", jobID).Count(&n).Error; err != nil {
+		t.Fatalf("count: %v", err)
+	}
+	if n != 0 {
+		t.Fatalf("expected no JobExecution for skipped job, got %d", n)
 	}
 }
 

@@ -15,11 +15,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PubSplatRouteImport } from './routes/pub.$'
 import { Route as AuthedUsersRouteImport } from './routes/_authed/users'
 import { Route as AuthedSiteSettingsRouteImport } from './routes/_authed/site-settings'
 import { Route as AuthedSessionsRouteImport } from './routes/_authed/sessions'
 import { Route as AuthedRolesRouteImport } from './routes/_authed/roles'
 import { Route as AuthedProfileRouteImport } from './routes/_authed/profile'
+import { Route as AuthedPluginsRouteImport } from './routes/_authed/plugins'
 import { Route as AuthedParamsRouteImport } from './routes/_authed/params'
 import { Route as AuthedOperationLogsRouteImport } from './routes/_authed/operation-logs'
 import { Route as AuthedMenusRouteImport } from './routes/_authed/menus'
@@ -30,6 +32,7 @@ import { Route as AuthedErrorLogsRouteImport } from './routes/_authed/error-logs
 import { Route as AuthedDictsRouteImport } from './routes/_authed/dicts'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as AuthedApisRouteImport } from './routes/_authed/apis'
+import { Route as AuthedPSplatRouteImport } from './routes/_authed/p.$'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -60,6 +63,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PubSplatRoute = PubSplatRouteImport.update({
+  id: '/pub/$',
+  path: '/pub/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedUsersRoute = AuthedUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -83,6 +91,11 @@ const AuthedRolesRoute = AuthedRolesRouteImport.update({
 const AuthedProfileRoute = AuthedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedPluginsRoute = AuthedPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedParamsRoute = AuthedParamsRouteImport.update({
@@ -135,6 +148,11 @@ const AuthedApisRoute = AuthedApisRouteImport.update({
   path: '/apis',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedPSplatRoute = AuthedPSplatRouteImport.update({
+  id: '/p/$',
+  path: '/p/$',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -152,11 +170,14 @@ export interface FileRoutesByFullPath {
   '/menus': typeof AuthedMenusRoute
   '/operation-logs': typeof AuthedOperationLogsRoute
   '/params': typeof AuthedParamsRoute
+  '/plugins': typeof AuthedPluginsRoute
   '/profile': typeof AuthedProfileRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
   '/site-settings': typeof AuthedSiteSettingsRoute
   '/users': typeof AuthedUsersRoute
+  '/pub/$': typeof PubSplatRoute
+  '/p/$': typeof AuthedPSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,11 +195,14 @@ export interface FileRoutesByTo {
   '/menus': typeof AuthedMenusRoute
   '/operation-logs': typeof AuthedOperationLogsRoute
   '/params': typeof AuthedParamsRoute
+  '/plugins': typeof AuthedPluginsRoute
   '/profile': typeof AuthedProfileRoute
   '/roles': typeof AuthedRolesRoute
   '/sessions': typeof AuthedSessionsRoute
   '/site-settings': typeof AuthedSiteSettingsRoute
   '/users': typeof AuthedUsersRoute
+  '/pub/$': typeof PubSplatRoute
+  '/p/$': typeof AuthedPSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,11 +222,14 @@ export interface FileRoutesById {
   '/_authed/menus': typeof AuthedMenusRoute
   '/_authed/operation-logs': typeof AuthedOperationLogsRoute
   '/_authed/params': typeof AuthedParamsRoute
+  '/_authed/plugins': typeof AuthedPluginsRoute
   '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/roles': typeof AuthedRolesRoute
   '/_authed/sessions': typeof AuthedSessionsRoute
   '/_authed/site-settings': typeof AuthedSiteSettingsRoute
   '/_authed/users': typeof AuthedUsersRoute
+  '/pub/$': typeof PubSplatRoute
+  '/_authed/p/$': typeof AuthedPSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -222,11 +249,14 @@ export interface FileRouteTypes {
     | '/menus'
     | '/operation-logs'
     | '/params'
+    | '/plugins'
     | '/profile'
     | '/roles'
     | '/sessions'
     | '/site-settings'
     | '/users'
+    | '/pub/$'
+    | '/p/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -244,11 +274,14 @@ export interface FileRouteTypes {
     | '/menus'
     | '/operation-logs'
     | '/params'
+    | '/plugins'
     | '/profile'
     | '/roles'
     | '/sessions'
     | '/site-settings'
     | '/users'
+    | '/pub/$'
+    | '/p/$'
   id:
     | '__root__'
     | '/'
@@ -267,11 +300,14 @@ export interface FileRouteTypes {
     | '/_authed/menus'
     | '/_authed/operation-logs'
     | '/_authed/params'
+    | '/_authed/plugins'
     | '/_authed/profile'
     | '/_authed/roles'
     | '/_authed/sessions'
     | '/_authed/site-settings'
     | '/_authed/users'
+    | '/pub/$'
+    | '/_authed/p/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -281,6 +317,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  PubSplatRoute: typeof PubSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -327,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pub/$': {
+      id: '/pub/$'
+      path: '/pub/$'
+      fullPath: '/pub/$'
+      preLoaderRoute: typeof PubSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/users': {
       id: '/_authed/users'
       path: '/users'
@@ -360,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthedProfileRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/plugins': {
+      id: '/_authed/plugins'
+      path: '/plugins'
+      fullPath: '/plugins'
+      preLoaderRoute: typeof AuthedPluginsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/params': {
@@ -432,6 +483,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedApisRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/p/$': {
+      id: '/_authed/p/$'
+      path: '/p/$'
+      fullPath: '/p/$'
+      preLoaderRoute: typeof AuthedPSplatRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -446,11 +504,13 @@ interface AuthedRouteRouteChildren {
   AuthedMenusRoute: typeof AuthedMenusRoute
   AuthedOperationLogsRoute: typeof AuthedOperationLogsRoute
   AuthedParamsRoute: typeof AuthedParamsRoute
+  AuthedPluginsRoute: typeof AuthedPluginsRoute
   AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedRolesRoute: typeof AuthedRolesRoute
   AuthedSessionsRoute: typeof AuthedSessionsRoute
   AuthedSiteSettingsRoute: typeof AuthedSiteSettingsRoute
   AuthedUsersRoute: typeof AuthedUsersRoute
+  AuthedPSplatRoute: typeof AuthedPSplatRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
@@ -464,11 +524,13 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedMenusRoute: AuthedMenusRoute,
   AuthedOperationLogsRoute: AuthedOperationLogsRoute,
   AuthedParamsRoute: AuthedParamsRoute,
+  AuthedPluginsRoute: AuthedPluginsRoute,
   AuthedProfileRoute: AuthedProfileRoute,
   AuthedRolesRoute: AuthedRolesRoute,
   AuthedSessionsRoute: AuthedSessionsRoute,
   AuthedSiteSettingsRoute: AuthedSiteSettingsRoute,
   AuthedUsersRoute: AuthedUsersRoute,
+  AuthedPSplatRoute: AuthedPSplatRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
@@ -482,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  PubSplatRoute: PubSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

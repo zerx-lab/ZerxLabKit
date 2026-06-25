@@ -1,0 +1,46 @@
+// Self-contained translations for the shop plugin. Collected at build time by
+// web/src/lib/i18n.tsx (import.meta.glob) and merged under the `plg.shop`
+// namespace, so menu titles and page strings resolve via t("plg.shop.<key>").
+// Keep the en/zh key sets identical.
+export default {
+  en: {
+    group: "Shop",
+    products: "Products",
+    categories: "Categories",
+    landing: "Storefront",
+    title: "Products",
+    subtitle: "Manage shop products.",
+    add: "Add product",
+    edit: "Edit product",
+    name: "Name",
+    price: "Price",
+    description: "Description",
+    empty: "No products yet.",
+    savedToast: "Saved",
+    deletedToast: "Deleted",
+    categoriesSubtitle: "Manage product categories.",
+    landingTitle: "Welcome to the Shop",
+    landingSubtitle: "A sample public storefront served by the shop plugin.",
+    landingCta: "Sign in",
+  },
+  zh: {
+    group: "商城",
+    products: "商品",
+    categories: "分类",
+    landing: "店面",
+    title: "商品",
+    subtitle: "管理商城商品。",
+    add: "新增商品",
+    edit: "编辑商品",
+    name: "名称",
+    price: "价格",
+    description: "描述",
+    empty: "暂无商品。",
+    savedToast: "已保存",
+    deletedToast: "已删除",
+    categoriesSubtitle: "管理商品分类。",
+    landingTitle: "欢迎来到商城",
+    landingSubtitle: "由 shop 插件提供的示例公开店面。",
+    landingCta: "登录",
+  },
+};

@@ -69,7 +69,7 @@ func TestCasbinInterceptorMultiRole(t *testing.T) {
 
 	public := map[string]bool{}
 	selfServe := map[string]bool{}
-	interceptor := NewCasbinInterceptor(e, public, selfServe)
+	interceptor := NewCasbinInterceptor(e, public, selfServe, nil)
 
 	noop := connect.UnaryFunc(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
 		return connect.NewResponse(&struct{}{}), nil

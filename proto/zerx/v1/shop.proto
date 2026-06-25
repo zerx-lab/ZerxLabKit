@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package zerx.v1;
+
+import "buf/validate/validate.proto";
+import "zerx/v1/common.proto";
+
+option go_package = "github.com/zerx-lab/zerxlabkit/gen/go/zerx/v1;zerxv1";
+
+// ShopProductService is the example plugin's product CRUD. Provided by the
+// "shop" plugin (internal/plugin/impl/shop); guarded by Casbin like any core
+// service.
+service ShopProductService {
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc GetProduct(GetProductRequest) returns (ShopProduct);
+  rpc CreateProduct(CreateProductRequest) returns (ShopProduct);
+  rpc UpdateProduct(UpdateProductRequest) returns (ShopProduct);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+}
+
+message ShopProduct {
+  uint64 id = 1;
+  string name = 2;
+  int64 price = 3; // price in cents
+  string description = 4;
+  string created_at = 5;
+}
+
+message ListProductsRequest {
+  zerx.v1.PageRequest page = 1;
+  string keyword = 2;
+}
+
+message ListProductsResponse {
+  repeated ShopProduct products = 1;
+  int64 total = 2;
+}
+
+message GetProductRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message CreateProductRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+  int64 price = 2 [(buf.validate.field).int64.gte = 0];
+  string description = 3;
+}
+
+message UpdateProductRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+  string name = 2 [(buf.validate.field).string.min_len = 1];
+  int64 price = 3 [(buf.validate.field).int64.gte = 0];
+  string description = 4;
+}
+
+message DeleteProductRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteProductResponse {}
+
+// ShopCategoryService is the second sub-page of the grouped "shop" plugin,
+// demonstrating a one-group / multiple-sub-page navigation layout.
+service ShopCategoryService {
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (ShopCategory);
+  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+}
+
+message ShopCategory {
+  uint64 id = 1;
+  string name = 2;
+  string created_at = 3;
+}
+
+message ListCategoriesRequest {
+  zerx.v1.PageRequest page = 1;
+}
+
+message ListCategoriesResponse {
+  repeated ShopCategory categories = 1;
+  int64 total = 2;
+}
+
+message CreateCategoryRequest {
+  string name = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message DeleteCategoryRequest {
+  uint64 id = 1 [(buf.validate.field).uint64.gt = 0];
+}
+
+message DeleteCategoryResponse {}

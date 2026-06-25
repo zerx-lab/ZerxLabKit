@@ -45,8 +45,9 @@ Go · connectRPC · GORM ·  React 19 · TanStack · Tailwind v4
 # 首次设置:装工具/依赖 → 生成代码 → 创建 .env → 启动 dev PostgreSQL
 task sync
 
-# 启动开发环境:后端(air 热重载)+ 前端(Vite),并行于 process-compose TUI
-task dev
+# 启动开发环境(两个终端各跑一个,Ctrl+C 停止;无热重载,改代码后重跑)
+task dev:backend   # 后端(含 db:up + go run)
+task dev:web       # 前端 Vite(:5173 代理到 :8080)
 ```
 
 打开浏览器访问 `http://localhost:5173`,在 `/register` 注册首个用户(即管理员)。

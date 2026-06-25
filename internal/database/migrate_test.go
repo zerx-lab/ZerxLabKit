@@ -22,12 +22,12 @@ func openTestDB(t *testing.T) *gorm.DB {
 func TestMigrateSucceedsAndIsIdempotent(t *testing.T) {
 	db := openTestDB(t)
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(db, nil); err != nil {
 		t.Fatalf("first Migrate: %v", err)
 	}
 
 	// Second run must not fail.
-	if err := Migrate(db); err != nil {
+	if err := Migrate(db, nil); err != nil {
 		t.Fatalf("second Migrate (idempotency): %v", err)
 	}
 }
@@ -38,7 +38,7 @@ func TestMigrateSucceedsAndIsIdempotent(t *testing.T) {
 func TestMigrateCreatesUserRolesTable(t *testing.T) {
 	db := openTestDB(t)
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(db, nil); err != nil {
 		t.Fatalf("Migrate: %v", err)
 	}
 

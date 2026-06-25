@@ -65,6 +65,8 @@ const en = {
     run: "Run",
     expand: "Expand",
     collapse: "Collapse",
+    notFound: "Page not found",
+    error: "Error",
   },
   nav: {
     dashboard: "Dashboard",
@@ -85,6 +87,7 @@ const en = {
     siteSettings: "Site Settings",
     profile: "Profile",
     jobs: "Scheduled Jobs",
+    plugins: "Plugins",
   },
   login: {
     title: "Welcome back",
@@ -370,6 +373,37 @@ const en = {
     recoveryCodesDesc: "Save these codes in a secure place. Each can be used once.",
     disableCodeLabel: "Enter your current 2FA code to disable",
   },
+  pluginPage: {
+    title: "Plugin Management",
+    subtitle: "Compiled-in plugins. Enable/disable is a runtime toggle; install/uninstall needs a rebuild.",
+    installHint: "Install/uninstall requires a rebuild: scaffold with `task new-plugin`, then `task gen` + `task build` and restart. Disabling here hides a plugin's menus, denies its APIs, and skips its jobs at runtime.",
+    name: "Name",
+    services: "Services",
+    tables: "Tables",
+    menus: "Menus",
+    jobs: "Jobs",
+    enabled: "Enabled",
+    on: "On",
+    off: "Off",
+    empty: "No plugins compiled in.",
+    toggled: "Plugin state updated",
+    publicPages: "Public Pages",
+    group: "group",
+    dataRetained: "Disabling keeps the plugin's tables and data intact — only its menus, APIs and jobs are turned off. Re-enabling restores full access to the same data.",
+    upload: "Upload plugin",
+    installed: "Plugin {name} installed.",
+    uninstalled: "Plugin uninstalled.",
+    uninstall: "Uninstall",
+    uninstallTitle: "Uninstall plugin {name}?",
+    uninstallDesc: "This removes the plugin's code and menus. Choose whether to also drop its tables and delete all its data.",
+    uninstallPurgeWarn: "Dropping tables is irreversible — all data in this plugin's tables will be permanently deleted.",
+    uninstallPurge: "Drop tables & delete data",
+    uninstallKeep: "Keep data",
+    pendingDev: "Source written and code regenerated. Restart the backend (in dev: restart the backend process in mprocs) to apply.",
+    pendingProd: "Source written. Run task gen && task build in a build environment and redeploy to take effect.",
+    pendingRemoval: "Pending restart (removed)",
+    restarting: "Submitted. The server is rebuilding/restarting — refresh in a moment to see the result.",
+  },
   jobs: {
     title: "Scheduled Jobs",
     subtitle: "Manage and monitor cron-scheduled background tasks.",
@@ -474,6 +508,8 @@ const zh: typeof en = {
     run: "执行",
     expand: "展开",
     collapse: "收起",
+    notFound: "页面未找到",
+    error: "错误",
   },
   nav: {
     dashboard: "仪表盘",
@@ -494,6 +530,7 @@ const zh: typeof en = {
     siteSettings: "网站设置",
     profile: "个人中心",
     jobs: "定时任务",
+    plugins: "插件管理",
   },
   login: {
     title: "欢迎回来",
@@ -779,6 +816,37 @@ const zh: typeof en = {
     recoveryCodesDesc: "请将以下恢复码保存到安全的地方，每个只能使用一次。",
     disableCodeLabel: "输入当前验证码以关闭",
   },
+  pluginPage: {
+    title: "插件管理",
+    subtitle: "已编译进二进制的插件。启用/禁用为运行时开关;安装/卸载需重新构建。",
+    installHint: "安装/卸载需重新构建:用 `task new-plugin` 生成骨架,再 `task gen` + `task build` 并重启。此处禁用会在运行时隐藏插件菜单、拒绝其接口、跳过其任务。",
+    name: "名称",
+    services: "服务",
+    tables: "数据表",
+    menus: "菜单",
+    jobs: "任务",
+    enabled: "启用",
+    on: "已启用",
+    off: "已禁用",
+    empty: "没有已编译的插件。",
+    toggled: "插件状态已更新",
+    publicPages: "公开页",
+    group: "分组",
+    dataRetained: "禁用只关闭插件的菜单、接口与任务,其数据表与数据完整保留;重新启用即可恢复对同一批数据的访问。",
+    upload: "上传插件",
+    installed: "插件 {name} 已安装。",
+    uninstalled: "插件已卸载。",
+    uninstall: "卸载",
+    uninstallTitle: "卸载插件 {name}?",
+    uninstallDesc: "将移除该插件的代码与菜单。请选择是否同时 DROP 其数据表并删除全部数据。",
+    uninstallPurgeWarn: "DROP 数据表不可逆 —— 该插件数据表中的所有数据将被永久删除。",
+    uninstallPurge: "删除数据表与数据",
+    uninstallKeep: "保留数据",
+    pendingDev: "已写入源码并重新生成代码。请重启后端服务(dev 下在 mprocs 中重启 backend 进程)以生效。",
+    pendingProd: "已写入源码。请在构建环境执行 task gen && task build 并重新部署以生效。",
+    pendingRemoval: "待重启移除",
+    restarting: "已提交。服务正在重新编译/重启,请稍后刷新查看结果。",
+  },
   jobs: {
     title: "定时任务",
     subtitle: "管理和监控定时调度的后台任务。",
@@ -830,9 +898,50 @@ const zh: typeof en = {
   },
 };
 
-const dictionaries: Record<Locale, typeof en> = { en, zh };
+// Plugin translations are self-contained: each plugin ships an i18n module at
+// web/src/plugin-components/<name>/i18n.ts with a default export
+// `{ en: {...}, zh: {...} }`. We collect them at build time with the same
+// import.meta.glob mechanism the plugin page loader (p.$.tsx) uses for
+// components, and merge each plugin under the `plg.<name>` namespace. This way a
+// ZIP-installed plugin's translations are picked up on rebuild with no edit to
+// this file and no installer change — the plugin's i18n.ts is unpacked into its
+// plugin-components/<name>/ dir and glob-collected here automatically.
+type PluginLocaleEntry = Partial<Record<Locale, Record<string, unknown>>>;
 
-function resolve(dict: typeof en, path: string): string | undefined {
+const pluginI18nModules = import.meta.glob<{ default: PluginLocaleEntry }>(
+  "/src/plugin-components/**/i18n.ts",
+  { eager: true },
+);
+
+// pluginNamespaces[locale] is the `plg` object: { <name>: { ...keys } }.
+const pluginNamespaces: Record<Locale, Record<string, Record<string, unknown>>> = {
+  en: {},
+  zh: {},
+};
+
+for (const [path, mod] of Object.entries(pluginI18nModules)) {
+  // path is e.g. "/src/plugin-components/shop/i18n.ts" -> name "shop".
+  const name = path.split("/").at(-2);
+  if (!name) continue;
+  const entry = mod.default;
+  for (const locale of ["en", "zh"] as const) {
+    const table = entry?.[locale];
+    if (table) {
+      pluginNamespaces[locale][name] = table;
+    }
+  }
+}
+
+// Augmented dictionary type: the static `en`/`zh` shape plus the dynamic `plg`
+// namespace populated from plugins.
+type Dictionary = typeof en & { plg: Record<string, Record<string, unknown>> };
+
+const dictionaries: Record<Locale, Dictionary> = {
+  en: { ...en, plg: pluginNamespaces.en },
+  zh: { ...zh, plg: pluginNamespaces.zh },
+};
+
+function resolve(dict: Dictionary, path: string): string | undefined {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return path.split(".").reduce<any>((obj, key) => obj?.[key], dict) as string | undefined;
 }

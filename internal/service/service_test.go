@@ -23,10 +23,10 @@ func newTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, nil); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
-	if err := database.Seed(db); err != nil {
+	if err := database.Seed(db, nil); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 	return db
@@ -161,7 +161,7 @@ func TestSetRolePermissionsGrantsProcedure(t *testing.T) {
 
 func TestGetUserMenusAdminAndUser(t *testing.T) {
 	db := newTestDB(t)
-	menuSvc := NewMenuService(db)
+	menuSvc := NewMenuService(db, nil)
 
 	adminCtx := auth.WithClaims(context.Background(), &auth.Claims{UserID: 1, Roles: []string{"admin"}})
 	adminMenus, err := menuSvc.GetUserMenus(adminCtx, connect.NewRequest(&zerxv1.GetUserMenusRequest{}))
@@ -195,7 +195,7 @@ func countMenus(menus []*zerxv1.Menu) int {
 
 func TestGetUserMenusIncludesAncestorGroup(t *testing.T) {
 	db := newTestDB(t)
-	menuSvc := NewMenuService(db)
+	menuSvc := NewMenuService(db, nil)
 	ctx := context.Background()
 
 	// Find the "users" leaf menu (under the system group) and its parent.

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -52,6 +53,7 @@ var seedMenuTree = []seedMenuNode{
 			{node: seedMenu{menu: model.Menu{Path: "/files", Name: "files", Title: "nav.files", Icon: "FolderIcon", Sort: 8}}},
 			{node: seedMenu{menu: model.Menu{Path: "/sessions", Name: "sessions", Title: "nav.sessions", Icon: "MonitorIcon", Sort: 9}}},
 			{node: seedMenu{menu: model.Menu{Path: "/jobs", Name: "jobs", Title: "nav.jobs", Icon: "ClockIcon", Sort: 10}, buttons: append(crudButtons("job", "任务"), model.MenuButton{Code: "job:run", Name: "立即执行"})}},
+			{node: seedMenu{menu: model.Menu{Path: "/plugins", Name: "plugins", Title: "nav.plugins", Icon: "PuzzleIcon", Sort: 11, Component: "plugins"}, buttons: []model.MenuButton{{Code: "plugin:manage", Name: "插件启停"}}}},
 		},
 	},
 	{
@@ -69,13 +71,92 @@ type seedMenuNode struct {
 	children []seedMenuNode
 }
 
+// MenuSeed is the exported, plugin-package-independent menu node a caller (e.g.
+// cmd/server/main.go translating plugin.MenuNode) passes to Seed. It mirrors
+// seedMenuNode without importing the plugin package, keeping database free of a
+// database->plugin edge.
+type MenuSeed struct {
+	Name        string
+	Path        string
+	Component   string
+	Title       string
+	Icon        string
+	Sort        int
+	Hidden      bool
+	UserVisible bool
+	Buttons     []MenuButtonSeed
+	Children    []MenuSeed
+}
+
+// MenuButtonSeed is a permission button within a MenuSeed.
+type MenuButtonSeed struct {
+	Code string
+	Name string
+}
+
+// toSeedNodes converts exported MenuSeed nodes into the internal seedMenuNode
+// tree used by insertTree/syncMenus.
+func toSeedNodes(in []MenuSeed) []seedMenuNode {
+	out := make([]seedMenuNode, 0, len(in))
+	for i := range in {
+		n := in[i]
+		buttons := make([]model.MenuButton, 0, len(n.Buttons))
+		for j := range n.Buttons {
+			buttons = append(buttons, model.MenuButton{Code: n.Buttons[j].Code, Name: n.Buttons[j].Name})
+		}
+		out = append(out, seedMenuNode{
+			node: seedMenu{
+				menu: model.Menu{
+					Path:      n.Path,
+					Name:      n.Name,
+					Component: n.Component,
+					Title:     n.Title,
+					Icon:      n.Icon,
+					Sort:      n.Sort,
+					Hidden:    n.Hidden,
+				},
+				buttons:     buttons,
+				userVisible: n.UserVisible,
+			},
+			children: toSeedNodes(n.Children),
+		})
+	}
+	return out
+}
+
+// ReservedMenuIdentifiers returns the Name and Path sets of the core seed menu
+// tree, for plugin.ValidateAll collision checks (avoids a plugin import here).
+func ReservedMenuIdentifiers() (names, paths map[string]bool) {
+	names = make(map[string]bool)
+	paths = make(map[string]bool)
+	var walk func(nodes []seedMenuNode)
+	walk = func(nodes []seedMenuNode) {
+		for i := range nodes {
+			m := nodes[i].node.menu
+			names[m.Name] = true
+			if m.Path != "" {
+				paths[m.Path] = true
+			}
+			walk(nodes[i].children)
+		}
+	}
+	walk(seedMenuTree)
+	return names, paths
+}
+
 // Seed populates baseline RBAC data on a fresh database (idempotent on the Role
 // table being empty). On an already-initialized database it incrementally
 // reconciles menus and the API catalog every startup via syncMenus/syncAPIs
 // (insert-only: never updates or deletes), so new entries take effect on
 // restart without a DB reset. Casbin policies are NOT seeded: admin bypasses
 // enforcement and the user role relies only on self-serve procedures.
-func Seed(db *gorm.DB) error {
+func Seed(db *gorm.DB, extraMenus []MenuSeed) error {
+	// Combine the core seed tree with plugin-supplied menus once; both the fresh
+	// insert path and the incremental syncMenus path consume this tree.
+	tree := make([]seedMenuNode, 0, len(seedMenuTree)+len(extraMenus))
+	tree = append(tree, seedMenuTree...)
+	tree = append(tree, toSeedNodes(extraMenus)...)
+
 	if err := syncJobs(db); err != nil {
 		return err
 	}
@@ -85,7 +166,7 @@ func Seed(db *gorm.DB) error {
 	}
 	if count > 0 {
 		// Roles exist already: incrementally reconcile menus + API catalog.
-		if err := syncMenus(db); err != nil {
+		if err := syncMenus(db, tree); err != nil {
 			return err
 		}
 		return syncAPIs(db)
@@ -136,7 +217,7 @@ func Seed(db *gorm.DB) error {
 
 		return nil
 	}
-	if err := insertTree(seedMenuTree, 0); err != nil {
+	if err := insertTree(tree, 0); err != nil {
 		return err
 	}
 
@@ -178,7 +259,7 @@ func Seed(db *gorm.DB) error {
 // every menu+button; user: menus flagged userVisible) so admin sees them
 // immediately and the DB state matches a fresh seed. Idempotent: a second run
 // inserts nothing.
-func syncMenus(db *gorm.DB) error {
+func syncMenus(db *gorm.DB, tree []seedMenuNode) error {
 	ctx := context.Background()
 
 	existing, err := gorm.G[model.Menu](db).Find(ctx)
@@ -223,6 +304,27 @@ func syncMenus(db *gorm.DB) error {
 						return fmt.Errorf("sync menu grant user %q: %w", m.Name, err)
 					}
 				}
+			} else if isPluginMenuName(seed.menu.Name) {
+				// Plugin menus are reconciled (not insert-only): their layout fields are
+				// owned by the plugin's SeedMenus declaration, so a changed path/
+				// component/parent/title/icon/sort/hidden (e.g. a flat page becoming a
+				// grouped sub-page across versions) is synced rather than left stale.
+				// Core menus stay insert-only above so admin edits are preserved.
+				var parentID uint64
+				if parentName != "" {
+					parentID = byName[parentName]
+				}
+				if err := db.WithContext(ctx).Model(&model.Menu{}).Where("id = ?", menuID).Updates(map[string]any{
+					"parent_id": parentID,
+					"path":      seed.menu.Path,
+					"component": seed.menu.Component,
+					"title":     seed.menu.Title,
+					"icon":      seed.menu.Icon,
+					"sort":      seed.menu.Sort,
+					"hidden":    seed.menu.Hidden,
+				}).Error; err != nil {
+					return fmt.Errorf("sync menu reconcile %q: %w", seed.menu.Name, err)
+				}
 			}
 
 			for j := range seed.buttons {
@@ -247,7 +349,73 @@ func syncMenus(db *gorm.DB) error {
 		return nil
 	}
 
-	return walk(seedMenuTree, "")
+	if err := walk(tree, ""); err != nil {
+		return err
+	}
+
+	return pruneOrphanPluginMenus(db, tree)
+}
+
+// pruneOrphanPluginMenus removes menus whose Name is plugin-namespaced (plg_*)
+// but is no longer declared by any registered plugin (its node is absent from
+// the combined seed tree). This auto-cleans the sidebar after a plugin is
+// removed + rebuilt, so a stale "plg_<gone>" entry doesn't linger and render
+// NotFound. Only plugin-namespaced menus are touched — core menus and
+// admin-created menus (non-plg_ names) are never pruned. Owned data tables and
+// apis rows are NOT touched here (manual teardown.sql handles those, to avoid
+// deleting business data on a transient mis-registration).
+func pruneOrphanPluginMenus(db *gorm.DB, tree []seedMenuNode) error {
+	ctx := context.Background()
+
+	// Names declared by the current (core + registered-plugin) seed tree.
+	known := make(map[string]bool)
+	var collect func(nodes []seedMenuNode)
+	collect = func(nodes []seedMenuNode) {
+		for i := range nodes {
+			known[nodes[i].node.menu.Name] = true
+			collect(nodes[i].children)
+		}
+	}
+	collect(tree)
+
+	existing, err := gorm.G[model.Menu](db).Find(ctx)
+	if err != nil {
+		return fmt.Errorf("prune menus: load: %w", err)
+	}
+	var orphanIDs []uint64
+	for i := range existing {
+		if isPluginMenuName(existing[i].Name) && !known[existing[i].Name] {
+			orphanIDs = append(orphanIDs, existing[i].ID)
+		}
+	}
+	if len(orphanIDs) == 0 {
+		return nil
+	}
+
+	return db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Remove button grants, then buttons, then menu grants, then the menus.
+		if err := tx.Where("button_id IN (?)",
+			tx.Model(&model.MenuButton{}).Select("id").Where("menu_id IN ?", orphanIDs),
+		).Delete(&model.RoleButton{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("menu_id IN ?", orphanIDs).Delete(&model.MenuButton{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("menu_id IN ?", orphanIDs).Delete(&model.RoleMenu{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("id IN ?", orphanIDs).Delete(&model.Menu{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+// isPluginMenuName reports whether a menu Name belongs to a plugin (namespaced
+// "plg_*"). Plugin menus are reconciled by syncMenus; core menus are insert-only.
+func isPluginMenuName(name string) bool {
+	return strings.HasPrefix(name, "plg_")
 }
 
 func buttonKey(menuID uint64, code string) string {

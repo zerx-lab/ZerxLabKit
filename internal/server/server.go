@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -26,6 +28,7 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/mailer"
 	"github.com/zerx-lab/zerxlabkit/internal/media"
 	"github.com/zerx-lab/zerxlabkit/internal/param"
+	"github.com/zerx-lab/zerxlabkit/internal/plugin"
 	"github.com/zerx-lab/zerxlabkit/internal/ratelimit"
 	"github.com/zerx-lab/zerxlabkit/internal/service"
 	"github.com/zerx-lab/zerxlabkit/internal/storage"
@@ -34,7 +37,7 @@ import (
 
 // New builds the root HTTP handler: connectRPC services under /api, a multipart
 // upload endpoint at /api/upload, the embedded SPA at /, and /healthz.
-func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.Scheduler) (http.Handler, error) {
+func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.Scheduler, pluginState *plugin.State) (http.Handler, error) {
 	issuer := auth.NewIssuer(cfg.JWT)
 
 	enforcer, err := casbin.New(db)
@@ -48,6 +51,13 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	policy := auth.NewPolicy(cfg.Password)
 	mail := mailer.NewMailer(cfg.SMTP, logger)
 	registry := jobs.NewRegistry(db)
+	// Merge plugin job handlers so the JobService UI can list them as schedulable.
+	// The scheduler that actually executes jobs receives the same merge in main.go.
+	for _, p := range plugin.All() {
+		for k, jh := range p.JobHandlers() {
+			registry[k] = jobs.Descriptor{Handler: jh.Run, Description: jh.Description}
+		}
+	}
 
 	store, err := storage.New(cfg.Storage)
 	if err != nil {
@@ -79,6 +89,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		zerxv1connect.AuthServiceRequestPasswordResetProcedure:    true,
 		zerxv1connect.AuthServiceConfirmPasswordResetProcedure:    true,
 		zerxv1connect.SiteSettingsServiceGetSiteSettingsProcedure: true,
+		zerxv1connect.PluginServiceListPublicPagesProcedure:       true,
 	}
 
 	// selfServe: any authenticated caller is allowed (no Casbin check).
@@ -97,6 +108,21 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 		zerxv1connect.AuthServiceDisableTotpProcedure:    true,
 	}
 
+	// Merge plugin-declared public/self-serve procedures. ValidateAll (run at
+	// startup before any DB work) has already rejected (a) any procedure whose
+	// service the plugin does not declare and (b) any declared service not named
+	// with the plugin's PascalCase prefix — so a plugin cannot claim a core (or
+	// another plugin's) service and thus cannot downgrade a core procedure to
+	// public/self-serve here.
+	for _, p := range plugin.All() {
+		for _, proc := range p.PublicProcedures() {
+			public[proc] = true
+		}
+		for _, proc := range p.SelfServeProcedures() {
+			selfServe[proc] = true
+		}
+	}
+
 	// Interceptor chain (outermost first): logging -> auth -> operation log
 	// (also recovers panics) -> casbin -> validate. WithRecover is intentionally
 	// omitted; the operation-log interceptor records handler panics with stack.
@@ -109,7 +135,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	chain = append(chain,
 		auth.NewAuthInterceptor(issuer, public),
 		NewOperationLogInterceptor(db),
-		auth.NewCasbinInterceptor(enforcer, public, selfServe),
+		auth.NewCasbinInterceptor(enforcer, public, selfServe, pluginState.IsProcedureEnabled),
 		validate.NewInterceptor(),
 	)
 	opts := connect.WithInterceptors(chain...)
@@ -123,7 +149,7 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	reg(zerxv1connect.NewAuthServiceHandler(service.NewAuthService(db, issuer, guard, cap, cfg.Auth, mail, policy, paramCache, mediaResolver), opts))
 	reg(zerxv1connect.NewUserServiceHandler(service.NewUserService(db, policy, mediaResolver), opts))
 	reg(zerxv1connect.NewRoleServiceHandler(service.NewRoleService(db, enforcer), opts))
-	reg(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db), opts))
+	reg(zerxv1connect.NewMenuServiceHandler(service.NewMenuService(db, pluginState), opts))
 	reg(zerxv1connect.NewApiServiceHandler(service.NewApiService(db, enforcer), opts))
 	reg(zerxv1connect.NewDictServiceHandler(service.NewDictService(db), opts))
 	reg(zerxv1connect.NewSysParamServiceHandler(service.NewSysParamService(db, paramCache), opts))
@@ -131,7 +157,31 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	reg(zerxv1connect.NewLogServiceHandler(service.NewLogService(db), opts))
 	reg(zerxv1connect.NewSiteSettingsServiceHandler(service.NewSiteSettingsService(paramCache, mediaResolver), opts))
 	reg(zerxv1connect.NewDashboardServiceHandler(service.NewDashboardService(db), opts))
-	reg(zerxv1connect.NewJobServiceHandler(service.NewJobService(db, scheduler, registry), opts))
+	pluginRoot := cfg.Plugin.ProjectRoot
+	if pluginRoot == "" {
+		if wd, werr := os.Getwd(); werr == nil {
+			pluginRoot = wd
+		}
+	}
+	pluginModule := modulePath(pluginRoot)
+	// devGen: run `task gen` after install/uninstall only outside prod (prod
+	// distroless image has no toolchain). The plugin upload accepts a binary zip,
+	// so cap the request body (connect buffers it during receive, before the
+	// handler's gate) to avoid OOM via a giant POST.
+	pluginOpts := connect.WithOptions(opts, connect.WithReadMaxBytes(pluginUploadMaxBytes))
+	reg(zerxv1connect.NewPluginServiceHandler(service.NewPluginService(
+		pluginState, db, logger, cfg.UploadAllowed(), pluginRoot, pluginModule, cfg.Env != "prod",
+	), pluginOpts))
+	reg(zerxv1connect.NewJobServiceHandler(service.NewJobService(db, scheduler, registry, pluginState), opts))
+
+	// Plugin handlers register through the same reg/opts, so they are mounted on
+	// the API mux and covered by the full interceptor chain (incl. Casbin).
+	// assertServicesRegistered then enforces every compiled zerx.v1 plugin service
+	// is mounted (a missing one is fatal).
+	deps := plugin.Deps{DB: db, Opts: opts, Enforcer: enforcer, Media: mediaResolver, Logger: logger}
+	for _, p := range plugin.All() {
+		p.RegisterHandlers(plugin.RegFunc(reg), deps)
+	}
 
 	if err := assertServicesRegistered(registered); err != nil {
 		return nil, err
@@ -173,6 +223,26 @@ func New(cfg *config.Config, db *gorm.DB, logger *slog.Logger, scheduler *jobs.S
 	root.Handle("/", web.SPAHandler())
 
 	return root, nil
+}
+
+// pluginUploadMaxBytes caps the plugin install request body (source-only zip).
+const pluginUploadMaxBytes = 25 << 20 // 25 MB
+
+// modulePath reads the Go module path from go.mod at root (for plugin all.go
+// import lines), falling back to the canonical module if unreadable. Keeping it
+// runtime-derived makes install correct in forks created via `task new`.
+func modulePath(root string) string {
+	const fallback = "github.com/zerx-lab/zerxlabkit"
+	b, err := os.ReadFile(filepath.Join(root, "go.mod"))
+	if err != nil {
+		return fallback
+	}
+	for _, line := range strings.Split(string(b), "\n") {
+		if rest, ok := strings.CutPrefix(strings.TrimSpace(line), "module "); ok {
+			return strings.TrimSpace(rest)
+		}
+	}
+	return fallback
 }
 
 // assertServicesRegistered fails if any zerx.v1 service present in the compiled

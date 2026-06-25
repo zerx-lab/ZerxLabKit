@@ -202,9 +202,16 @@ function SidebarNode({
     );
   }
 
+  // Plugin pages share one splat route (/p/$); the typed Link needs the part
+  // after "/p/" as the _splat param (supports grouped sub-paths like
+  // /p/shop/products). Core menus keep their static path.
+  const isPlugin = menu.path.startsWith("/p/");
+  const linkProps = isPlugin
+    ? ({ to: "/p/$", params: { _splat: menu.path.slice(3) } } as const)
+    : ({ to: menu.path } as const);
   const link = (
     <Link
-      to={menu.path}
+      {...linkProps}
       className={cn(
         "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors",
         "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",

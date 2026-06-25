@@ -1762,6 +1762,192 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/zerx.v1.Menu'
+  /zerx.v1.PluginService/InstallPlugin:
+    post:
+      tags:
+        - zerx.v1.PluginService
+      summary: InstallPlugin
+      description: |-
+        InstallPlugin unpacks an uploaded plugin source package into the repo and
+         wires it into all.go. Compile-time model: it does NOT run the new code in
+         the current process; a rebuild/restart (auto via air in dev) applies it.
+         Admin-only and gated by PLUGIN_UPLOAD_ENABLED (off in prod by default).
+      operationId: zerx.v1.PluginService.InstallPlugin
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.InstallPluginRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.InstallPluginResponse'
+  /zerx.v1.PluginService/ListPlugins:
+    post:
+      tags:
+        - zerx.v1.PluginService
+      summary: ListPlugins
+      operationId: zerx.v1.PluginService.ListPlugins
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListPluginsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListPluginsResponse'
+  /zerx.v1.PluginService/ListPublicPages:
+    post:
+      tags:
+        - zerx.v1.PluginService
+      summary: ListPublicPages
+      description: |-
+        ListPublicPages is anonymous (public): it returns the public-facing pages of
+         enabled plugins so the unauthenticated /pub/$ route can resolve them.
+      operationId: zerx.v1.PluginService.ListPublicPages
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListPublicPagesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListPublicPagesResponse'
+  /zerx.v1.PluginService/SetPluginEnabled:
+    post:
+      tags:
+        - zerx.v1.PluginService
+      summary: SetPluginEnabled
+      operationId: zerx.v1.PluginService.SetPluginEnabled
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.SetPluginEnabledRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.PluginInfo'
+  /zerx.v1.PluginService/UninstallPlugin:
+    post:
+      tags:
+        - zerx.v1.PluginService
+      summary: UninstallPlugin
+      description: |-
+        UninstallPlugin removes a plugin's source + all.go lines (and optionally its
+         data) so a rebuild/restart drops it. Admin-only, same gate.
+      operationId: zerx.v1.PluginService.UninstallPlugin
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UninstallPluginRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.UninstallPluginResponse'
   /zerx.v1.RoleService/CreateRole:
     post:
       tags:
@@ -1972,6 +2158,286 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/zerx.v1.Role'
+  /zerx.v1.ShopCategoryService/CreateCategory:
+    post:
+      tags:
+        - zerx.v1.ShopCategoryService
+      summary: CreateCategory
+      operationId: zerx.v1.ShopCategoryService.CreateCategory
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateCategoryRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ShopCategory'
+  /zerx.v1.ShopCategoryService/DeleteCategory:
+    post:
+      tags:
+        - zerx.v1.ShopCategoryService
+      summary: DeleteCategory
+      operationId: zerx.v1.ShopCategoryService.DeleteCategory
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteCategoryRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteCategoryResponse'
+  /zerx.v1.ShopCategoryService/ListCategories:
+    post:
+      tags:
+        - zerx.v1.ShopCategoryService
+      summary: ListCategories
+      operationId: zerx.v1.ShopCategoryService.ListCategories
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListCategoriesRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListCategoriesResponse'
+  /zerx.v1.ShopProductService/CreateProduct:
+    post:
+      tags:
+        - zerx.v1.ShopProductService
+      summary: CreateProduct
+      operationId: zerx.v1.ShopProductService.CreateProduct
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.CreateProductRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ShopProduct'
+  /zerx.v1.ShopProductService/DeleteProduct:
+    post:
+      tags:
+        - zerx.v1.ShopProductService
+      summary: DeleteProduct
+      operationId: zerx.v1.ShopProductService.DeleteProduct
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.DeleteProductRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.DeleteProductResponse'
+  /zerx.v1.ShopProductService/GetProduct:
+    post:
+      tags:
+        - zerx.v1.ShopProductService
+      summary: GetProduct
+      operationId: zerx.v1.ShopProductService.GetProduct
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.GetProductRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ShopProduct'
+  /zerx.v1.ShopProductService/ListProducts:
+    post:
+      tags:
+        - zerx.v1.ShopProductService
+      summary: ListProducts
+      operationId: zerx.v1.ShopProductService.ListProducts
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.ListProductsRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ListProductsResponse'
+  /zerx.v1.ShopProductService/UpdateProduct:
+    post:
+      tags:
+        - zerx.v1.ShopProductService
+      summary: UpdateProduct
+      operationId: zerx.v1.ShopProductService.UpdateProduct
+      parameters:
+        - name: Connect-Protocol-Version
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/connect-protocol-version'
+        - name: Connect-Timeout-Ms
+          in: header
+          schema:
+            $ref: '#/components/schemas/connect-timeout-header'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/zerx.v1.UpdateProductRequest'
+        required: true
+      responses:
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/connect.error'
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/zerx.v1.ShopProduct'
   /zerx.v1.SiteSettingsService/GetSiteSettings:
     post:
       tags:
@@ -2640,6 +3106,15 @@ components:
       type: object
       title: ConfirmPasswordResetResponse
       additionalProperties: false
+    zerx.v1.CreateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          minLength: 1
+      title: CreateCategoryRequest
+      additionalProperties: false
     zerx.v1.CreateDictItemRequest:
       type: object
       properties:
@@ -2783,6 +3258,25 @@ components:
           title: description
       title: CreateParamRequest
       additionalProperties: false
+    zerx.v1.CreateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          minLength: 1
+        price:
+          type:
+            - integer
+            - string
+          title: price
+          minimum: 0
+          format: int64
+        description:
+          type: string
+          title: description
+      title: CreateProductRequest
+      additionalProperties: false
     zerx.v1.CreateRoleRequest:
       type: object
       properties:
@@ -2849,6 +3343,22 @@ components:
     zerx.v1.DeleteApiResponse:
       type: object
       title: DeleteApiResponse
+      additionalProperties: false
+    zerx.v1.DeleteCategoryRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteCategoryRequest
+      additionalProperties: false
+    zerx.v1.DeleteCategoryResponse:
+      type: object
+      title: DeleteCategoryResponse
       additionalProperties: false
     zerx.v1.DeleteDictItemRequest:
       type: object
@@ -2961,6 +3471,22 @@ components:
     zerx.v1.DeleteParamResponse:
       type: object
       title: DeleteParamResponse
+      additionalProperties: false
+    zerx.v1.DeleteProductRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: DeleteProductRequest
+      additionalProperties: false
+    zerx.v1.DeleteProductResponse:
+      type: object
+      title: DeleteProductResponse
       additionalProperties: false
     zerx.v1.DeleteRoleRequest:
       type: object
@@ -3217,6 +3743,18 @@ components:
           minLength: 1
       title: GetParamRequest
       additionalProperties: false
+    zerx.v1.GetProductRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+      title: GetProductRequest
+      additionalProperties: false
     zerx.v1.GetRolePermissionsRequest:
       type: object
       properties:
@@ -3295,6 +3833,35 @@ components:
           title: id
           format: int64
       title: GetUserRequest
+      additionalProperties: false
+    zerx.v1.InstallPluginRequest:
+      type: object
+      properties:
+        package:
+          type: string
+          title: package
+          maxLength: 26214400
+          minLength: 1
+          format: byte
+          description: zip archive bytes (<=25MB)
+      title: InstallPluginRequest
+      additionalProperties: false
+    zerx.v1.InstallPluginResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        pendingRestart:
+          type: boolean
+          title: pending_restart
+          description: |-
+            pending_restart is always true on success: the new code takes effect only
+             after a rebuild/restart (air auto-restarts in dev).
+        message:
+          type: string
+          title: message
+      title: InstallPluginResponse
       additionalProperties: false
     zerx.v1.Job:
       type: object
@@ -3387,6 +3954,30 @@ components:
             $ref: '#/components/schemas/zerx.v1.Api'
           title: apis
       title: ListApisResponse
+      additionalProperties: false
+    zerx.v1.ListCategoriesRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+      title: ListCategoriesRequest
+      additionalProperties: false
+    zerx.v1.ListCategoriesResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.ShopCategory'
+          title: categories
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListCategoriesResponse
       additionalProperties: false
     zerx.v1.ListDictItemsRequest:
       type: object
@@ -3688,6 +4279,67 @@ components:
           title: total
           format: int64
       title: ListParamsResponse
+      additionalProperties: false
+    zerx.v1.ListPluginsRequest:
+      type: object
+      title: ListPluginsRequest
+      additionalProperties: false
+    zerx.v1.ListPluginsResponse:
+      type: object
+      properties:
+        plugins:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.PluginInfo'
+          title: plugins
+        uploadAllowed:
+          type: boolean
+          title: upload_allowed
+          description: |-
+            upload_allowed mirrors the server gate (admin + non-prod by default); the UI
+             hides Upload/Uninstall when false so controls don't appear then 403.
+      title: ListPluginsResponse
+      additionalProperties: false
+    zerx.v1.ListProductsRequest:
+      type: object
+      properties:
+        page:
+          title: page
+          $ref: '#/components/schemas/zerx.v1.PageRequest'
+        keyword:
+          type: string
+          title: keyword
+      title: ListProductsRequest
+      additionalProperties: false
+    zerx.v1.ListProductsResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.ShopProduct'
+          title: products
+        total:
+          type:
+            - integer
+            - string
+          title: total
+          format: int64
+      title: ListProductsResponse
+      additionalProperties: false
+    zerx.v1.ListPublicPagesRequest:
+      type: object
+      title: ListPublicPagesRequest
+      additionalProperties: false
+    zerx.v1.ListPublicPagesResponse:
+      type: object
+      properties:
+        pages:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.PluginPublicPage'
+          title: pages
+      title: ListPublicPagesResponse
       additionalProperties: false
     zerx.v1.ListRolesRequest:
       type: object
@@ -4010,6 +4662,94 @@ components:
       title: PageResponse
       additionalProperties: false
       description: PageResponse is a reusable pagination response fragment.
+    zerx.v1.PluginInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        enabled:
+          type: boolean
+          title: enabled
+        services:
+          type: array
+          items:
+            type: string
+          title: services
+        tables:
+          type: array
+          items:
+            type: string
+          title: tables
+        migrationCount:
+          type: integer
+          title: migration_count
+          format: int32
+        menuCount:
+          type: integer
+          title: menu_count
+          format: int32
+        jobHandlers:
+          type: array
+          items:
+            type: string
+          title: job_handlers
+        menus:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.PluginMenu'
+          title: menus
+          description: namespaced menu paths + titles (detail)
+        publicPages:
+          type: array
+          items:
+            $ref: '#/components/schemas/zerx.v1.PluginPublicPage'
+          title: public_pages
+        pendingRemoval:
+          type: boolean
+          title: pending_removal
+          description: |-
+            pending_removal: this plugin is still compiled into the running binary but its
+             source was uninstalled on disk — it disappears after the next rebuild/restart.
+             The UI disables its controls and shows a "pending restart" badge.
+      title: PluginInfo
+      additionalProperties: false
+    zerx.v1.PluginMenu:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+        path:
+          type: string
+          title: path
+        title:
+          type: string
+          title: title
+      title: PluginMenu
+      additionalProperties: false
+      description: |-
+        PluginMenu is a flattened menu entry a plugin contributes (for the admin
+         detail view). Path is empty for a group heading.
+    zerx.v1.PluginPublicPage:
+      type: object
+      properties:
+        path:
+          type: string
+          title: path
+          description: namespaced "/pub/<plugin>" or "/pub/<plugin>/..."
+        component:
+          type: string
+          title: component
+          description: glob id, e.g. "shop/Landing"
+        title:
+          type: string
+          title: title
+      title: PluginPublicPage
+      additionalProperties: false
+      description: |-
+        PluginPublicPage is an anonymous-accessible front-end page a plugin serves at
+         /pub/<path>, rendered by the component glob id.
     zerx.v1.RefreshRequest:
       type: object
       properties:
@@ -4179,6 +4919,18 @@ components:
           title: last_seen_at
       title: Session
       additionalProperties: false
+    zerx.v1.SetPluginEnabledRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          minLength: 1
+        enabled:
+          type: boolean
+          title: enabled
+      title: SetPluginEnabledRequest
+      additionalProperties: false
     zerx.v1.SetRolePermissionsRequest:
       type: object
       properties:
@@ -4227,6 +4979,50 @@ components:
           type: string
           title: qr_image_base64
       title: SetupTotpResponse
+      additionalProperties: false
+    zerx.v1.ShopCategory:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        createdAt:
+          type: string
+          title: created_at
+      title: ShopCategory
+      additionalProperties: false
+    zerx.v1.ShopProduct:
+      type: object
+      properties:
+        id:
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+        price:
+          type:
+            - integer
+            - string
+          title: price
+          format: int64
+          description: price in cents
+        description:
+          type: string
+          title: description
+        createdAt:
+          type: string
+          title: created_at
+      title: ShopProduct
       additionalProperties: false
     zerx.v1.SiteSettings:
       type: object
@@ -4298,6 +5094,30 @@ components:
           title: value
           format: int64
       title: TimePoint
+      additionalProperties: false
+    zerx.v1.UninstallPluginRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          title: name
+          minLength: 1
+        purgeData:
+          type: boolean
+          title: purge_data
+          description: also run teardown (drop tables, delete menus/apis/...)
+      title: UninstallPluginRequest
+      additionalProperties: false
+    zerx.v1.UninstallPluginResponse:
+      type: object
+      properties:
+        pendingRestart:
+          type: boolean
+          title: pending_restart
+        message:
+          type: string
+          title: message
+      title: UninstallPluginResponse
       additionalProperties: false
     zerx.v1.UpdateApiRequest:
       type: object
@@ -4455,6 +5275,32 @@ components:
           type: string
           title: description
       title: UpdateParamRequest
+      additionalProperties: false
+    zerx.v1.UpdateProductRequest:
+      type: object
+      properties:
+        id:
+          exclusiveMinimum: 0
+          type:
+            - integer
+            - string
+          title: id
+          format: int64
+        name:
+          type: string
+          title: name
+          minLength: 1
+        price:
+          type:
+            - integer
+            - string
+          title: price
+          minimum: 0
+          format: int64
+        description:
+          type: string
+          title: description
+      title: UpdateProductRequest
       additionalProperties: false
     zerx.v1.UpdateProfileRequest:
       type: object
@@ -4620,10 +5466,25 @@ tags:
        and GetUserButtons are self-serve; the rest are Casbin-gated.
   - name: zerx.v1.SysParamService
     description: SysParamService manages runtime system parameters.
+  - name: zerx.v1.PluginService
+    description: |-
+      PluginService exposes the compiled-in plugin registry and runtime enable/
+       disable state. Compile-time plugins cannot be installed/uninstalled at
+       runtime (that needs a rebuild); enable/disable is a runtime gate that hides a
+       plugin's menus, denies its procedures, and skips its jobs. Admin-only.
   - name: zerx.v1.RoleService
     description: |-
       RoleService manages RBAC roles and their permission assignments. Authorization
        is enforced by the Casbin interceptor (admin bypasses).
+  - name: zerx.v1.ShopProductService
+    description: |-
+      ShopProductService is the example plugin's product CRUD. Provided by the
+       "shop" plugin (internal/plugin/impl/shop); guarded by Casbin like any core
+       service.
+  - name: zerx.v1.ShopCategoryService
+    description: |-
+      ShopCategoryService is the second sub-page of the grouped "shop" plugin,
+       demonstrating a one-group / multiple-sub-page navigation layout.
   - name: zerx.v1.SiteSettingsService
     description: |-
       SiteSettingsService manages site-wide presentation settings (name, logo,

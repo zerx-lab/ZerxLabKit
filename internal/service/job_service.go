@@ -13,22 +13,34 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/jobs"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
+	"github.com/zerx-lab/zerxlabkit/internal/plugin"
 )
 
 // JobService implements zerxv1connect.JobServiceHandler. Authorization is
 // enforced by the Casbin interceptor.
 type JobService struct {
-	db        *gorm.DB
-	scheduler *jobs.Scheduler
-	registry  jobs.Registry
+	db          *gorm.DB
+	scheduler   *jobs.Scheduler
+	registry    jobs.Registry
+	pluginState *plugin.State
 }
 
 var _ zerxv1connect.JobServiceHandler = (*JobService)(nil)
 
 // NewJobService constructs the job handler. scheduler may be nil in tests that
 // never call scheduling RPCs.
-func NewJobService(db *gorm.DB, scheduler *jobs.Scheduler, registry jobs.Registry) *JobService {
-	return &JobService{db: db, scheduler: scheduler, registry: registry}
+func NewJobService(db *gorm.DB, scheduler *jobs.Scheduler, registry jobs.Registry, pluginState *plugin.State) *JobService {
+	return &JobService{db: db, scheduler: scheduler, registry: registry, pluginState: pluginState}
+}
+
+// handlerEnabled reports whether a job handler key may be listed/scheduled: core
+// handlers always, plugin handlers only when the owning plugin is enabled. A nil
+// pluginState (tests) treats all as enabled.
+func (s *JobService) handlerEnabled(key string) bool {
+	if s.pluginState == nil {
+		return true
+	}
+	return s.pluginState.IsJobHandlerEnabled(key)
 }
 
 func (s *JobService) ListJobs(ctx context.Context, req *connect.Request[zerxv1.ListJobsRequest]) (*connect.Response[zerxv1.ListJobsResponse], error) {
@@ -172,6 +184,9 @@ func (s *JobService) ListJobExecutions(ctx context.Context, req *connect.Request
 func (s *JobService) ListHandlers(_ context.Context, _ *connect.Request[zerxv1.ListHandlersRequest]) (*connect.Response[zerxv1.ListHandlersResponse], error) {
 	out := make([]*zerxv1.JobHandler, 0, len(s.registry))
 	for key, desc := range s.registry {
+		if !s.handlerEnabled(key) {
+			continue // hide handlers of disabled plugins from the picker
+		}
 		out = append(out, &zerxv1.JobHandler{Key: key, Description: desc.Description})
 	}
 
@@ -181,6 +196,9 @@ func (s *JobService) ListHandlers(_ context.Context, _ *connect.Request[zerxv1.L
 func (s *JobService) validate(handler, cronExpr string) error {
 	if _, ok := s.registry[handler]; !ok {
 		return connect.NewError(connect.CodeInvalidArgument, errors.New("未知的任务处理器"))
+	}
+	if !s.handlerEnabled(handler) {
+		return connect.NewError(connect.CodeInvalidArgument, errors.New("该任务处理器所属插件已禁用"))
 	}
 	if !jobs.ValidCron(cronExpr) {
 		return connect.NewError(connect.CodeInvalidArgument, errors.New("无效的 cron 表达式"))

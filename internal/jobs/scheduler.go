@@ -3,7 +3,9 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
@@ -21,6 +23,9 @@ type Scheduler struct {
 	registry Registry
 	logger   *slog.Logger
 	jobs     map[string]uuid.UUID // job name -> gocron job id
+	// handlerEnabled reports whether a handler key may run (used to skip jobs of
+	// disabled plugins). nil = always enabled.
+	handlerEnabled func(handler string) bool
 }
 
 // New builds a Scheduler. Call Start to load and schedule enabled jobs.
@@ -35,6 +40,20 @@ func New(db *gorm.DB, registry Registry, logger *slog.Logger) (*Scheduler, error
 	}
 
 	return &Scheduler{sch: sch, db: db, registry: registry, logger: logger, jobs: make(map[string]uuid.UUID)}, nil
+}
+
+// SetHandlerEnabled installs a predicate gating whether a handler key may run.
+// Used to skip jobs owned by a disabled plugin. Safe to call once at startup.
+func (s *Scheduler) SetHandlerEnabled(fn func(handler string) bool) {
+	s.handlerEnabled = fn
+}
+
+// handlerAllowed reports whether the handler may execute now.
+func (s *Scheduler) handlerAllowed(handler string) bool {
+	if s.handlerEnabled == nil {
+		return true
+	}
+	return s.handlerEnabled(handler)
 }
 
 // Start schedules all enabled jobs and starts the scheduler. Uses a background
@@ -67,7 +86,7 @@ func (s *Scheduler) schedule(job model.ScheduledJob) error {
 	}
 	j, err := s.sch.NewJob(
 		gocron.CronJob(job.CronExpr, false),
-		gocron.NewTask(s.wrap(job.ID, job.Name, desc.Handler)),
+		gocron.NewTask(s.wrap(job.ID, job.Name, job.Handler, desc.Handler)),
 	)
 	if err != nil {
 		return err
@@ -78,11 +97,26 @@ func (s *Scheduler) schedule(job model.ScheduledJob) error {
 }
 
 // wrap records a JobExecution around the handler and updates LastRunAt.
-func (s *Scheduler) wrap(jobID uint64, name string, h HandlerFunc) func() {
+func (s *Scheduler) wrap(jobID uint64, name, handler string, h HandlerFunc) func() {
 	return func() {
+		// Skip jobs whose owning plugin is disabled (checked at fire time so a
+		// plugin disabled after scheduling is also skipped).
+		if !s.handlerAllowed(handler) {
+			s.logger.Info("job skipped: plugin disabled", "job", name, "handler", handler)
+			return
+		}
 		ctx := context.Background()
 		start := time.Now()
-		runErr := h(ctx)
+		var runErr error
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					runErr = fmt.Errorf("panic: %v", r)
+					s.logger.Error("job panic", "job", name, "stack", string(debug.Stack()))
+				}
+			}()
+			runErr = h(ctx)
+		}()
 		finished := time.Now()
 		status := "ok"
 		errStr := ""
@@ -131,7 +165,7 @@ func (s *Scheduler) RunNow(jobID uint64, name, handler string) error {
 	if !ok {
 		return errors.New("unknown handler: " + handler)
 	}
-	go s.wrap(jobID, name, desc.Handler)()
+	go s.wrap(jobID, name, handler, desc.Handler)()
 
 	return nil
 }

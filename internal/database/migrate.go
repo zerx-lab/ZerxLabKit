@@ -15,7 +15,10 @@ import (
 //
 // casbin_rule is never listed here: the gorm-adapter inside casbin.New
 // auto-migrates it (later, in server.New), independent of the migrations table.
-func Migrate(db *gorm.DB) error {
+// extra holds plugin-supplied migrations appended after the core 0001-0005 set;
+// cmd/server/main.go passes plugin.CollectMigrations() (database does not import
+// the plugin package, avoiding the database->plugin->jobs import cycle).
+func Migrate(db *gorm.DB, extra []*gormigrate.Migration) error {
 	migrations := []*gormigrate.Migration{
 		{
 			ID: "0001_baseline",
@@ -45,6 +48,7 @@ func Migrate(db *gorm.DB) error {
 					&model.JobLock{},
 					&model.CaptchaCode{},
 					&model.LoginAttempt{},
+					&model.PluginState{},
 				)
 			},
 			Rollback: func(*gorm.DB) error { return nil },
@@ -109,7 +113,16 @@ func Migrate(db *gorm.DB) error {
 			},
 			Rollback: func(*gorm.DB) error { return nil },
 		},
+		{
+			ID: "0006_plugin_states",
+			Migrate: func(tx *gorm.DB) error {
+				return tx.AutoMigrate(&model.PluginState{})
+			},
+			Rollback: func(*gorm.DB) error { return nil },
+		},
 	}
+
+	migrations = append(migrations, extra...)
 
 	return gormigrate.New(db, gormigrate.DefaultOptions, migrations).Migrate()
 }

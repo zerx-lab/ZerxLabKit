@@ -43,15 +43,16 @@ tasks:
       - task: proto:gen
       - task: db:gen
 
-  dev:
-    desc: Run backend (air hot-reload) + frontend (Vite) in a process-compose TUI
+  dev:backend:
+    desc: Run the backend in the foreground (Ctrl+C to stop). No hot reload — rerun to pick up changes.
     deps: [env:ensure, db:up]
-    env:
-      ZERX_AIR: '{{.ROOT_DIR}}/.bin/air{{if eq OS "windows"}}.exe{{end}}'
     cmds:
-      # TUI: ↑/↓ select · F5 restart · F9 stop · F7 start · F10 quit.
-      # process-compose's own API runs on 8088 to avoid the app's :8080.
-      - '{{.ROOT_DIR}}/.bin/process-compose{{if eq OS "windows"}}.exe{{end}} up -p 8088'
+      - task: backend:dev
+
+  dev:web:
+    desc: Run the Vite dev server in the foreground (Ctrl+C to stop). Proxies :5173 -> backend :8080.
+    cmds:
+      - task: frontend:dev
 
   build:
     desc: Build the SPA, then the native server binary that embeds it
@@ -81,6 +82,16 @@ tasks:
     desc: Run the built server binary (requires JWT_SECRET; .env suffices in dev)
     cmds:
       - "{{.BIN}}"
+
+  new-plugin:
+    desc: 'Scaffold a plugin (proto+impl+web+all.go). Usage: task new-plugin -- <name> [field:type,...]'
+    cmds:
+      - task: backend:new-plugin
+
+  plugin-pack:
+    desc: 'Pack an installed plugin into a distributable <name>.zip. Usage: task plugin-pack -- <name>'
+    cmds:
+      - task: backend:plugin-pack
 
   new:
     desc: 'Scaffold a new project from this template (rename module/brand/db). Usage: task new -- github.com/acme/foo ../foo [--brand Foo] [--db foo]'

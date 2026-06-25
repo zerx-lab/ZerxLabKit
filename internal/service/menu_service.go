@@ -13,18 +13,35 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/audit"
 	"github.com/zerx-lab/zerxlabkit/internal/auth"
 	"github.com/zerx-lab/zerxlabkit/internal/model"
+	"github.com/zerx-lab/zerxlabkit/internal/plugin"
 )
 
 // MenuService implements zerxv1connect.MenuServiceHandler.
 type MenuService struct {
-	db *gorm.DB
+	db          *gorm.DB
+	pluginState *plugin.State
 }
 
 var _ zerxv1connect.MenuServiceHandler = (*MenuService)(nil)
 
-// NewMenuService constructs the menu handler.
-func NewMenuService(db *gorm.DB) *MenuService {
-	return &MenuService{db: db}
+// NewMenuService constructs the menu handler. pluginState filters menus owned by
+// disabled plugins out of GetUserMenus (nil = no filtering, e.g. in tests).
+func NewMenuService(db *gorm.DB, pluginState *plugin.State) *MenuService {
+	return &MenuService{db: db, pluginState: pluginState}
+}
+
+// keepMenu reports whether a menu row should be surfaced to users: always true
+// for core menus, and for plugin menus (name prefixed "plg_<plugin>") only when
+// the owning plugin is enabled.
+func (s *MenuService) keepMenu(m model.Menu) bool {
+	if s.pluginState == nil {
+		return true
+	}
+	name := plugin.PluginNameOfMenu(m.Name)
+	if name == "" {
+		return true
+	}
+	return s.pluginState.IsEnabled(name)
 }
 
 func (s *MenuService) ListMenus(ctx context.Context, _ *connect.Request[zerxv1.ListMenusRequest]) (*connect.Response[zerxv1.ListMenusResponse], error) {
@@ -182,6 +199,18 @@ func (s *MenuService) GetUserMenus(ctx context.Context, _ *connect.Request[zerxv
 	menus, buttons, err := s.loadMenusAndButtons(ctx)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	// Drop menus owned by disabled plugins (applies to admin too: a disabled
+	// plugin is fully hidden).
+	if s.pluginState != nil {
+		filtered := menus[:0]
+		for i := range menus {
+			if s.keepMenu(menus[i]) {
+				filtered = append(filtered, menus[i])
+			}
+		}
+		menus = filtered
 	}
 
 	if slices.Contains(claims.Roles, model.RoleAdmin) {

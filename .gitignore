@@ -23,6 +23,9 @@ internal/web/dist/*
 # Runtime / temp
 /tmp/
 
+# Task incremental-build checksum cache
+/.task/
+
 # Dependency snapshots (deps:rollback)
 /.deps-snapshot/
 

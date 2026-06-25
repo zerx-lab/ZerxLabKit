@@ -20,7 +20,26 @@ type Config struct {
 	Password  PasswordPolicyConfig
 	SMTP      SMTPConfig
 	RateLimit RateLimitConfig
+	Plugin    PluginConfig
 	Env       string `env:"APP_ENV" envDefault:"dev"`
+}
+
+// PluginConfig governs runtime plugin install/uninstall via uploaded source
+// packages. Because installing a plugin writes executable Go source into the
+// repo and recompiles it (RCE-class), uploads default to enabled only outside
+// production; set PLUGIN_UPLOAD_ENABLED=true to allow it in prod.
+type PluginConfig struct {
+	UploadEnabled *bool  `env:"PLUGIN_UPLOAD_ENABLED"` // nil => default by env (on unless prod)
+	ProjectRoot   string `env:"PLUGIN_PROJECT_ROOT"`   // repo root to write into; empty => cwd
+}
+
+// UploadAllowed reports whether plugin upload/install/uninstall is permitted:
+// the explicit PLUGIN_UPLOAD_ENABLED wins; otherwise allowed only outside prod.
+func (c *Config) UploadAllowed() bool {
+	if c.Plugin.UploadEnabled != nil {
+		return *c.Plugin.UploadEnabled
+	}
+	return c.Env != "prod"
 }
 
 // PasswordPolicyConfig configures password strength and reuse rules.

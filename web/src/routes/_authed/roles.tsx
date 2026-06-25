@@ -246,11 +246,12 @@ function DeleteRoleDialog({ role, onDone }: { role: Role; onDone: () => void }) 
 interface FlatMenu {
   menu: Menu;
   depth: number;
+  isGroup: boolean;
 }
 
 function flattenMenus(menus: Menu[], depth = 0, out: FlatMenu[] = []): FlatMenu[] {
   for (const m of menus) {
-    out.push({ menu: m, depth });
+    out.push({ menu: m, depth, isGroup: m.children.length > 0 });
     flattenMenus(m.children, depth + 1, out);
   }
   return out;
@@ -370,17 +371,25 @@ function PermissionsForm({ role, onClose }: { role: Role; onClose: () => void })
 
         <TabsContent value="menus" className="max-h-96 overflow-y-auto">
           <div className="flex flex-col gap-1 py-2">
-            {flatMenus.map(({ menu, depth }) => (
+            {flatMenus.map(({ menu, depth, isGroup }) => (
               <label
                 key={String(menu.id)}
-                className="flex items-center gap-2 rounded px-2 py-1 hover:bg-accent"
-                style={{ paddingLeft: depth * 20 + 8 }}
+                className={`flex items-center gap-2 rounded px-2 py-1 hover:bg-accent ${
+                  isGroup ? "mt-1 first:mt-0" : ""
+                }`}
+                style={{ paddingLeft: depth * 24 + 8 }}
               >
                 <Checkbox
                   checked={menuIds.has(menu.id)}
                   onCheckedChange={() => toggleMenu(menu.id)}
                 />
-                <span className="text-sm">{t(menu.title)}</span>
+                <span
+                  className={
+                    isGroup ? "text-sm font-semibold text-muted-foreground" : "text-sm"
+                  }
+                >
+                  {t(menu.title)}
+                </span>
               </label>
             ))}
           </div>

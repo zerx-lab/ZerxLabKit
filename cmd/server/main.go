@@ -16,6 +16,8 @@ import (
 	"github.com/zerx-lab/zerxlabkit/internal/config"
 	"github.com/zerx-lab/zerxlabkit/internal/database"
 	"github.com/zerx-lab/zerxlabkit/internal/jobs"
+	"github.com/zerx-lab/zerxlabkit/internal/plugin"
+	"github.com/zerx-lab/zerxlabkit/internal/plugins"
 	"github.com/zerx-lab/zerxlabkit/internal/server"
 )
 
@@ -37,6 +39,15 @@ func run() error {
 
 	logger := newLogger(cfg.Env)
 
+	// Register compiled-in plugins (pure in-memory) and validate them before any
+	// DB work. ValidateAll enforces naming/namespacing and the procedure-ownership
+	// security boundary; a violation aborts startup.
+	plugins.Register()
+	reservedNames, reservedPaths := database.ReservedMenuIdentifiers()
+	if err := plugin.ValidateAll(plugin.Reserved{MenuNames: reservedNames, MenuPaths: reservedPaths}); err != nil {
+		return fmt.Errorf("validate plugins: %w", err)
+	}
+
 	db, err := database.Open(cfg.DB, cfg.Env)
 	if err != nil {
 		return fmt.Errorf("open database: %w", err)
@@ -47,21 +58,42 @@ func run() error {
 		}
 	}()
 
-	if err := database.Migrate(db); err != nil {
+	if err := database.Migrate(db, plugin.CollectMigrations()); err != nil {
 		return fmt.Errorf("migrate: %w", err)
 	}
 
-	if err := database.Seed(db); err != nil {
+	if err := database.Seed(db, collectPluginMenus()); err != nil {
 		return fmt.Errorf("seed: %w", err)
 	}
 
+	// Runtime plugin enable/disable state (loaded from plugin_states); gates
+	// procedures (Casbin interceptor), menus (GetUserMenus), and jobs (scheduler).
+	pluginState, err := plugin.NewState(db)
+	if err != nil {
+		return fmt.Errorf("load plugin state: %w", err)
+	}
+	// On multi-replica drivers, periodically reload so an enable/disable on one
+	// replica propagates to the others (single-node stays correct via the
+	// in-process SetEnabled update). Mirrors param.Cache.StartReloader.
+	if cfg.DB.Driver == "postgres" || cfg.DB.Driver == "mysql" {
+		go pluginState.StartReloader(context.Background(), 30*time.Second)
+	}
+
 	registry := jobs.NewRegistry(db)
+	// Merge plugin job handlers into the scheduler registry: without this the
+	// scheduler would log "unknown handler" and silently skip plugin jobs.
+	for _, p := range plugin.All() {
+		for k, jh := range p.JobHandlers() {
+			registry[k] = jobs.Descriptor{Handler: jh.Run, Description: jh.Description}
+		}
+	}
 	scheduler, err := jobs.New(db, registry, logger)
 	if err != nil {
 		return fmt.Errorf("build scheduler: %w", err)
 	}
+	scheduler.SetHandlerEnabled(pluginState.IsJobHandlerEnabled)
 
-	handler, err := server.New(cfg, db, logger, scheduler)
+	handler, err := server.New(cfg, db, logger, scheduler, pluginState)
 	if err != nil {
 		return fmt.Errorf("build server: %w", err)
 	}
@@ -109,6 +141,41 @@ func run() error {
 	logger.Info("server stopped")
 
 	return nil
+}
+
+// collectPluginMenus flattens every registered plugin's SeedMenus into the
+// database package's MenuSeed type (the conversion lives here so neither the
+// database nor plugin package depends on the other).
+func collectPluginMenus() []database.MenuSeed {
+	var out []database.MenuSeed
+	for _, p := range plugin.All() {
+		out = append(out, toMenuSeeds(p.SeedMenus())...)
+	}
+	return out
+}
+
+func toMenuSeeds(in []plugin.MenuNode) []database.MenuSeed {
+	out := make([]database.MenuSeed, 0, len(in))
+	for i := range in {
+		n := in[i]
+		buttons := make([]database.MenuButtonSeed, 0, len(n.Buttons))
+		for j := range n.Buttons {
+			buttons = append(buttons, database.MenuButtonSeed{Code: n.Buttons[j].Code, Name: n.Buttons[j].Name})
+		}
+		out = append(out, database.MenuSeed{
+			Name:        n.Name,
+			Path:        n.Path,
+			Component:   n.Component,
+			Title:       n.Title,
+			Icon:        n.Icon,
+			Sort:        n.Sort,
+			Hidden:      n.Hidden,
+			UserVisible: n.UserVisible,
+			Buttons:     buttons,
+			Children:    toMenuSeeds(n.Children),
+		})
+	}
+	return out
 }
 
 func newLogger(env string) *slog.Logger {
