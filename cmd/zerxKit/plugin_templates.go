@@ -92,7 +92,7 @@ type {{.Pascal}} struct {
 func ({{.Pascal}}) TableName() string { return "plg_{{.Name}}_{{.Name}}s" }
 `
 
-const pluginTmpl = `// Package {{.Name}} is a zerxLabKit plugin scaffolded by pluginnew.
+const pluginTmpl = `// Package {{.Name}} is a zerxLabKit plugin scaffolded by zerxKit.
 package {{.Name}}
 
 import (

@@ -50,9 +50,9 @@ tasks:
   new-plugin:
     desc: 'Scaffold a plugin (proto+impl+web+all.go). Usage: task new-plugin -- <name> [field:type,...]'
     cmds:
-      - go run ./cmd/pluginnew {{.CLI_ARGS}}
+      - go run ./cmd/zerxKit plugin {{.CLI_ARGS}}
 
   plugin-pack:
     desc: 'Pack an installed plugin into a distributable <name>.zip. Usage: task plugin-pack -- <name>'
     cmds:
-      - go run ./cmd/pluginnew pack {{.CLI_ARGS}}
+      - go run ./cmd/zerxKit plugin pack {{.CLI_ARGS}}

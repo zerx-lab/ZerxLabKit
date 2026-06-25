@@ -1,11 +1,3 @@
-// Command pluginnew scaffolds a zerxLabKit plugin: a proto service, the plugin
-// implementation (plugin.go/model.go/service.go), a frontend page, a teardown
-// SQL note, and the two anchored lines in internal/plugins/all.go.
-//
-// Usage: task new-plugin -- <name> [field:type,...]
-//
-// After running: task gen (proto Go/TS + connect-query) -> fill business logic
-// -> task build -> restart.
 package main
 
 import (
@@ -33,7 +25,7 @@ type field struct {
 	GoType    string
 }
 
-type data struct {
+type pluginData struct {
 	Name      string // shop
 	Pascal    string // Shop
 	Module    string
@@ -41,20 +33,13 @@ type data struct {
 	HasFields bool
 }
 
-func main() {
-	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "pluginnew:", err)
-		os.Exit(1)
-	}
-}
-
-func run(args []string) error {
+func runPlugin(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("usage: pluginnew <name> [field:type,...]  |  pluginnew pack <name>")
+		return fmt.Errorf("usage: zerxKit plugin <name> [field:type,...]  |  zerxKit plugin pack <name>")
 	}
 	if args[0] == "pack" {
 		if len(args) < 2 {
-			return fmt.Errorf("usage: pluginnew pack <name>")
+			return fmt.Errorf("usage: zerxKit plugin pack <name>")
 		}
 		return packPlugin(args[1])
 	}
@@ -82,7 +67,7 @@ func run(args []string) error {
 		return err
 	}
 
-	d := data{
+	d := pluginData{
 		Name:      name,
 		Pascal:    pascal(name),
 		Module:    module,
@@ -238,7 +223,7 @@ func rel(root, p string) string {
 	return r
 }
 
-func renderFile(path, tmpl string, d data) error {
+func renderFile(path, tmpl string, d pluginData) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}

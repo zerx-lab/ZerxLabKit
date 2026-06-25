@@ -19,6 +19,16 @@
 //
 // Only `go build` is required to compile the generated project; codegen tools
 // (buf, protoc, gorm cli) are not needed at creation time.
+//
+// zerxKit also scaffolds and packages plugins via the `plugin` subcommand:
+//
+//	zerxKit plugin <name> [field:type,...]   scaffold a plugin (proto + impl +
+//	                                         frontend page + teardown SQL +
+//	                                         the anchored lines in all.go)
+//	zerxKit plugin pack <name>               pack an installed plugin into
+//	                                         <name>.zip for distribution
+//
+// A bare invocation (no `plugin` subcommand) still performs project scaffolding.
 package main
 
 import (
@@ -65,6 +75,13 @@ var localStorageKeys = []string{
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "plugin" {
+		if err := runPlugin(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, "zerxKit plugin:", err)
+			os.Exit(1)
+		}
+		return
+	}
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, "zerxKit:", err)
 		os.Exit(1)
